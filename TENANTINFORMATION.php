@@ -1,0 +1,679 @@
+<?php
+$host = 'localhost';
+$db = 'ryc_dormitelle';
+$user = 'root';
+$pass = '';
+$conn = new mysqli($host, $user, $pass, $db);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$tenant = null;
+
+// Handle Update and Delete operations
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $tenant_ID = $_POST['tenant_ID'];
+
+    if (isset($_POST['update'])) {
+        $tenant_name = $_POST['tenant_name'];
+        $contact_number = $_POST['contact_number'];
+        $unit_no = $_POST['unit_no'];
+        $emergency_contact_name = $_POST['emergency_contact_name'];
+        $emergency_contact_num = $_POST['emergency_contact_num'];
+        $lease_start_date = $_POST['lease_start_date'];
+        $lease_end_date = $_POST['lease_end_date'];
+        $lease_payment_due = $_POST['rent_payment_due'];
+        $lease_payment_amount = $_POST['monthly_rent_amount'];
+        $lease_status = $_POST['lease_status'];
+
+        $tenant_image = '';
+        if (isset($_FILES['tenant_image']) && $_FILES['tenant_image']['error'] === UPLOAD_ERR_OK) {
+            $imageTmpPath = $_FILES['tenant_image']['tmp_name'];
+            $imageName = basename($_FILES['tenant_image']['name']);
+            $imageUploadPath = 'tenants_images/' . $imageName;
+
+            if (move_uploaded_file($imageTmpPath, $imageUploadPath)) {
+                $tenant_image = $imageName;
+            }
+        }
+
+        if ($tenant_image) {
+            $stmt = $conn->prepare("UPDATE tenants SET tenant_name=?, contact_number=?, emergency_contact_name=?, emergency_contact_num=?, tenant_image=? WHERE tenant_ID=?");
+            $stmt->bind_param("ssssss", $tenant_name, $contact_number, $emergency_contact_name, $emergency_contact_num, $tenant_image, $tenant_ID);
+        } else {
+            $stmt = $conn->prepare("UPDATE tenants SET tenant_name=?, contact_number=?, emergency_contact_name=?, emergency_contact_num=? WHERE tenant_ID=?");
+            $stmt->bind_param("sssss", $tenant_name, $contact_number, $emergency_contact_name, $emergency_contact_num, $tenant_ID);
+        }
+        $stmt->execute();
+        $stmt->close();
+
+        $stmt = $conn->prepare("UPDATE tenant_unit SET unit_no=?, lease_start_date=?, lease_end_date=?, lease_payment_amount=?, lease_payment_due=?, lease_status=? WHERE tenant_ID=?");
+        $stmt->bind_param("sssssss", $unit_no, $lease_start_date, $lease_end_date, $lease_payment_amount, $lease_payment_due, $lease_status, $tenant_ID);
+        $stmt->execute();
+        $stmt->close();
+
+        header("Location: TENANTSLIST.php");
+        exit();
+    }
+
+    if (isset($_POST['delete'])) {
+        $stmt = $conn->prepare("DELETE FROM tenant_unit WHERE tenant_ID=?");
+        $stmt->bind_param("s", $tenant_ID);
+        $stmt->execute();
+        $stmt->close();
+
+        $stmt = $conn->prepare("DELETE FROM tenants WHERE tenant_ID=?");
+        $stmt->bind_param("s", $tenant_ID);
+        $stmt->execute();
+        $stmt->close();
+
+        header("Location: TENANTSLIST.php");
+        exit();
+    }
+}
+
+// Load tenant data by ID
+if (isset($_GET['tenant_ID']) && !empty($_GET['tenant_ID'])) {
+    $tenant_ID = trim($_GET['tenant_ID']);
+
+    $sql = "SELECT 
+                tenants.tenant_name,
+                tenants.contact_number,
+                tenant_unit.unit_no,
+                tenants.tenant_ID,
+                tenants.emergency_contact_name,
+                tenants.emergency_contact_num,
+                tenant_unit.lease_start_date,
+                tenant_unit.lease_end_date,
+                tenant_unit.lease_payment_due,
+                units.monthly_rent_amount,
+                tenant_unit.lease_status,
+                tenants.tenant_image
+            FROM tenants
+            INNER JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID
+            INNER JOIN units ON tenant_unit.unit_no = units.unit_no
+            WHERE tenants.tenant_ID = ?";
+
+    $stmt = $conn->prepare($sql);
+
+    if ($stmt) {
+        $stmt->bind_param("s", $tenant_ID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result && $result->num_rows > 0) {
+            $tenant = $result->fetch_assoc();
+        } else {
+            echo "Tenant not found.";
+        }
+
+        $stmt->close();
+    } else {
+        echo "SQL error: " . $conn->error;
+    }
+} else {
+    echo "No valid tenant ID provided.";
+}
+if (!$conn->connect_error) {
+    $result = $conn->query("SELECT unit_no FROM units WHERE unit_status = 'Available'");
+    while ($row = $result->fetch_assoc()) {
+        $availableUnits[] = $row['unit_no'];
+    }
+}
+
+$conn->close();
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenants List</title>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            background-color: #FFFF;
+        }
+        .sideBar {
+            width: 450px;
+            height: 100%;
+            background-color: #01214B;
+        }
+        .systemTitle {
+            text-align: center;
+            height: 10vh;
+            padding-bottom: 5.3px;
+        }
+        .systemTitle h1 {
+            font-size: 25px;
+            font-family: Inria Serif;
+            align-items: center;
+            position: relative;
+            top: 5px;
+            color: #FFFF;
+        }
+        .systemTitle p {
+            font-size: 14px;
+            font-family: Inria Serif;
+            position: relative;
+            bottom: 10px;
+            color: #FFFF;
+        }
+        .sidebarContent {
+            padding-top: 20px;
+            height: 84vh;
+            background-color: #004AAD;
+            display: block;
+        }
+        .card {
+            width: 100%;
+            height: 50px;
+            display: flex;
+            margin: 10px 0px 10px;
+            align-items: center;
+            justify-content: center;
+        }
+        .card a {
+            margin: auto 0px auto 0px;
+            font-size: 24px;
+            padding-left: 20px;
+            font-weight: 500;
+            display: flex;
+            text-decoration: none;
+            align-items: center;
+            color: #01214B;
+            height: 100%;
+            width: 100%;
+            background-color: #004AAD;
+            color: white;
+        }
+        .card a:hover {
+            background-color: 004AAD;
+            color: #FFFF;
+            background-color: #FFFF;
+            color: #004AAD;
+        }
+        .card a:hover .DsidebarIcon {
+            content: url('sidebarIcons/DashboardIcon.png');
+        }
+        .card a:hover .UIsidebarIcon {
+            content: url('sidebarIcons/UnitsInfoIcon.png');
+        }
+        .card a:hover .THsidebarIcon {
+            content: url('sidebarIcons/TenantsInfoIcon.png');
+        }
+        .card a:hover .PMsidebarIcon {
+            content: url('sidebarIcons/PaymentManagementIcon.png');
+        }
+        .card a:hover .APLsidebarIcon {
+            content: url('sidebarIcons/AccesspointIcon.png');
+        }
+        .card a:hover .CGsidebarIcon {
+            content: url('sidebarIcons/CardregisterIcon.png');
+        }
+        .mainBody {
+            width: 100vw;
+            height: 100%;
+            background-color: white;
+        }
+        .header {
+            height: 13vh;
+            width: 100%;
+            background-color: #79B1FC;
+            display: flex;
+            justify-content: end;
+            align-items: center;
+        }
+        .headerContent {
+            margin-right: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+        }
+        .adminTitle {
+            font-size: 16px;
+            color: #01214B;
+            position: relative;
+            text-decoration: none;
+        }
+        .headerContent .adminTitle:hover {
+            color: #FFFF;
+        }
+        .adminLogoutspace {
+            font-size: 16px;
+            color: #01214B;
+            position: relative;
+            text-decoration: none;
+        }
+        .logOutbtn {
+            font-size: 16px;
+            color: #FFFF;
+            position: relative;
+            margin-left: 2px;
+            text-decoration: none;
+        }
+        .headerContent a:hover {
+            color: #004AAD;
+        }
+        .mainContent {
+            height: 100%;
+            width: 100%;
+            margin: 0px auto;
+            background-color: #FFFF;
+        }
+        .tenantHistoryHead {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+        }
+        .tenantHistoryHead h4 {
+            color: #01214B;
+            font-size: 32px;
+            margin-left: 60px;
+            height: 20px;
+            align-items: center;
+        }
+        .tenantInfoContainer {
+            max-width: 90%;
+            margin: 0 auto;
+            border: 3px solid #A6DDFF;
+            border-radius: 8px;
+            height: 470px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            bottom: 15px;
+        }
+        .tenantImageContainer {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 203px;
+            height: 170px;
+            margin-top: 15px;
+            border: 2px solid #000000;
+            border-radius: 0.5rem;
+            object-fit: cover; /* Keeps aspect ratio and fills container */
+        }
+        .uploadBtnContainer {
+            text-align: center;
+            margin-top: 5px;
+            width: 100%;
+
+        }
+        .customUploadBtn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0px auto;
+            height: 25px;
+            width: 130px;
+            background-color: #79B1FC;
+        }
+        .inputImage {
+            visibility: hidden;
+        }
+        .tenantsInformation {
+            display: flex;
+            justify-content: space-between;
+            height: 350px;
+            width: 95%;
+            margin-left: 10px;
+            position: relative;
+            bottom: 20px;
+        }
+        .tenantInfoInput1 {
+            width: 50%;
+            height: 90%;
+            margin: auto 0px;
+            position: relative;
+            bottom: 25px;
+        }
+        .tenantInfoInput2 {
+            width: 50%;
+            height: 90%;
+            margin: auto 0px;
+            margin-left: 10px;
+            position: relative;
+            bottom: 25px;
+        }
+        .formContainer {
+            width: 100%;
+            height: 470px;
+            margin-top: 30px;
+            margin-left: 15px;
+        }
+        label {
+            display: inline-block;
+            width: 180px;
+            margin-bottom: 5px;
+            padding: 2px;
+            vertical-align: top;
+            color: #004AAD;
+        }
+        input[type="text"],
+        input[type="date"]
+        {
+            width: 300px;
+            padding: 2px;
+            margin-bottom:5px;
+        }
+        select {
+            width: 308px;
+            padding: 2px;
+            margin-bottom: 15px;
+        }
+        .buttonContainer {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: right;
+            margin-top: 15px;
+        }
+        button {
+            background-color: #004AAD;
+            border: none;
+            width: 130px;
+            height: 30px;
+            justify-content: center;
+            align-items: center;
+            display: flex;
+            color: #FFFFFF;
+            font-weight: 10000;
+            margin: auto 10px;
+        }
+        button img {
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+        }
+        button :hover {
+            background-color: #FFFFFF;
+            color: #004AAD;
+            border: 2px #004AAD solid;
+        }
+        .footbtnContainer {
+            width: 90%;
+            height: 20px;
+            margin-left: 60px;
+            display: flex;
+            position: relative;
+            top: 38px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .backbtn {
+            height: 36px;
+            width: 110px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            bottom: 22px;
+            background-color: #004AAD;
+            color: #FFFFFF;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #004AAD;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #FFFFFF;
+            color: #004AAD;
+            border: 2px solid #004AAD;
+        }
+        .footbtnContainer a:hover {
+            background-color: #FFFFFF;
+            color: #004AAD;
+            border: 2px solid #004AAD;
+        }
+        .printReportbtn {
+            height: 36px;
+            width: 255px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            bottom: 20px;
+            background-color: #004AAD;
+            color: #FFFFFF;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .printTenantInfo {
+            height: 20px;
+            width: 20px;
+            margin-right: 5px;
+        }
+        .footbtnContainer a:hover .printTenantInfo {
+            content: url('otherIcons/printIconblue.png');
+        }
+    </style>
+</head>
+<body>
+    <div class="sideBar">
+        <div class="systemTitle">
+            <h1>RYC Dormitelle</h1>
+            <p>APARTMENT MANAGEMENT SYSTEM</p>
+        </div>
+        <div class="sidebarContent">
+            <div class="card">
+                <a href="DASHBOARD.php" class="changeicon">
+                    <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 10px;">
+                    Dashboard
+                </a>
+            </div>
+            <div class="card">
+                <a href="UNITSINFORMATION.php">
+                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 10px;">
+                    Units Information</a>
+            </div>
+            <div class="card">
+                <a href="TENANTSLIST.php" style="background-color: #FFFF; color: #004AAD;">
+                    <img src="sidebarIcons/TenantsInfoIcon.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 10px;">
+                    Tenants Lists</a>
+            </div>
+            <div class="card">
+                <a href="PAYMENTMANAGEMENT.php">
+                    <img src="sidebarIcons/PaymentManagementIconWht.png" alt="Payment Management Icon" class="PMsidebarIcon" style="margin-right: 10px;">
+                    Payment Management</a>
+            </div>
+            <div class="card">
+                <a href="ACCESSPOINTLOGS.php">
+                    <img src="sidebarIcons/AccesspointIconWht.png" alt="Access Point Logs Icon" class="APLsidebarIcon" style="margin-right: 10px;">
+                    Access Point Logs</a>
+            </div>
+            <div class="card">
+                <a href="CARDREGISTRATION.php">
+                    <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="CGsidebarIcon" style="margin-right: 10px;">
+                    Card Registration</a>
+            </div>
+            
+        </div>
+    </div>
+        <div class="mainBody">
+            <div class="header">
+                <div class="headerContent">
+                    <a href="ADMINPROFILE.php" class="adminTitle">ADMIN</a>
+                    <p class="adminLogoutspace">&nbsp;|&nbsp;</p>
+                    <a href="ADMINLOGIN.php" class="logOutbtn">Log Out</a>
+                </div>
+            </div>
+            <div class="mainContent">
+            <div class="tenantHistoryHead">
+                <h4>Tenants Information</h4>
+            </div>
+            <form method="POST" enctype="multipart/form-data" action="">
+                <div class="tenantInfoContainer">
+                    <!-- Tenant Image -->
+                    <img src="tenants_images/<?php echo htmlspecialchars($tenant['tenant_image']); ?>" 
+                        alt="Tenant Image" 
+                        id="tenantImage" 
+                        class="tenantImageContainer">
+
+                    <!-- Image Upload Button -->
+                    <div class="uploadBtnContainer">
+                        <button type="button" class="customUploadBtn" onclick="document.getElementById('imageInput').click();">Edit Profile</button>
+                        <input type="file" accept="image/*" name="tenant_image" id="imageInput" class="inputImage">
+                    </div>
+
+                    <!-- Tenant Information Form -->
+                    <div class="tenantsInformation"> 
+                        <!-- Left Column -->
+                        <div class="tenantInfoInput1">
+                            <div class="formContainer">
+                                <div>
+                                    <label for="tenant_name">Tenant Name</label>
+                                    <input type="text" maxlength="20" name="tenant_name" id="tenant_name" value="<?php echo $tenant['tenant_name']; ?>">
+                                </div>
+                                <div>
+                                    <label for="contact_number">Contact No.</label>
+                                    <input type="text" name="contact_number" id="contact_number" value="<?php echo $tenant['contact_number']; ?>"
+                                            maxlength="13" 
+                                            minlength="13" 
+                                            pattern="\+639\d{9}" 
+                                            oninput="autoPrefix(this)" 
+                                            required>
+                                </div>
+                                <div>
+                                    <label for="unit_no">Unit No.</label>
+                                    <select name="unit_no" id="unit_no" onchange="generateTenantID()" disabled>
+                                        <option value="">-- Select Unit --</option>
+                                        <?php foreach ($availableUnits as $unit): ?>
+                                            <option value="<?php echo $unit; ?>" <?php echo ($tenant['unit_no'] == $unit) ? 'selected' : ''; ?>>
+                                                <?php echo $unit; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="tenant_ID">Tenant ID</label>
+                                    <input type="text" name="tenant_ID" id="tenant_ID" value="<?php echo $tenant['tenant_ID']; ?>" disabled>
+                                </div>
+                                <div>
+                                    <label for="emergency_contact_name">Emergency Contact Person</label>
+                                    <input type="text" name="emergency_contact_name" id="emergency_contact_name" value="<?php echo $tenant['emergency_contact_name']; ?>">
+                                </div>
+                                <div>
+                                    <label for="emergency_contact_num">Emergency Contact No.</label>
+                                    <input type="text" name="emergency_contact_num" id="emergency_contact_num" value="<?php echo $tenant['emergency_contact_num']; ?>"
+                                            maxlength="13" 
+                                            minlength="13" 
+                                            pattern="\+639\d{9}" 
+                                            oninput="autoPrefix(this)" 
+                                            required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="tenantInfoInput2">
+                            <div class="formContainer">
+                                <div>
+                                    <label for="lease_start_date">Lease Start Date</label>
+                                    <input type="date" name="lease_start_date" id="lease_start_date" value="<?php echo $tenant['lease_start_date']; ?>">
+                                </div>
+                                <div>
+                                    <label for="lease_end_date">Lease End Date</label>
+                                    <input type="date" name="lease_end_date" id="lease_end_date" value="<?php echo $tenant['lease_end_date']; ?>">
+                                </div>
+                                <div>
+                                    <label for="rent_payment_due">Payment Due Date</label>
+                                    <input type="text" readonly name="rent_payment_due" id="rent_payment_due" value="<?php echo $tenant['lease_payment_due']; ?>">
+                                </div>
+                                <div>
+                                    <label for="monthly_rent_amount">Monthly Rent Amount</label>
+                                    <input disabled type="text" name="monthly_rent_amount" id="monthly_rent_amount" value="<?php echo $tenant['monthly_rent_amount']; ?>">
+                                </div>
+                                <div>
+                                    <label for="lease_status">Lease Status</label>
+                                    <select name="lease_status" id="lease_status">
+                                        <option value="Active" <?php echo ($tenant['lease_status'] == 'Active') ? 'selected' : ''; ?>>Active</option>
+                                        <option value="Expired" <?php echo ($tenant['lease_status'] == 'Expired') ? 'selected' : ''; ?>>Expired</option>
+                                        <option value="Pending" <?php echo ($tenant['lease_status'] == 'Pending') ? 'selected' : ''; ?>>Pending</option>
+                                    </select>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="buttonContainer">
+                                    <button type="submit" name="update">Update</button>
+                                    <button type="submit" name="delete" onclick="return confirm('Are you sure you want to delete this tenant?')">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="footbtnContainer">
+                <a href="TENANTSLIST.php" class="backbtn">&#10558; Back</a>
+                <a href="#" class="printReportbtn">
+                    <img src="otherIcons/printIcon.png" alt="Plus Sign" class="printTenantInfo">
+                    Print Report</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const tenantImage = document.getElementById('tenantImage');
+    
+        imageInput.addEventListener('change', function(event) {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              tenantImage.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+          }
+        });
+      </script>
+    <script>
+        function generateTenantID() {
+            const unitSelect = document.getElementById('unit_no');
+            const tenantIDInput = document.getElementById('tenant_ID');
+            const selectedUnit = unitSelect.value.replace(/[^a-zA-Z0-9]/g, '');
+
+            if (selectedUnit) {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                const tenantID = `${year}${month}${day}${selectedUnit}`;
+                tenantIDInput.value = tenantID;
+            } else {
+                tenantIDInput.value = '';
+            }
+        }
+        function getDaySuffix(day) {
+        if (day > 3 && day < 21) return 'th';
+        switch (day % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+        }
+
+        document.getElementById('lease_start_date').addEventListener('change', function () {
+            const date = new Date(this.value);
+            if (!isNaN(date)) {
+                const day = date.getDate();
+                const suffix = getDaySuffix(day);
+                document.getElementById('rent_payment_due').value = `Every ${day}${suffix} day of the month`;
+            } else {
+                document.getElementById('rent_payment_due').value = '';
+            }
+        });
+    </script>
+</body>
+</html>
