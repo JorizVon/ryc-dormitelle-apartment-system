@@ -72,10 +72,8 @@ $dashboardData = getDashboardData($conn);
     <style>
         body {
             display: flex;
-            margin: 0px;
-            padding: 0px;
+            margin: 0;
             background-color: #FFFF;
-            font-family: Arial, sans-serif;
         }
         .sideBar {
             width: 450px;
@@ -172,6 +170,7 @@ $dashboardData = getDashboardData($conn);
             display: flex;
             justify-content: center;
             align-items: center;
+
         }
         .adminTitle {
             font-size: 16px;
@@ -198,7 +197,6 @@ $dashboardData = getDashboardData($conn);
         .headerContent a:hover {
             color: #004AAD;
         }
-        
         /* Updated mainContent styles */
         .mainContent {
             height: 100%;
@@ -209,9 +207,10 @@ $dashboardData = getDashboardData($conn);
         }
         .mainContent h4 {
             color: #01214B;
-            font-size: 24px;
-            margin: 20px 0 30px 20px;
-            font-weight: bold;
+            font-size: 32px;
+            margin-left: 20px;
+            height: 20px;
+            align-items: center;
         }
         .grid-container {
             display: grid;
