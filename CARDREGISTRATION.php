@@ -376,7 +376,7 @@ $result = $conn->query($sql);
                                     echo "<td>" . htmlspecialchars($row['registration_date']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['card_expiry']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['card_status']) . "</td>";
-                                    echo "<td><a href='#' class='action-btn'>View Details</a></td>";
+                                    echo "<td><a href='CARDRENEWORDELETE.php' class='action-btn'>View Details</a></td>";
                                     echo "</tr>";
                                 }
                             } else {

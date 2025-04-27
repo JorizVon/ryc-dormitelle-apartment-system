@@ -447,7 +447,7 @@ $conn->close();
                     <a href="DASHBOARD.php">&#10558; Back</a>
                 </div>
                 <div class="addUnitbtn">
-                    <a href="#" type="action-btn">
+                    <a href="ADDNEWUNIT.php" type="action-btn">
                         <img src="UnitsInfoIcons/pluswht.png" alt="Units Information Icon" class="addUnitbtnIcon">
                         Add New Unit</a>
                 </div>

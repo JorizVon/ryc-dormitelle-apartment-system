@@ -31,6 +31,21 @@ if ($unit_no !== '') {
     }
     $stmt->close();
 }
+$unit_images = [];
+
+if ($unit_no !== '') {
+    // Fetch unit images from database
+    $stmt = $conn->prepare("SELECT `unit_image` FROM `unit_images` WHERE `unit_no` = ?");
+    $stmt->bind_param("s", $unit_no);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $unit_images[] = 'unitImages/' . $row['unit_image']; // add folder path
+    }
+    
+    $stmt->close();
+}
 
 $conn->close();
 ?>
@@ -435,16 +450,17 @@ $conn->close();
                                     <label for="unit_images">Unit Photos </label>
                                 </div>
                                 <div class="unitImagesContainer">
-                                    <img src="rfid000.jpg" alt="rfid" id="rfidImage" class="rfidImageContainer" id="unit_photos">
-                                    <img src="rfid000.jpg" alt="rfid" id="rfidImage" class="rfidImageContainer" id="unit_photos">
-                                    <img src="rfid000.jpg" alt="rfid" id="rfidImage" class="rfidImageContainer" id="unit_photos">
-                                    <img src="rfid000.jpg" alt="rfid" id="rfidImage" class="rfidImageContainer" id="unit_photos">
-                                    <img src="rfid000.jpg" alt="rfid" id="rfidImage" class="rfidImageContainer" id="unit_photos">
-                                    <img src="rfid000.jpg" alt="rfid" id="rfidImage" class="rfidImageContainer" id="unit_photos">
-                                    <img src="rfid000.jpg" alt="rfid" id="rfidImage" class="rfidImageContainer" id="unit_photos">
-                                    <img src="rfid000.jpg" alt="rfid" id="rfidImage" class="rfidImageContainer" id="unit_photos">
+                                    <?php if (!empty($unit_images)): ?>
+                                        <?php foreach ($unit_images as $image): ?>
+                                            <img src="<?php echo htmlspecialchars($image); ?>" alt="Unit Photo" class="rfidImageContainer">
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <!-- If no images found, show 8 placeholders -->
+                                        <?php for ($i = 0; $i < 8; $i++): ?>
+                                            <img src="UnitsInfoIcons/UnoccupiedUnitIcon.png" alt="Placeholder" class="rfidImageContainer">
+                                        <?php endfor; ?>
+                                    <?php endif; ?>
                                 </div>
-                                
                             </div>
                         </div>
                     </div>
@@ -459,6 +475,3 @@ $conn->close();
     </div>
 </body>
 </html>
-<?php
-$conn->close();
-?>
