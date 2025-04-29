@@ -11,6 +11,7 @@ if ($conn->connect_error) {
 }
 
 $tenant = null;
+$availableUnits = [];
 
 // Handle Update and Delete operations
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update'])) {
         $tenant_name = $_POST['tenant_name'];
         $contact_number = $_POST['contact_number'];
-        $unit_no = $_POST['unit_no'];
         $emergency_contact_name = $_POST['emergency_contact_name'];
         $emergency_contact_num = $_POST['emergency_contact_num'];
         $lease_start_date = $_POST['lease_start_date'];
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $tenant_image = $imageName;
             }
         }
-
+ 
         if ($tenant_image) {
             $stmt = $conn->prepare("UPDATE tenants SET tenant_name=?, contact_number=?, emergency_contact_name=?, emergency_contact_num=?, tenant_image=? WHERE tenant_ID=?");
             $stmt->bind_param("ssssss", $tenant_name, $contact_number, $emergency_contact_name, $emergency_contact_num, $tenant_image, $tenant_ID);
@@ -49,8 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $stmt->close();
 
-        $stmt = $conn->prepare("UPDATE tenant_unit SET unit_no=?, lease_start_date=?, lease_end_date=?, lease_payment_amount=?, lease_payment_due=?, lease_status=? WHERE tenant_ID=?");
-        $stmt->bind_param("sssssss", $unit_no, $lease_start_date, $lease_end_date, $lease_payment_amount, $lease_payment_due, $lease_status, $tenant_ID);
+        $stmt = $conn->prepare("UPDATE tenant_unit SET lease_start_date=?, lease_end_date=?, lease_payment_amount=?, lease_payment_due=?, lease_status=? WHERE tenant_ID=?");
+        $stmt->bind_param("ssssss", $lease_start_date, $lease_end_date, $lease_payment_amount, $lease_payment_due, $lease_status, $tenant_ID);
         $stmt->execute();
         $stmt->close();
 
@@ -85,6 +85,7 @@ if (isset($_GET['tenant_ID']) && !empty($_GET['tenant_ID'])) {
                 tenants.tenant_ID,
                 tenants.emergency_contact_name,
                 tenants.emergency_contact_num,
+                tenant_unit.occupant_count,
                 tenant_unit.lease_start_date,
                 tenant_unit.lease_end_date,
                 tenant_unit.lease_payment_due,
@@ -97,7 +98,6 @@ if (isset($_GET['tenant_ID']) && !empty($_GET['tenant_ID'])) {
             WHERE tenants.tenant_ID = ?";
 
     $stmt = $conn->prepare($sql);
-
     if ($stmt) {
         $stmt->bind_param("s", $tenant_ID);
         $stmt->execute();
@@ -116,8 +116,10 @@ if (isset($_GET['tenant_ID']) && !empty($_GET['tenant_ID'])) {
 } else {
     echo "No valid tenant ID provided.";
 }
-if (!$conn->connect_error) {
-    $result = $conn->query("SELECT unit_no FROM units WHERE unit_status = 'Available'");
+
+// Fetch available units
+$result = $conn->query("SELECT unit_no FROM units WHERE unit_status = 'Available'");
+if ($result) {
     while ($row = $result->fetch_assoc()) {
         $availableUnits[] = $row['unit_no'];
     }
@@ -374,7 +376,7 @@ $conn->close();
             display: flex;
             align-items: center;
             justify-content: right;
-            margin-top: 15px;
+            margin-top: 5px;
         }
         button {
             background-color: #004AAD;
@@ -547,18 +549,11 @@ $conn->close();
                                 </div>
                                 <div>
                                     <label for="unit_no">Unit No.</label>
-                                    <select name="unit_no" id="unit_no" onchange="generateTenantID()" disabled>
-                                        <option value="">-- Select Unit --</option>
-                                        <?php foreach ($availableUnits as $unit): ?>
-                                            <option value="<?php echo $unit; ?>" <?php echo ($tenant['unit_no'] == $unit) ? 'selected' : ''; ?>>
-                                                <?php echo $unit; ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <input type="text" name="unit_no" id="unit_no" value="<?php echo $tenant['unit_no']; ?>" readonly>
                                 </div>
                                 <div>
                                     <label for="tenant_ID">Tenant ID</label>
-                                    <input type="text" name="tenant_ID" id="tenant_ID" value="<?php echo $tenant['tenant_ID']; ?>" disabled>
+                                    <input type="text" name="tenant_ID" id="tenant_ID" value="<?php echo $tenant['tenant_ID']; ?>" readonly>
                                 </div>
                                 <div>
                                     <label for="emergency_contact_name">Emergency Contact Person</label>
@@ -580,6 +575,10 @@ $conn->close();
                         <div class="tenantInfoInput2">
                             <div class="formContainer">
                                 <div>
+                                    <label for="occupant_count">Occupant Count</label>
+                                    <input type="text" name="occupant_count" id="occupant_count" value="<?php echo $tenant['occupant_count']; ?> Occupant" readonly>
+                                </div>
+                                <div>
                                     <label for="lease_start_date">Lease Start Date</label>
                                     <input type="date" name="lease_start_date" id="lease_start_date" value="<?php echo $tenant['lease_start_date']; ?>">
                                 </div>
@@ -593,7 +592,7 @@ $conn->close();
                                 </div>
                                 <div>
                                     <label for="monthly_rent_amount">Monthly Rent Amount</label>
-                                    <input disabled type="text" name="monthly_rent_amount" id="monthly_rent_amount" value="<?php echo $tenant['monthly_rent_amount']; ?>">
+                                    <input readonly  type="text" name="monthly_rent_amount" id="monthly_rent_amount" value="<?php echo $tenant['monthly_rent_amount']; ?>">
                                 </div>
                                 <div>
                                     <label for="lease_status">Lease Status</label>
@@ -638,22 +637,6 @@ $conn->close();
         });
       </script>
     <script>
-        function generateTenantID() {
-            const unitSelect = document.getElementById('unit_no');
-            const tenantIDInput = document.getElementById('tenant_ID');
-            const selectedUnit = unitSelect.value.replace(/[^a-zA-Z0-9]/g, '');
-
-            if (selectedUnit) {
-                const today = new Date();
-                const year = today.getFullYear();
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const day = String(today.getDate()).padStart(2, '0');
-                const tenantID = `${year}${month}${day}${selectedUnit}`;
-                tenantIDInput.value = tenantID;
-            } else {
-                tenantIDInput.value = '';
-            }
-        }
         function getDaySuffix(day) {
         if (day > 3 && day < 21) return 'th';
         switch (day % 10) {

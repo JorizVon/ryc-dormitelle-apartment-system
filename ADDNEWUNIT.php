@@ -21,12 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $unit_size = $_POST['unit_size'];
     $floor_level = $_POST['floor_level'];
     $unit_type = $_POST['unit_type'];
+    $occupant_capacity = $_POST['occupant_capacity'];
     $monthly_rent_amount = $_POST['monthly_rent_amount'];
     $unit_status = 'Available'; // default unit status
 
     // Insert into units table
-    $stmt = $conn->prepare("INSERT INTO `units`(`unit_no`, `apartment_no`, `unit_address`, `unit_size`, `floor_level`, `unit_type`, `monthly_rent_amount`, `unit_status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssss", $unit_no, $apartment_no, $unit_address, $unit_size, $floor_level, $unit_type, $monthly_rent_amount, $unit_status);
+    $stmt = $conn->prepare("INSERT INTO `units`(`unit_no`, `apartment_no`, `unit_address`, `unit_size`, `floor_level`, `unit_type`, `occupant_capacity`, `monthly_rent_amount`, `unit_status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssssss", $unit_no, $apartment_no, $unit_address, $unit_size, $floor_level, $unit_type, $occupant_capacity, $monthly_rent_amount, $unit_status);
     $stmt->execute();
     $stmt->close();
 
@@ -192,7 +193,7 @@ $conn->close();
             align-items: center;
             position: relative;
             bottom: 15px;
-            height: 50px;
+            height: 45px;
         }
         .cardreg h4 {
             color: #01214B;
@@ -213,7 +214,7 @@ $conn->close();
             margin: 0 auto;
             border: 3px solid #A6DDFF;
             border-radius: 8px;
-            height: 520px;
+            height: 530px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             position: relative;
@@ -271,7 +272,8 @@ $conn->close();
             color: #004AAD;
         }
         input[type="text"],
-        input[type="date"]
+        input[type="date"],
+        input[type="number"]
         {
             width: 300px;
             padding: 2px;
@@ -416,7 +418,7 @@ $conn->close();
             </div>
 
             <div class="mainContent">
-                <div class="cardreg"><h4> </h4></div>
+            <div class="cardreg"></div>
 
                 <div class="overviewContainer">
                     <div class="cardregistration">
@@ -443,17 +445,22 @@ $conn->close();
 
                                 <div>
                                     <label for="unit_size">Unit Size</label>
-                                    <input type="text" name="unit_size" id="unit_size" required>
+                                    <input type="number" min="0" oninput="this.value = Math.abs(this.value)" name="unit_size" id="unit_size" required>
                                 </div>
 
                                 <div>
                                     <label for="floor_level">Floor Level</label>
-                                    <input type="text" name="floor_level" id="floor_level" required>
+                                    <input type="number" min="0" oninput="this.value = Math.abs(this.value)" name="floor_level" id="floor_level" required>
                                 </div>
 
                                 <div>
                                     <label for="unit_type">Unit Type</label>
                                     <input type="text" name="unit_type" id="unit_type" required>
+                                </div>
+
+                                <div>
+                                    <label for="occupant_capacity">Occupant Capacity</label>
+                                    <input type="number" min="0" oninput="this.value = Math.abs(this.value)" name="occupant_capacity" id="occupant_capacity" required>
                                 </div>
 
                                 <div>

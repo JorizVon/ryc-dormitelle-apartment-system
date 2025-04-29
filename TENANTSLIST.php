@@ -10,9 +10,10 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT tenants.tenant_ID, tenant_name, contact_number, tenant_unit.lease_start_date, tenant_unit.lease_status 
-        FROM tenants 
-        INNER JOIN tenant_unit 
+$sql = "SELECT tenants.tenant_ID, tenant_name, contact_number, tenant_unit.lease_start_date, tenant_unit.occupant_count,
+        tenant_unit.deposit, tenant_unit.balance, tenant_unit.lease_status
+        FROM tenants
+        INNER JOIN tenant_unit
         ON tenants.tenant_ID = tenant_unit.tenant_ID";
 $result = $conn->query($sql);
 ?>
@@ -216,6 +217,7 @@ $result = $conn->query($sql);
             position: sticky;
             top: 0;
             z-index: 1;
+            font-size: 12px;
         }
         .action-btn {
             background-color: #2196f3;
@@ -225,7 +227,7 @@ $result = $conn->query($sql);
             border-radius: 4px;
             cursor: pointer;
             text-decoration: none;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .action-btn:hover {
@@ -355,8 +357,11 @@ $result = $conn->query($sql);
                             <th id="tenant_ID">Tenants ID</th>
                             <th id="tenant_name">Name</th>
                             <th id="contact_number">Contact Number</th>
-                            <th id="lease_status">Lease Status</th>
-                            <th id="lease_start_date">Start Date</th>
+                            <th id="lease_status">Start Date</th>
+                            <th id="occupant_count">Occupant Count</th>
+                            <th id="deposit">Current Deposit</th>
+                            <th id="balance">Current Balance</th>
+                            <th id="lease_start_date">Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -369,6 +374,9 @@ $result = $conn->query($sql);
                                 echo "<td>" . htmlspecialchars($row["tenant_name"]) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["contact_number"]) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["lease_start_date"]) . "</td>";
+                                echo "<td>". htmlspecialchars($row["occupant_count"]) . "</td>";
+                                echo "<td>". htmlspecialchars($row["deposit"]) . "</td>";
+                                echo "<td>". htmlspecialchars($row["balance"]) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["lease_status"]) . "</td>";
                                 echo '<td><a href="TENANTINFORMATION.php?tenant_ID=' . urlencode($row["tenant_ID"]) . '" class="action-btn">View Details</a></td>';
                                 echo "</tr>";
@@ -404,6 +412,6 @@ document.querySelector('.searbar').addEventListener('keyup', function () {
 
 </body>
 </html>
-<?php 
-$conn->close(); 
+<?php
+$conn->close();
 ?>

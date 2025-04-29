@@ -314,33 +314,33 @@ $result = $conn->query($sql);
         </div>
         <div class="sidebarContent">
             <div class="card">
-                <a href="DASHBOARD.html" class="changeicon">
+                <a href="DASHBOARD.php" class="changeicon">
                     <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 10px;">
                     Dashboard
                 </a>
             </div>
             <div class="card">
-                <a href="UNITSINFORMATION.html">
+                <a href="UNITSINFORMATION.php">
                     <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 10px;">
                     Units Information</a>
             </div>
             <div class="card">
-                <a href="TENANTSLIST.html">
+                <a href="TENANTSLIST.php">
                     <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 10px;">
                     Tenants List</a>
             </div>
             <div class="card">
-                <a href="PAYMENTMANAGEMENT.html" style="background-color: #FFFF; color: #004AAD;">
+                <a href="PAYMENTMANAGEMENT.php" style="background-color: #FFFF; color: #004AAD;">
                     <img src="sidebarIcons/PaymentManagementIcon.png" alt="Payment Management Icon" class="PMsidebarIcon" style="margin-right: 10px;">
                     Payment Management</a>
             </div>
             <div class="card">
-                <a href="ACCESSPOINTLOGS.html">
+                <a href="ACCESSPOINTLOGS.php">
                     <img src="sidebarIcons/AccesspointIconWht.png" alt="Access Point Logs Icon" class="APLsidebarIcon" style="margin-right: 10px;">
                     Access Point Logs</a>
             </div>
             <div class="card">
-                <a href="CARDREGISTRATION.html">
+                <a href="CARDREGISTRATION.php">
                     <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="CGsidebarIcon" style="margin-right: 10px;">
                     Card Registration</a>
             </div>
@@ -350,9 +350,9 @@ $result = $conn->query($sql);
         <div class="mainBody">
             <div class="header">
                 <div class="headerContent">
-                    <a href="ADMINPROFILE.html" class="adminTitle">ADMIN</a>
+                    <a href="ADMINPROFILE.php" class="adminTitle">ADMIN</a>
                     <p class="adminLogoutspace">&nbsp;|&nbsp;</p>
-                    <a href="ADMINLOGIN.html" class="logOutbtn">Log Out</a>
+                    <a href="ADMINLOGIN.php" class="logOutbtn">Log Out</a>
                 </div>
             </div>
             <div class="mainContent">
