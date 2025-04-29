@@ -217,7 +217,7 @@ $conn->close();
             grid-template-columns: repeat(4, 1fr); /* 4 equal columns */
             gap: 10px; /* same gap horizontally and vertically */
             width: max-content;
-            margin: 0 auto;
+            margin: 0 auto;x
         }
 
         .rfidImageContainer {
