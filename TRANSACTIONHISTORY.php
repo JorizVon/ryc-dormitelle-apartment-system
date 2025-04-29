@@ -1,9 +1,6 @@
 <?php
-// Database connection
-$conn = new mysqli("localhost", "root", "", "ryc_dormitelle");
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+
+require_once 'db_connect.php';
 
 // Handle search input
 $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';

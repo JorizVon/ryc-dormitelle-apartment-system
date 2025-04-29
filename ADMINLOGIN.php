@@ -2,17 +2,7 @@
 session_start();
 
 // Database connection
-$servername = "localhost";
-$dbUsername = "root";
-$dbPassword = "";
-$dbName = "ryc_dormitelle";
-
-$conn = new mysqli($servername, $dbUsername, $dbPassword, $dbName);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require_once 'db_connect.php';
 
 // Handle login form submission
 $error = "";

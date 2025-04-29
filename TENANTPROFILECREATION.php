@@ -1,14 +1,6 @@
 <?php
-$host = 'localhost';
-$db = 'ryc_dormitelle';
-$user = 'root';
-$pass = '';
-$conn = new mysqli($host, $user, $pass, $db);
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require_once 'db_connect.php';
 
 // Handle Insert operation
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -435,7 +427,7 @@ $conn->close();
             </div>
             <div class="mainContent">
                 <div class="tenantHistoryHead">
-                    <h4>Tenants Profile Creation</h4>
+                    <h4>Create Tenant Profile</h4>
                 </div>
                 <form method="POST" enctype="multipart/form-data" action="">
                     <div class="tenantInfoContainer">

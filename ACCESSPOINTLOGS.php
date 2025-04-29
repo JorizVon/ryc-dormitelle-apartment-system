@@ -1,16 +1,6 @@
 <?php
-// Database connection
-$servername = "localhost";  // Change if needed
-$username = "root";          // Change if needed
-$password = "";              // Change if needed
-$database = "ryc_dormitelle"; // Change to your actual database name
 
-$conn = new mysqli($servername, $username, $password, $database);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require_once 'db_connect.php';
 
 // Default SQL
 $sql = "SELECT access_logs.access_ID, tenants.tenant_name, tenant_unit.unit_no, access_logs.date_and_time, access_logs.access_status

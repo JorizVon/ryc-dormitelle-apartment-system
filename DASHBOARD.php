@@ -1,16 +1,6 @@
 <?php
-// DATABASE CONNECTION (update with your own DB credentials)
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "ryc_dormitelle";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require_once 'db_connect.php';
 
 // Function to fetch the counts
 function getDashboardData($conn) {

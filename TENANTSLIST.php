@@ -1,14 +1,6 @@
 <?php
-$host = 'localhost';
-$db = 'ryc_dormitelle';
-$user = 'root'; // change if your username is different
-$pass = '';     // change if your password is set
-$conn = new mysqli($host, $user, $pass, $db);
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require_once 'db_connect.php';
 
 $sql = "SELECT tenants.tenant_ID, tenant_name, contact_number, tenant_unit.lease_start_date, tenant_unit.occupant_count,
         tenant_unit.deposit, tenant_unit.balance, tenant_unit.lease_status

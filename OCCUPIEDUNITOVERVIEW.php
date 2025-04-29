@@ -1,52 +1,47 @@
 <?php
-// Database connection settings
-$host = "localhost";
-$username = "root";
-$password = "";
-$database = "ryc_dormitelle";
+// Include the MySQLi database connection
+require_once 'db_connect.php';
 
-try {
-    // Create PDO connection
-    $pdo = new PDO("mysql:host=$host;dbname=$database;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+// Check if unit_no is provided
+if (isset($_GET['unit_no']) && !empty($_GET['unit_no'])) {
+    $unit_no = $_GET['unit_no'];
 
-    // Check if unit_no is provided
-    if (isset($_GET['unit_no']) && !empty($_GET['unit_no'])) {
-        $unit_no = $_GET['unit_no'];
+    // Prepare the SQL statement
+    $stmt = $conn->prepare("
+        SELECT 
+            units.unit_no, 
+            tenants.tenant_name, 
+            tenant_unit.occupant_count,
+            tenant_unit.lease_start_date, 
+            tenant_unit.lease_end_date, 
+            tenant_unit.lease_payment_due, 
+            units.monthly_rent_amount, 
+            tenant_unit.deposit, 
+            units.unit_size, 
+            units.unit_type, 
+            units.floor_level, 
+            units.unit_status
+        FROM units
+        INNER JOIN tenant_unit ON tenant_unit.unit_no = units.unit_no
+        INNER JOIN tenants ON tenants.tenant_ID = tenant_unit.tenant_ID
+        WHERE units.unit_no = ?
+    ");
 
-        // Prepare and execute the query
-        $stmt = $pdo->prepare("
-            SELECT 
-                units.unit_no, 
-                tenants.tenant_name, 
-                tenant_unit.lease_start_date, 
-                tenant_unit.lease_end_date, 
-                tenant_unit.lease_payment_due, 
-                units.monthly_rent_amount, 
-                tenant_unit.deposit, 
-                units.unit_size, 
-                units.unit_type, 
-                units.floor_level, 
-                units.unit_status
-            FROM units
-            INNER JOIN tenant_unit ON tenant_unit.unit_no = units.unit_no
-            INNER JOIN tenants ON tenants.tenant_ID = tenant_unit.tenant_ID
-            WHERE units.unit_no = ?
-        ");
-        
-        $stmt->execute([$unit_no]);
-        $unitData = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Bind and execute
+    $stmt->bind_param("s", $unit_no);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-        if (!$unitData) {
-            echo "No data found for this unit.";
-            exit();
-        }
+    if ($result->num_rows > 0) {
+        $unitData = $result->fetch_assoc();
     } else {
-        echo "Unit number not provided.";
+        echo "No data found for this unit.";
         exit();
     }
-} catch (PDOException $e) {
-    echo "Database error: " . $e->getMessage();
+
+    $stmt->close();
+} else {
+    echo "Unit number not provided.";
     exit();
 }
 ?>
@@ -185,7 +180,7 @@ try {
             color: #01214B;
             font-size: 32px;
             margin-left: 60px;
-            height: 20px;
+            height: 0px;
         }
         .Unitslegend {
             display: flex;
@@ -231,14 +226,14 @@ try {
             font-size: 32px;
             height: 20px;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
         }
         .rfidContainer {
             max-width: 90%;
             margin: 0 auto;
             border: 3px solid #A6DDFF;
             border-radius: 8px;
-            height: 470px;
+            height: 490px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
@@ -447,6 +442,11 @@ try {
                                 <div>
                                     <label for="tenant_name">Tenant Name</label>
                                     <input type="text" name="tenant_name" id="tenant_name" value="<?php echo isset($unitData['tenant_name']) ? htmlspecialchars($unitData['tenant_name']) : ''; ?>" readonly>
+                                </div>
+
+                                <div>
+                                    <label for="occupant_count">Occupant count</label>
+                                    <input type="text" name="occupant_count" id="occupant_count" value="<?php echo isset($unitData['occupant_count']) ? htmlspecialchars($unitData['occupant_count']) : ''; ?> Occupant/s" readonly>
                                 </div>
 
                                 <div>

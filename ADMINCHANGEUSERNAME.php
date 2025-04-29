@@ -7,17 +7,7 @@ if (!isset($_SESSION['admin_ID'])) {
     exit();
 }
 
-// Database connection
-$servername = "localhost";
-$dbUsername = "root";
-$dbPassword = "";
-$dbName = "ryc_dormitelle";
-
-$conn = new mysqli($servername, $dbUsername, $dbPassword, $dbName);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require_once 'db_connect.php';
 
 // Initialize error and success messages
 $error = "";
@@ -61,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenants List</title>
+    <title>Change Username</title>
     <style>
         body {
             display: flex;

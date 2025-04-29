@@ -1,14 +1,6 @@
 <?php
-$host = 'localhost';
-$db = 'ryc_dormitelle';
-$user = 'root';
-$pass = '';
-$conn = new mysqli($host, $user, $pass, $db);
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require_once 'db_connect.php';
 
 $tenant = null;
 $availableUnits = [];
@@ -133,7 +125,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenants List</title>
+    <title>Tenant Information</title>
     <style>
         body {
             display: flex;

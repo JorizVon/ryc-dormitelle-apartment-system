@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenants List</title>
+    <title>Admin Profile</title>
     <style>
         body {
             display: flex;
@@ -297,7 +297,7 @@
                   <h4>Admin Profile</h4>
                 </div>
                 <div class="tenantInfoContainer" style="text-align: center;">
-                  <img src="otherIcons/adminIcon.png" alt="Admin Profile Picture" class="tenantImageContainer" style="width: 150px; height: 150px; border: 1px solid #ccc;">
+                <img src="otherIcons/adminIcon.png" alt="Admin Profile Picture" class="tenantImageContainer" style="width: 150px; height: 150px; border: 1px solid #ccc;">
                   <p class="admintxt">Admin</p>
                     <div class="adminDetails">
                     <p class="adminName">Adrian Abriol</p>
@@ -309,7 +309,7 @@
                 <div class="footbtnContainer">
                   <a href="DASHBOARD.php" class="backbtn">&#10558; Back</a>
                 </div>
-              </div>              
+              </div>
         </div>
     </div>
 </body>

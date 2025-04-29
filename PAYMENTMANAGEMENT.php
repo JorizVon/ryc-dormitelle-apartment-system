@@ -1,15 +1,9 @@
 <?php
 date_default_timezone_set('Asia/Manila');
-$host = 'localhost';
-$db = 'ryc_dormitelle';
-$user = 'root';
-$pass = '';
-$conn = new mysqli($host, $user, $pass, $db);
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-// Query to fetch table data
+require_once 'db_connect.php';
+
+
 $table_query = "SELECT payments.transaction_no, tenants.tenant_name, payments.payment_date, 
                 tenant_unit.deposit, payments.amount_paid, tenant_unit.balance, payments.confirmation_status 
                 FROM payments 

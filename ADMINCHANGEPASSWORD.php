@@ -1,18 +1,12 @@
 <?php
 session_start();
 
-// Connect to database
-$servername = "localhost";
-$dbUsername = "root";
-$dbPassword = "";
-$dbName = "ryc_dormitelle";
-
-$conn = new mysqli($servername, $dbUsername, $dbPassword, $dbName);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+// Check if admin is logged in
+if (!isset($_SESSION['admin_ID'])) {
+    header("Location: ADMINLOGIN.php");
+    exit();
 }
+require_once 'db_connect.php';
 
 // Initialize messages
 $success = "";
@@ -220,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0 auto;
             border: 3px solid #A6DDFF;
             border-radius: 8px;
-            height: 470px;
+            height: 450px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             text-align: center;
@@ -248,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .passwordChangeContainer {
             height: 100%;
-            padding: 63px 20px;
+            padding: 50px 20px;
             text-align: center;
             max-width: 90%;
             margin: 0 auto;
