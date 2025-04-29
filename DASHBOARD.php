@@ -342,7 +342,7 @@ $dashboardData = getDashboardData($conn);
                         </div>
                     </div>
                     <div class="moreInfo">
-                        <a href="#">More Info</a>
+                        <a href="UNITSINFORMATION.php">More Info</a>
                     </div>
                 </div>
 
@@ -358,7 +358,7 @@ $dashboardData = getDashboardData($conn);
                         </div>
                     </div>
                     <div class="moreInfo">
-                        <a href="#">More Info</a>
+                        <a href="UNITSINFORMATION.php">More Info</a>
                     </div>
                 </div>
 
@@ -374,7 +374,7 @@ $dashboardData = getDashboardData($conn);
                         </div>
                     </div>
                     <div class="moreInfo">
-                        <a href="#">More Info</a>
+                        <a href="UNITSINFORMATION.php">More Info</a>
                     </div>
                 </div>
 
@@ -390,7 +390,7 @@ $dashboardData = getDashboardData($conn);
                         </div>
                     </div>
                     <div class="moreInfo">
-                        <a href="#">More Info</a>
+                        <a href="TENANTSLIST.php">More Info</a>
                     </div>
                 </div>
 
@@ -406,7 +406,7 @@ $dashboardData = getDashboardData($conn);
                         </div>
                     </div>
                     <div class="moreInfo">
-                        <a href="#">More Info</a>
+                        <a href="PAYMENT_MANAGEMENT.php">More Info</a>
                     </div>
                 </div>
 
