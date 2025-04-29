@@ -7,13 +7,14 @@ $unit_no = $_GET['unit_no'] ?? '';
 $unit_size = '';
 $floor_level = '';
 $unit_type = '';
+$occupant_capacity = '';
 $monthly_rent_amount = '';
 
 if ($unit_no !== '') {
-    $stmt = $conn->prepare("SELECT `unit_no`, `unit_size`, `floor_level`, `unit_type`, `monthly_rent_amount` FROM `units` WHERE `unit_no` = ?");
+    $stmt = $conn->prepare("SELECT `unit_no`, `unit_size`, `floor_level`, `unit_type`, `occupant_capacity`, `monthly_rent_amount` FROM `units` WHERE `unit_no` = ?");
     $stmt->bind_param("s", $unit_no);
     $stmt->execute();
-    $stmt->bind_result($fetched_unit_no, $unit_size, $floor_level, $unit_type, $monthly_rent_amount);
+    $stmt->bind_result($fetched_unit_no, $unit_size, $floor_level, $unit_type, $occupant_capacity, $monthly_rent_amount);
     if ($stmt->fetch()) {
         // Data fetched successfully
     }
@@ -150,8 +151,18 @@ $conn->close();
             font-size: 16px;
             color: #01214B;
             position: relative;
+            text-decoration: none;
         }
-        .headerContent a {
+        .headerContent .adminTitle:hover {
+            color: #FFFF;
+        }
+        .adminLogoutspace {
+            font-size: 16px;
+            color: #01214B;
+            position: relative;
+            text-decoration: none;
+        }
+        .logOutbtn {
             font-size: 16px;
             color: #FFFF;
             position: relative;
@@ -431,6 +442,11 @@ $conn->close();
                                 </div>
 
                                 <div>
+                                    <label for="occupant_capacity">Occupant Capacity</label>
+                                    <input type="text" name="occupant_capacity" id="occupant_capacity" value="Maximum of <?php echo htmlspecialchars($occupant_capacity); ?> occupant" readonly>
+                                </div>
+
+                                <div>
                                     <label for="monthly_rent_amount">Monthly Rent Amount</label>
                                     <input type="text" name="monthly_rent_amount" id="monthly_rent_amount" value="<?php echo htmlspecialchars($monthly_rent_amount); ?>" readonly>
                                 </div>
@@ -456,8 +472,6 @@ $conn->close();
             </div>
             <div class="footbtnContainer">
                 <a href="UNITSINFORMATION.php" class="backbtn">&#10558; Back</a>
-                <a href="#" class="confirmbtn">
-                    Confirm</a>
             </div>
         </div>
     </div>

@@ -159,8 +159,18 @@ if (isset($_GET['unit_no']) && !empty($_GET['unit_no'])) {
             font-size: 16px;
             color: #01214B;
             position: relative;
+            text-decoration: none;
         }
-        .headerContent a {
+        .headerContent .adminTitle:hover {
+            color: #FFFF;
+        }
+        .adminLogoutspace {
+            font-size: 16px;
+            color: #01214B;
+            position: relative;
+            text-decoration: none;
+        }
+        .logOutbtn {
             font-size: 16px;
             color: #FFFF;
             position: relative;

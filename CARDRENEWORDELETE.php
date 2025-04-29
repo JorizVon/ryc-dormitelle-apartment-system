@@ -111,8 +111,18 @@
             font-size: 16px;
             color: #01214B;
             position: relative;
+            text-decoration: none;
         }
-        .headerContent a {
+        .headerContent .adminTitle:hover {
+            color: #FFFF;
+        }
+        .adminLogoutspace {
+            font-size: 16px;
+            color: #01214B;
+            position: relative;
+            text-decoration: none;
+        }
+        .logOutbtn {
             font-size: 16px;
             color: #FFFF;
             position: relative;
@@ -347,9 +357,10 @@
     </div>
         <div class="mainBody">
             <div class="header">
-                <div class="headerContent">
-                    <p class="adminTitle">ADMIN | </p>
-                    <a href="#" class="logOutbtn">Log Out</a>
+            <div class="headerContent">
+                    <a href="ADMINPROFILE.php" class="adminTitle">ADMIN</a>
+                    <p class="adminLogoutspace">&nbsp;|&nbsp;</p>
+                    <a href="ADMINLOGIN.php" class="logOutbtn">Log Out</a>
                 </div>
             </div>
             <div class="mainContent">
