@@ -311,7 +311,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .passwordForm button:hover {
-            background-color: #003080;
+            background-color: #FFFFFF;
+            color: #004AAD;
+            padding: 10px;
+            border: 2px solid #004AAD;
         }
 
         /* Adjust Back Button */
@@ -341,10 +344,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #004AAD;
             border: 2px solid #004AAD;
         }
+        .hamburger {
+            visibility: hidden;
+            width: 0px;
+        }
+        /* Mobile and Tablet Responsive */
+        @media (max-width: 1024px) {
+            body {
+            justify-content: center;
+            }
+            .sideBar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: 0.3s ease;
+            }
+
+            .sideBar.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: block;
+                position: absolute;
+                top: 25px;
+                left: 20px;
+                z-index: 1100;
+                font-size: 30px;
+                cursor: pointer;
+                color: #004AAD;
+                visibility: visible;
+                width: 10px;
+            }
+
+            .mainBody {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+
+            .header {
+                justify-content: right;
+            }
+            .footbtnContainer {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                top: 30px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .headerContent a, .adminLogoutspace {
+                font-size: 14px;
+            }
+            .hamburger {
+                font-size: 28px;
+            }
+            .sideBar{
+                width: 53vw;
+            }
+            .systemTitle {
+                position: relative;
+                top: 15px;
+                padding: 11px;
+            }
+            .systemTitle h1 {
+                font-size: 14px;
+                position: relative;
+                margin-bottom: 18px;
+
+            }
+            .systemTitle p {
+                font-size: 10px;
+            }
+            .card a {
+                font-size: 14px;
+            }
+            .card img {
+                height: 25px;
+            }
+
+        }
 
     </style>
 </head>
 <body>
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
     <div class="sideBar">
         <div class="systemTitle">
             <h1>RYC Dormitelle</h1>
@@ -422,5 +510,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>                          
         </div>
     </div>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sideBar');
+            sidebar.classList.toggle('active');
+        }
+    </script>
 </body>
 </html>

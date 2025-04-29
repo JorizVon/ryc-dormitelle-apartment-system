@@ -184,7 +184,8 @@ $conn->close();
             width: 100%;
             align-items: center;
             position: relative;
-            bottom: 10px;
+            bottom: 15px;
+            height: 45px;
         }
         .cardreg h4 {
             color: #01214B;
@@ -200,7 +201,7 @@ $conn->close();
             height: 50px;
             width: 50px;
         }
-        .rfidContainer {
+        .overviewContainer {
             max-width: 90%;
             margin: 0 auto;
             border: 3px solid #A6DDFF;
@@ -217,7 +218,6 @@ $conn->close();
             gap: 10px; /* same gap horizontally and vertically */
             width: max-content;
             margin: 0 auto;
-            margin-left: 130px;
         }
 
         .rfidImageContainer {
@@ -240,7 +240,7 @@ $conn->close();
             position: relative;
             top: 10px;
         }
-        .rfidInput1 {
+        .unitInfoInputs {
             width: 50%;
             height: 90%;
             margin: auto 0px;
@@ -353,9 +353,220 @@ $conn->close();
         .footbtnContainer a:hover .printTenantInfo {
             content: url('otherIcons/printIconblue.png');
         }
+        /* Mobile and Tablet Responsive */
+        @media (max-width: 1024px) {
+            body {
+            justify-content: center;
+            }
+            .sideBar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: 0.3s ease;
+            }
+
+            .sideBar.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: block;
+                position: absolute;
+                top: 25px;
+                left: 20px;
+                z-index: 1100;
+                font-size: 30px;
+                cursor: pointer;
+                color: #004AAD;
+                visibility: visible;
+                width: 10px;
+            }
+
+            .mainBody {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+
+            .header {
+                justify-content: right;
+            }
+
+            .mainContent {
+                width: 95%;
+                margin: 0 auto;
+                margin-top: 40px;
+            }
+            .unitInfoInputs {
+                width: 90%;
+                height: 70%;
+                margin: auto 0px;
+            }
+            .overviewContainer {
+                height: 500px;
+                bottom: 50px;
+                overflow-y: auto;
+                scrollbar-width: none;
+            }
+            .overviewContainer::-webkit-scrollbar {
+            display: none;
+            }
+            .cardregistration {
+                height: 80px;
+                margin-top: 30px;
+            }
+            label {
+                width: 30vw;
+                font-size: 16px;
+            }
+            input[type="text"],
+            input[type="date"],
+            input[type="number"],
+            input[type="file"]
+            {
+                width: 40vw;
+                padding: 2px;
+                margin-bottom:5px;
+            }
+            .footbtnContainer {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                top: 30px;
+                margin: 0 auto;
+            }
+            .formContainer {
+                margin-left: 0px;
+                padding-bottom: 15px;
+            } 
+            .cardreg {
+                width: 100%;
+            }
+            .unitphotoContainer {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            .unitImagesContainer {
+                height: 15vw;
+                width: 35vw;
+                margin-top: 15px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 2px;
+                padding-bottom: 15px;
+            }
+            .unitImagesContainer img {
+                height: 80px;
+                width: 80px;
+                margin: 5px;
+            }
+            .backbtn {
+                visibility: hidden;
+            }
+            .confirmbtn {
+                position: relative;
+                bottom: 50px;
+                padding: 5px 15px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .headerContent a, .adminLogoutspace {
+                font-size: 14px;
+            }
+            .hamburger {
+                font-size: 28px;
+            }
+            .sideBar{
+                width: 53vw;
+            }
+            .systemTitle {
+                position: relative;
+                top: 15px;
+                padding: 11px;
+            }
+            .systemTitle h1 {
+                font-size: 14px;
+                position: relative;
+                margin-bottom: 18px;
+
+            }
+            .systemTitle p {
+                font-size: 10px;
+            }
+            .card a {
+                font-size: 14px;
+            }
+            .card img {
+                height: 25px;
+            }
+            .mainContent {
+                width: 100%;
+            }
+            .unitInfoInputs {
+                width: 100%;
+            }
+            .overviewContainer {
+                height: 600px;
+                bottom: 50px;
+                overflow-y: auto;
+                scrollbar-width: none;
+            }
+            .overviewContainer::-webkit-scrollbar {
+            display: none;
+            }
+            .cardregistration {
+                height: 80px;
+            }
+            .formContainer {
+                margin-left: 0;
+                height: 600px;
+                padding-bottom: 15px;
+            }
+            .cardreg {
+                width: 100%;
+            }
+            .cardreg h4 {
+                font-size: 24px;
+                bottom: 15px;
+            }
+            .cardreg img {
+                height: 40px;
+                width: 40px;
+            }
+            label {
+                width: 35vw;
+                font-size: 12px;
+            }
+            input[type="text"],
+            input[type="date"],
+            input[type="number"],
+            input[type="file"]
+            {
+                width: 40vw;
+                padding: 2px;
+                margin-bottom:5px;
+            }
+            .unitphotoContainer {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            .unitImagesContainer {
+                height: 35vw;
+                width: 100vw;
+                margin-top: 15px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1px;
+                padding-bottom: 15px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
     <div class="sideBar">
         <div class="systemTitle">
             <h1>RYC Dormitelle</h1>
@@ -406,12 +617,11 @@ $conn->close();
             </div>
             <div class="mainContent">
                 <div class="cardreg">
-                    <h4> </h4>
                 </div>
-                <div class="rfidContainer">
+                <div class="overviewContainer">
            
                     <div class="cardregistration">
-                        <div class="rfidInput1">
+                        <div class="unitInfoInputs">
                             <div class="formContainer">
                                 <div class="cardreg">
                                     <img src="UnitsInfoIcons/UnoccupiedUnitIcon.png" alt="rent icon">
@@ -453,18 +663,21 @@ $conn->close();
                                 <div>
                                     <label for="unit_images">Unit Photos </label>
                                 </div>
-                                <div class="unitImagesContainer">
-                                    <?php if (!empty($unit_images)): ?>
-                                        <?php foreach ($unit_images as $image): ?>
-                                            <img src="<?php echo htmlspecialchars($image); ?>" alt="Unit Photo" class="rfidImageContainer">
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <!-- If no images found, show 8 placeholders -->
-                                        <?php for ($i = 0; $i < 8; $i++): ?>
-                                            <img src="UnitsInfoIcons/UnoccupiedUnitIcon.png" alt="Placeholder" class="rfidImageContainer">
-                                        <?php endfor; ?>
-                                    <?php endif; ?>
+                                <div class="unitphotoContainer">
+                                    <div class="unitImagesContainer">
+                                        <?php if (!empty($unit_images)): ?>
+                                            <?php foreach ($unit_images as $image): ?>
+                                                <img src="<?php echo htmlspecialchars($image); ?>" alt="Unit Photo" class="rfidImageContainer">
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <!-- If no images found, show 8 placeholders -->
+                                            <?php for ($i = 0; $i < 8; $i++): ?>
+                                                <img src="UnitsInfoIcons/UnoccupiedUnitIcon.png" alt="Placeholder" class="rfidImageContainer">
+                                            <?php endfor; ?>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -475,5 +688,11 @@ $conn->close();
             </div>
         </div>
     </div>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sideBar');
+            sidebar.classList.toggle('active');
+        }
+    </script>
 </body>
 </html>
