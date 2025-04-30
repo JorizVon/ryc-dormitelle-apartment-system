@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 27, 2025 at 03:27 PM
+-- Generation Time: Apr 30, 2025 at 09:54 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -45,6 +45,19 @@ INSERT INTO `access_logs` (`access_ID`, `tenant_ID`, `card_no`, `date_and_time`,
 ('3', '20250423A003', '3456789012', '2025-04-26 18:30:51', 'Successful'),
 ('4', '20250424A004', '4567890123', '2025-04-26 18:29:38', 'Successful'),
 ('5', '20250423A003', '5678901234', '2025-04-26 18:29:38', 'Failed');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `accounts`
+--
+
+CREATE TABLE `accounts` (
+  `account_ID` smallint(6) NOT NULL,
+  `username` varchar(15) NOT NULL,
+  `password` int(100) NOT NULL,
+  `user_type` int(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -154,6 +167,7 @@ CREATE TABLE `tenant_unit` (
   `unit_no` varchar(10) NOT NULL,
   `lease_start_date` date NOT NULL,
   `lease_end_date` date NOT NULL,
+  `occupant_count` smallint(2) NOT NULL,
   `deposit` mediumint(6) NOT NULL,
   `balance` mediumint(6) NOT NULL,
   `lease_payment_due` varchar(30) NOT NULL,
@@ -164,11 +178,11 @@ CREATE TABLE `tenant_unit` (
 -- Dumping data for table `tenant_unit`
 --
 
-INSERT INTO `tenant_unit` (`tenant_ID`, `unit_no`, `lease_start_date`, `lease_end_date`, `deposit`, `balance`, `lease_payment_due`, `lease_status`) VALUES
-('20250421A001', 'A-001', '2025-04-01', '2032-04-01', 10000, 10000, 'Every 1st day of the month', 'Active'),
-('20250422A002', 'A-002', '2025-04-02', '2032-04-02', 10000, 10000, 'Every 2nd day of the month', 'Pending'),
-('20250423A003', 'A-003', '2025-02-01', '2032-02-01', 10000, 10000, 'Every 3rd day of the month', 'Active'),
-('20250424A004', 'A-004', '2025-04-23', '2025-05-23', 10000, 10000, 'Every 23th day of the month', 'Active');
+INSERT INTO `tenant_unit` (`tenant_ID`, `unit_no`, `lease_start_date`, `lease_end_date`, `occupant_count`, `deposit`, `balance`, `lease_payment_due`, `lease_status`) VALUES
+('20250421A001', 'A-001', '2025-04-01', '2032-04-01', 3, 10000, 10000, 'Every 1st day of the month', 'Active'),
+('20250422A002', 'A-002', '2025-04-02', '2032-04-02', 3, 10000, 10000, 'Every 2nd day of the month', 'Pending'),
+('20250423A003', 'A-003', '2025-02-01', '2032-02-01', 3, 10000, 10000, 'Every 3rd day of the month', 'Active'),
+('20250424A004', 'A-004', '2025-04-23', '2025-05-23', 3, 10000, 10000, 'Every 23th day of the month', 'Active');
 
 -- --------------------------------------------------------
 
@@ -181,6 +195,7 @@ CREATE TABLE `units` (
   `apartment_no` varchar(15) NOT NULL,
   `unit_address` varchar(30) NOT NULL,
   `unit_size` varchar(10) NOT NULL,
+  `occupant_capacity` smallint(6) NOT NULL,
   `floor_level` varchar(10) NOT NULL,
   `unit_type` varchar(10) NOT NULL,
   `monthly_rent_amount` varchar(10) NOT NULL,
@@ -191,12 +206,24 @@ CREATE TABLE `units` (
 -- Dumping data for table `units`
 --
 
-INSERT INTO `units` (`unit_no`, `apartment_no`, `unit_address`, `unit_size`, `floor_level`, `unit_type`, `monthly_rent_amount`, `unit_status`) VALUES
-('A-001', 'APT-001', 'Daet, Camarines Norte', '70 cm', '1', '2BR', '10000', 'Occupied'),
-('A-002', 'APT-002', 'Daet, Camarines Norte', '70 cm', '2', '1BR', '10000', 'Occupied'),
-('A-003', 'APT-003', 'Daet, Camarines Norte', '70 cm', '1', '2BR', '10000', 'Occupied'),
-('A-004', 'APT-004', 'Daet, Camarines Norte', '70 cm', '2', '1BR', '10000', 'Available'),
-('A-005', 'APT-005', 'Daet, Camarines Norte', '70 cm', '1', '2BR', '10000', 'Available');
+INSERT INTO `units` (`unit_no`, `apartment_no`, `unit_address`, `unit_size`, `occupant_capacity`, `floor_level`, `unit_type`, `monthly_rent_amount`, `unit_status`) VALUES
+('A-001', 'APT-001', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied'),
+('A-002', 'APT-002', 'Daet, Camarines Norte', '70', 1, '2', '1BR', '10000', 'Occupied'),
+('A-003', 'APT-003', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied'),
+('A-004', 'APT-004', 'Daet, Camarines Norte', '70', 1, '2', '1BR', '10000', 'Available'),
+('A-005', 'APT-005', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Available');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `unit_images`
+--
+
+CREATE TABLE `unit_images` (
+  `unit_image_ID` mediumint(9) NOT NULL,
+  `unit_no` varchar(10) NOT NULL,
+  `unit_image` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -207,6 +234,12 @@ INSERT INTO `units` (`unit_no`, `apartment_no`, `unit_address`, `unit_size`, `fl
 --
 ALTER TABLE `access_logs`
   ADD PRIMARY KEY (`access_ID`);
+
+--
+-- Indexes for table `accounts`
+--
+ALTER TABLE `accounts`
+  ADD PRIMARY KEY (`account_ID`);
 
 --
 -- Indexes for table `admin_account`
@@ -239,14 +272,32 @@ ALTER TABLE `units`
   ADD PRIMARY KEY (`unit_no`);
 
 --
+-- Indexes for table `unit_images`
+--
+ALTER TABLE `unit_images`
+  ADD PRIMARY KEY (`unit_image_ID`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `accounts`
+--
+ALTER TABLE `accounts`
+  MODIFY `account_ID` smallint(6) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `admin_account`
 --
 ALTER TABLE `admin_account`
   MODIFY `admin_ID` smallint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `unit_images`
+--
+ALTER TABLE `unit_images`
+  MODIFY `unit_image_ID` mediumint(9) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
