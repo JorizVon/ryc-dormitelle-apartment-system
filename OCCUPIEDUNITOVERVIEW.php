@@ -381,7 +381,9 @@ if (isset($_GET['unit_no']) && !empty($_GET['unit_no'])) {
         
         .footbtnContainer a:hover .printTenantInfo {
             content: url('otherIcons/printIconblue.png');
-        }        .hamburger {
+        }       
+        
+        .hamburger {
             visibility: hidden;
             width: 0px;
         }

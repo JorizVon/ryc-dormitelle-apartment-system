@@ -200,12 +200,13 @@ $result = $conn->query($sql);
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        .table_scroll {
+        .table-scroll {
             max-height: 500px;
             overflow-y: auto;
+            overflow-x: auto;
             scrollbar-width: none;
         }
-        .table_scroll::-webkit-scrollbar {
+        .table-scroll::-webkit-scrollbar {
             display: none;
         }
         table {
@@ -301,9 +302,145 @@ $result = $conn->query($sql);
         .footbtnContainer button:hover .printTransactionHistory {
             content: url('otherIcons/printIconblue.png');
         }
+        .hamburger {
+            visibility: hidden;
+            width: 0px;
+        }
+        /* Mobile and Tablet Responsive */
+        @media (max-width: 1024px) {
+            body {
+            display: flex;
+            margin: 0;
+            background-color: #FFFF;
+            justify-content: center;
+            }
+            .sideBar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: 0.3s ease;
+            }
+
+            .sideBar.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: block;
+                position: absolute;
+                top: 25px;
+                left: 20px;
+                z-index: 1100;
+                font-size: 30px;
+                cursor: pointer;
+                color: #004AAD;
+                visibility: visible;
+                width: 10px;
+            }
+
+            .mainBody {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+
+            .header {
+                justify-content: right;
+            }
+
+            .mainContent {
+                width: 100%;
+                margin: 0 auto;
+            }
+
+            .transactionhistoryHead {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .transactionhistoryHead h4 {
+                margin: 20px 0 0 15px;
+                font-size: 30px;
+            }
+
+            .searbar {
+                width: 90%;
+                margin: 20px auto;
+            }
+
+            .table_container {
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            table th, table td {
+                font-size: 10px;
+                padding: 15px 5px;
+            }
+            .action-btn {
+                font-size: 10px;
+                padding: 7px;
+            }
+
+            .footbtnContainer {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                top: 10px;
+                margin: 0 auto;
+            }
+            .addtenantbtn {
+                font-size: 18px;
+                padding: 5px 10px;
+            }
+            .backbtn {
+                visibility: hidden;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .headerContent a, .adminLogoutspace {
+                font-size: 14px;
+            }
+            .hamburger {
+                font-size: 28px;
+            }
+            .sideBar{
+                width: 53vw;
+            }
+            .systemTitle {
+                position: relative;
+                top: 15px;
+                padding: 11px;
+            }
+            .systemTitle h1 {
+                font-size: 14px;
+                position: relative;
+                margin-bottom: 18px;
+
+            }
+            .systemTitle p {
+                font-size: 10px;
+            }
+            .card a {
+                font-size: 14px;
+            }
+            .card img {
+                height: 25px;
+            }
+            .table-scroll {
+                width: 600px;
+            }
+            table th, table td {
+                font-size: 10px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
     <div class="sideBar">
         <div class="systemTitle">
             <h1>RYC Dormitelle</h1>
@@ -358,7 +495,7 @@ $result = $conn->query($sql);
                     <input type="text" id="searchInput" placeholder="Search" class="searbar" oninput="searchTransactionHistory()">
                 </div>
                 <div class="table_container">
-                    <div class="table_scroll">
+                    <div class="table-scroll">
                         <table id="transactionTable">
                             <thead>
                                 <tr>
@@ -508,6 +645,10 @@ $result = $conn->query($sql);
 
             const blobURL = doc.output('bloburl');
             window.open(blobURL, '_blank');
+        }
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sideBar');
+            sidebar.classList.toggle('active');
         }
     </script>
 

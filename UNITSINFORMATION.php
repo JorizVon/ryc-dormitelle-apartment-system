@@ -347,9 +347,176 @@ $conn->close();
             border-style: solid;
             border-color: #004AAD;
         }
+        .hamburger {
+            visibility: hidden;
+            width: 0px;
+        }
+        /* Mobile and Tablet Responsive */
+        @media (max-width: 1024px) {
+            body {
+            display: flex;
+            margin: 0;
+            background-color: #FFFF;
+            justify-content: center;
+            }
+            .sideBar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: 0.3s ease;
+            }
+
+            .sideBar.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: block;
+                position: absolute;
+                top: 25px;
+                left: 20px;
+                z-index: 1100;
+                font-size: 30px;
+                cursor: pointer;
+                color: #004AAD;
+                visibility: visible;
+                width: 10px;
+            }
+
+            .mainBody {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+
+            .header {
+                justify-content: right;
+            }
+
+            .mainContent {
+                width: 100%;
+                margin: 0 auto;
+            }
+
+            .Unitslegend {
+                align-items: center;
+                text-align: center;
+                justify-content: center;
+                width: 100%;
+                margin-left: 0px;
+            }
+            .mainContent h4 {
+                width: 100%;
+                margin-left: 0px;
+                display: flex;
+                justify-content: center;
+            }
+            .grid-wrapper {
+                width: 100%;
+                margin: 0px;
+                display: flex;
+                justify-content: center;
+                margin-left: 0px;
+            }
+            .grid-container {
+                gap: 40px;
+                width: 95%;
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .UnitInfocontentIcons {
+                display: flex;
+                justify-content: center;
+                height: 60px;
+                width: 60px;
+            }
+            .unit_no {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                left: 0px;
+            }
+            .footbtnContainer {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                top: 10px;
+                margin: 0 auto;
+            }
+            .addUnitbtn {
+                font-size: 18px;
+                padding: 5px 10px;
+            }
+            .backbtn {
+                visibility: hidden;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .headerContent a, .adminLogoutspace {
+                font-size: 14px;
+            }
+            .hamburger {
+                font-size: 28px;
+            }
+            .sideBar{
+                width: 53vw;
+            }
+            .systemTitle {
+                position: relative;
+                top: 15px;
+                padding: 11px;
+            }
+            .systemTitle h1 {
+                font-size: 14px;
+                position: relative;
+                margin-bottom: 18px;
+
+            }
+            .grid-wrapper {
+                width: 100%;
+                height: 80%;
+                margin-left: 0px;
+                margin-bottom: 30px;
+            }
+            .grid-container {
+                gap: 10px;
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .UnitInfocontentIcons {
+                display: flex;
+                justify-content: center;
+                height: 60px;
+                width: 60px;
+            }
+            .unit_no {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                left: 0px;
+            }
+            .systemTitle p {
+                font-size: 10px;
+            }
+            .card a {
+                font-size: 14px;
+            }
+            .card img {
+                height: 25px;
+            }
+            .footbtnContainer {
+                width: 100%;
+            }
+            .addUnitbtn {
+                font-size: 18px;
+                padding: 5px 10px;
+                margin-left: 0px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
     <div class="sideBar">
         <div class="systemTitle">
             <h1>RYC Dormitelle</h1>
@@ -445,5 +612,11 @@ $conn->close();
            </div>
         </div>
     </div>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sideBar');
+            sidebar.classList.toggle('active');
+        }
+    </script>
 </body>
 </html>
