@@ -211,7 +211,12 @@ $conn->close();
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             position: relative;
             bottom: 15px;
+            overflow-y: auto;
+            scrollbar-width: none;
         }
+        .overviewContainer::-webkit-scrollbar {
+            display: none;
+            }
         .unitImagesContainer {
             display: grid;
             grid-template-columns: repeat(4, 1fr); /* 4 equal columns */
@@ -238,7 +243,7 @@ $conn->close();
             width: 95%;
             margin-left: 10px;
             position: relative;
-            top: 10px;
+            top: 25px;
         }
         .unitInfoInputs {
             width: 50%;
@@ -352,6 +357,10 @@ $conn->close();
         
         .footbtnContainer a:hover .printTenantInfo {
             content: url('otherIcons/printIconblue.png');
+        }
+        .hamburger {
+            visibility: hidden;
+            width: 0px;
         }
         /* Mobile and Tablet Responsive */
         @media (max-width: 1024px) {

@@ -51,7 +51,7 @@ if (isset($_GET['unit_no']) && !empty($_GET['unit_no'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenants List</title>
+    <title>Occupied Unit Overview</title>
     <style>
         body {
             display: flex;
@@ -246,7 +246,12 @@ if (isset($_GET['unit_no']) && !empty($_GET['unit_no'])) {
             height: 490px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            scrollbar-width: none;
         }
+        .rfidContainer::-webkit-scrollbar {
+            display: none;
+            }
 
         .cardregistration {
             display: flex;
@@ -376,10 +381,229 @@ if (isset($_GET['unit_no']) && !empty($_GET['unit_no'])) {
         
         .footbtnContainer a:hover .printTenantInfo {
             content: url('otherIcons/printIconblue.png');
+        }        .hamburger {
+            visibility: hidden;
+            width: 0px;
+        }
+        /* Mobile and Tablet Responsive */
+        @media (max-width: 1024px) {
+            body {
+            justify-content: center;
+            }
+            .sideBar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: 0.3s ease;
+            }
+
+            .sideBar.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: block;
+                position: absolute;
+                top: 25px;
+                left: 20px;
+                z-index: 1100;
+                font-size: 30px;
+                cursor: pointer;
+                color: #004AAD;
+                visibility: visible;
+                width: 10px;
+            }
+
+            .mainBody {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+
+            .header {
+                justify-content: right;
+            }
+
+            .mainContent {
+                width: 95%;
+                margin: 0 auto;
+                margin-top: 40px;
+            }
+            .unitInfoInputs {
+                width: 90%;
+                height: 70%;
+                margin: auto 0px;
+            }
+            .overviewContainer {
+                height: 500px;
+                bottom: 50px;
+                overflow-y: auto;
+                scrollbar-width: none;
+            }
+            .overviewContainer::-webkit-scrollbar {
+            display: none;
+            }
+            .cardregistration {
+                height: 80px;
+                margin-top: 30px;
+            }
+            label {
+                width: 30vw;
+                font-size: 16px;
+            }
+            input[type="text"],
+            input[type="date"],
+            input[type="number"],
+            input[type="file"]
+            {
+                width: 30vw;
+                padding: 2px;
+                margin-bottom:5px;
+            }
+            .footbtnContainer {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                top: 30px;
+                margin: 0 auto;
+            }
+            .rfidInput1 {
+                width: 100%;
+            }
+            .formContainer {
+                margin-left: 0px;
+                padding-bottom: 15px;
+                width: 100%;
+            } 
+            .cardreg {
+                width: 100%;
+            }
+            .unitphotoContainer {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            .unitImagesContainer {
+                height: 15vw;
+                width: 35vw;
+                margin-top: 15px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 2px;
+                padding-bottom: 15px;
+            }
+            .unitImagesContainer img {
+                height: 80px;
+                width: 80px;
+                margin: 5px;
+            }
+            .backbtn {
+                visibility: hidden;
+            }
+            .confirmbtn {
+                position: relative;
+                bottom: 50px;
+                padding: 5px 15px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .headerContent a, .adminLogoutspace {
+                font-size: 14px;
+            }
+            .hamburger {
+                font-size: 28px;
+            }
+            .sideBar{
+                width: 53vw;
+            }
+            .systemTitle {
+                position: relative;
+                top: 15px;
+                padding: 11px;
+            }
+            .systemTitle h1 {
+                font-size: 14px;
+                position: relative;
+                margin-bottom: 18px;
+
+            }
+            .systemTitle p {
+                font-size: 10px;
+            }
+            .card a {
+                font-size: 14px;
+            }
+            .card img {
+                height: 25px;
+            }
+            .mainContent {
+                width: 100%;
+            }
+            .unitInfoInputs {
+                width: 100%;
+            }
+            .overviewContainer {
+                height: 600px;
+                bottom: 50px;
+                overflow-y: auto;
+                scrollbar-width: none;
+            }
+            .overviewContainer::-webkit-scrollbar {
+            display: none;
+            }
+            .cardregistration {
+                height: 80px;
+            }
+            .formContainer {
+                margin-left: 0;
+                height: 400px;
+                padding-bottom: 15px;
+            }
+            .cardreg {
+                width: 100%;
+            }
+            .cardreg h4 {
+                font-size: 24px;
+                bottom: 15px;
+            }
+            .cardreg img {
+                height: 40px;
+                width: 40px;
+            }
+            .formContainer label {
+                width: 25vw;
+                font-size: 12px;
+                margin-right: 10px;
+            }
+            .formContainer input[type="text"],
+            input[type="date"],
+            input[type="number"],
+            input[type="file"]
+            {
+                width: 40vw;
+                padding: 2px;
+                margin-bottom:5px;
+            }
+            .unitphotoContainer {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            .unitImagesContainer {
+                height: 35vw;
+                width: 100vw;
+                margin-top: 15px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1px;
+                padding-bottom: 15px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
     <div class="sideBar">
         <div class="systemTitle">
             <h1>RYC Dormitelle</h1>
@@ -518,5 +742,11 @@ if (isset($_GET['unit_no']) && !empty($_GET['unit_no'])) {
             </div>
         </div>
     </div>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sideBar');
+            sidebar.classList.toggle('active');
+        }
+    </script>
 </body>
 </html>

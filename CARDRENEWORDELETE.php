@@ -159,13 +159,18 @@
             height: 470px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            scrollbar-width: none;
         }
+        .rfidContainer::-webkit-scrollbar {
+            display: none;
+            }
         .rfidImageContainer {
             display: block;
             margin-left: auto;
             margin-right: auto;
-            width: 203px;
-            height: 170px;
+            width: 180px;
+            height: 150px;
             margin-top: 15px;
             margin-bottom: 30px;
             border: 2px solid #000000;
@@ -193,11 +198,12 @@
         .cardregistration {
             display: flex;
             justify-content: space-between;
-            height: 350px;
+            height: 50%;
             width: 95%;
             margin-left: 10px;
             position: relative;
             bottom: 20px;
+
         }
         .rfidInput1 {
             width: 50%;
@@ -216,7 +222,7 @@
         }
         .formContainer {
             width: 100%;
-            height: 470px;
+            height: 80%;
             margin-top: 52px;
             margin-left: 15px;
         }
@@ -312,9 +318,264 @@
         .footbtnContainer a:hover .printTenantInfo {
             content: url('otherIcons/printIconblue.png');
         }
+        .hamburger {
+            visibility: hidden;
+            width: 0px;
+        }
+        /* Mobile and Tablet Responsive */
+        @media (max-width: 1024px) {
+            body {
+            justify-content: center;
+            }
+            .sideBar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: 0.3s ease;
+            }
+
+            .sideBar.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: block;
+                position: absolute;
+                top: 25px;
+                left: 20px;
+                z-index: 1100;
+                font-size: 30px;
+                cursor: pointer;
+                color: #004AAD;
+                visibility: visible;
+                width: 10px;
+            }
+
+            .mainBody {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+
+            .header {
+                justify-content: right;
+            }
+
+            .mainContent {
+                width: 95%;
+                margin: 0 auto;
+                margin-top: 20px;
+            }
+            .unitInfoInputs {
+                width: 90%;
+                height: 70%;
+                margin: auto 0px;
+            }
+            .overviewContainer {
+                height: 500px;
+                bottom: 50px;
+                overflow-y: auto;
+                scrollbar-width: none;
+            }
+            .overviewContainer::-webkit-scrollbar {
+            display: none;
+            }
+            .cardregistration {
+                height: 80px;
+                margin-top: 30px;
+            }
+            label {
+                width: 30vw;
+                font-size: 16px;
+            }
+            input[type="text"],
+            input[type="date"],
+            input[type="number"],
+            input[type="file"]
+            {
+                width: 35vw;
+                padding: 2px;
+                margin-bottom:5px;
+            }
+            select {
+                width: 36vw;
+                padding: 2px;
+                margin-bottom:5px;
+            }
+            .footbtnContainer {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                top: 30px;
+                margin: 0 auto;
+            }
+            .formContainer {
+                margin-left: 0px;
+                padding-bottom: 15px;
+            } 
+            .cardreg {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                height: 50px;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            .cardreg h4 {
+                color: #01214B;
+                font-size: 32px;
+                height: 20px;
+                align-items: center;
+            }
+            .unitphotoContainer {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            .unitImagesContainer {
+                height: 15vw;
+                width: 35vw;
+                margin-top: 15px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 2px;
+                padding-bottom: 15px;
+            }
+            .unitImagesContainer img {
+                height: 80px;
+                width: 80px;
+                margin: 5px;
+            }
+            .rfidImageContainer {
+                height: 100px;
+                width: 100px;
+            }
+            .formContainer {
+                height: 100px;
+                margin-top: 20px;
+            }
+            .buttonContainer {
+                width: 90%;
+            }
+            .backbtn {
+                visibility: hidden;
+            }
+            .confirmbtn {
+                position: relative;
+                bottom: 50px;
+                padding: 5px 15px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .headerContent a, .adminLogoutspace {
+                font-size: 14px;
+            }
+            .hamburger {
+                font-size: 28px;
+            }
+            .sideBar{
+                width: 53vw;
+            }
+            .systemTitle {
+                position: relative;
+                top: 15px;
+                padding: 11px;
+            }
+            .systemTitle h1 {
+                font-size: 14px;
+                position: relative;
+                margin-bottom: 18px;
+
+            }
+            .systemTitle p {
+                font-size: 10px;
+            }
+            .card a {
+                font-size: 14px;
+            }
+            .card img {
+                height: 25px;
+            }
+            .mainContent {
+                width: 100%;
+            }
+            .rfidInput1 {
+                width: 50%;
+            }
+            .rfidInput2 {
+                width: 50%;
+            }
+            .overviewContainer {
+                height: 600px;
+                bottom: 50px;
+                overflow-y: auto;
+                scrollbar-width: none;
+            }
+            .overviewContainer::-webkit-scrollbar {
+            display: none;
+            }
+            .rfidImageContainer {
+                height: 80px;
+                width: 80px;
+            }
+            .cardregistration {
+                height: 80px;
+            }
+            .formContainer {
+                margin-left: 0;
+                height: 600px;
+                padding-bottom: 15px;
+            }
+            .cardreg {
+                width: 100%;
+            }
+            .cardreg h4 {
+                font-size: 24px;
+                bottom: 15px;
+                margin-left: 0px;
+            }
+            .cardreg img {
+                height: 40px;
+                width: 40px;
+            }
+            label {
+                width: 35vw;
+                font-size: 12px;
+            }
+            input[type="text"],
+            input[type="date"],
+            input[type="number"],
+            input[type="file"]
+            {
+                width: 35vw;
+                padding: 2px;
+                margin-bottom:5px;
+            }
+            select {
+                width: 36vw;
+                padding: 2px;
+                margin-bottom:5px;
+            }
+            .unitphotoContainer {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            .unitImagesContainer {
+                height: 35vw;
+                width: 100vw;
+                margin-top: 15px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1px;
+                padding-bottom: 15px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
     <div class="sideBar">
         <div class="systemTitle">
             <h1>RYC Dormitelle</h1>
@@ -447,6 +708,10 @@
             reader.readAsDataURL(file);
           }
         });
+        function toggleSidebar() {
+        const sidebar = document.querySelector('.sideBar');
+        sidebar.classList.toggle('active');
+        }
       </script>
 </body>
 </html>

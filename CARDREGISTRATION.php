@@ -186,7 +186,7 @@ $result = $conn->query($sql);
             opacity: 1;
         }
         .table-container {
-            max-width: 90%;
+            width: 90%;
             margin: 0 auto;
             border: 3px solid #A6DDFF;
             border-radius: 8px;
@@ -197,6 +197,7 @@ $result = $conn->query($sql);
         .table-scroll {
             max-height: 500px;
             overflow-y: auto;
+            overflow-x: auto;
             scrollbar-width: none;
         }
         .table-scroll::-webkit-scrollbar {
@@ -294,9 +295,164 @@ $result = $conn->query($sql);
         .footbtnContainer a:hover .addtenantbtnIcon {
             content: url('UnitsInfoIcons/plusblue.png');
         }
+        .hamburger {
+            visibility: hidden;
+            width: 0px;
+        }
+        /* Mobile and Tablet Responsive */
+        @media (max-width: 1024px) {
+            body {
+            display: flex;
+            margin: 0;
+            background-color: #FFFF;
+            justify-content: center;
+            }
+            .sideBar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: 0.3s ease;
+            }
+
+            .sideBar.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: block;
+                position: absolute;
+                top: 25px;
+                left: 20px;
+                z-index: 1100;
+                font-size: 30px;
+                cursor: pointer;
+                color: #004AAD;
+                visibility: visible;
+                width: 10px;
+            }
+
+            .mainBody {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+
+            .header {
+                justify-content: right;
+            }
+
+            .mainContent {
+                width: 95%;
+                margin: 0 auto;
+            }
+
+            .tenantHistoryHead {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .tenantHistoryHead h4 {
+                margin: 20px 0 0 15px;
+                font-size: 30px;
+            }
+
+            .searbar {
+                width: 90%;
+                margin: 20px auto;
+            }
+
+            .table-container {
+                width: 90%;
+                overflow-x: auto;
+            }
+
+            table th, table td {
+                font-size: 12px;
+                padding: 10px;
+            }
+            .action-btn {
+                font-size: 12px;
+                padding: 5px;
+            }
+
+            .footbtnContainer {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                top: 30px;
+                margin: 0 auto;
+            }
+
+            .backbtn {
+                visibility: hidden;
+            }
+            .addtenantbtn {
+                font-size: 20px;
+                bottom: 45px;
+                padding: 5px;
+            }
+        }
+        @media (max-width: 480px) {
+            .headerContent a, .adminLogoutspace {
+                font-size: 14px;
+            }
+            .hamburger {
+                font-size: 28px;
+            }
+            .mainContent {
+                width: 100%;
+                margin: 0 auto;
+            }
+            .sideBar{
+                width: 53vw;
+            }
+            .systemTitle {
+                position: relative;
+                top: 15px;
+                padding: 11px;
+            }
+            .systemTitle h1 {
+                font-size: 14px;
+                position: relative;
+                margin-bottom: 18px;
+
+            }
+            .systemTitle p {
+                font-size: 10px;
+            }
+            .card a {
+                font-size: 14px;
+            }
+            .card img {
+                height: 25px;
+            }
+            table th, table td {
+                font-size: 10px;
+                padding: 8px 2px;
+            }
+            .table-container {
+                width: 95%;
+                max-height: 470px;
+                height: 300px;
+                
+            }
+            .action-btn {
+                font-size: 9px;
+                padding: 5px;
+            }
+            .addtenantbtn {
+                font-size: 18px;
+                bottom: 45px;
+                padding: 5px;
+            }
+        }
+
     </style>
 </head>
 <body>
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
     <div class="sideBar">
         <div class="systemTitle">
             <h1>RYC Dormitelle</h1>
@@ -356,11 +512,11 @@ $result = $conn->query($sql);
                         <thead>
                           <tr>
                             <th>No.</th>
-                            <th>Unit No.</th>
-                            <th>Tenant Name</th>
-                            <th>Registration Date</th>
-                            <th>Expiration Date</th>
-                            <th>Card Status</th>
+                            <th>Unit<br>No.</th>
+                            <th>Tenant<br>Name</th>
+                            <th>Registration<br>Date</th>
+                            <th>Expiration<br>Date</th>
+                            <th>Card<br>Status</th>
                             <th>Action</th>
                           </tr>
                         </thead>
@@ -423,9 +579,10 @@ $result = $conn->query($sql);
                 }
             }
         }
+        function toggleSidebar() {
+        const sidebar = document.querySelector('.sideBar');
+        sidebar.classList.toggle('active');
+        }
     </script>
 </body>
 </html>
-<?php
-$conn->close();
-?>
