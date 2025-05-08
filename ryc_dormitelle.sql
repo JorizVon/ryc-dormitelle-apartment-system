@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 30, 2025 at 09:54 AM
+-- Generation Time: May 08, 2025 at 07:27 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -54,9 +54,9 @@ INSERT INTO `access_logs` (`access_ID`, `tenant_ID`, `card_no`, `date_and_time`,
 
 CREATE TABLE `accounts` (
   `account_ID` smallint(6) NOT NULL,
-  `username` varchar(15) NOT NULL,
-  `password` int(100) NOT NULL,
-  `user_type` int(10) NOT NULL
+  `email_account` varchar(30) NOT NULL,
+  `password` varchar(30) NOT NULL,
+  `user_type` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -209,9 +209,7 @@ CREATE TABLE `units` (
 INSERT INTO `units` (`unit_no`, `apartment_no`, `unit_address`, `unit_size`, `occupant_capacity`, `floor_level`, `unit_type`, `monthly_rent_amount`, `unit_status`) VALUES
 ('A-001', 'APT-001', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied'),
 ('A-002', 'APT-002', 'Daet, Camarines Norte', '70', 1, '2', '1BR', '10000', 'Occupied'),
-('A-003', 'APT-003', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied'),
-('A-004', 'APT-004', 'Daet, Camarines Norte', '70', 1, '2', '1BR', '10000', 'Available'),
-('A-005', 'APT-005', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Available');
+('A-003', 'APT-003', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied');
 
 -- --------------------------------------------------------
 
@@ -297,7 +295,7 @@ ALTER TABLE `admin_account`
 -- AUTO_INCREMENT for table `unit_images`
 --
 ALTER TABLE `unit_images`
-  MODIFY `unit_image_ID` mediumint(9) NOT NULL AUTO_INCREMENT;
+  MODIFY `unit_image_ID` mediumint(9) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

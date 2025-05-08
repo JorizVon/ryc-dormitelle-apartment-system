@@ -1,3 +1,33 @@
+<?php
+// Connect to the database
+require_once '../db_connect.php';
+
+// Query to get available units
+$sql = "SELECT 
+    u.unit_no, 
+    u.unit_address, 
+    ui.unit_image, 
+    u.occupant_capacity, 
+    u.monthly_rent_amount,
+    u.unit_type
+FROM 
+    units u
+INNER JOIN (
+    SELECT unit_no, MIN(unit_image) AS unit_image
+    FROM unit_images
+    GROUP BY unit_no
+) ui ON u.unit_no = ui.unit_no
+WHERE 
+    u.unit_status = 'Available'
+LIMIT 0, 25";
+
+$result = mysqli_query($conn, $sql);
+
+// Check if query executed successfully
+if (!$result) {
+    die("Query failed: " . mysqli_error($conn));
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -423,7 +453,7 @@
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      height: 200px;
+      height: 300px;
     }
 
     .availUnitsBox img {
@@ -432,7 +462,7 @@
       object-fit: cover;
     }
 
-    .unitLabel {
+    .unit_no {
       position: absolute;
       top: 10px;
       right: 10px;
@@ -453,23 +483,23 @@
       padding: 8px;
     }
 
-    .unitType {
-      font-size: 12px;
+    .unitT_type, .unit_type {
+      font-size: 16px;
       font-weight: bold;
       margin: 0 0 3px 0;
     }
 
-    .unitDetails {
-      font-size: 10px;
+    .unitDetails, .occupant_capacity, .unit_address {
+      font-size: 14px;
       color: #555;
       margin: 0 0 5px 0;
     }
 
-    .unitPrice {
+    .monthly_rent_amount {
       font-weight: bold;
       color: #01214B;
       margin: 0 0 5px 0;
-      font-size: 12px;
+      font-size: 16px;
     }
 
     .inquireButton {
@@ -479,7 +509,7 @@
       padding: 5px 10px;
       text-decoration: none;
       border-radius: 4px;
-      font-size: 12px;
+      font-size: 14px;
     }
 
     .inquireButton:hover {
@@ -646,13 +676,13 @@
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.html">Home</a>
+        <a href="index.php">Home</a>
         <a href="#aboutRYC" class="scroll-link">About</a>
         <a href="#availUnitsContainer" class="scroll-link">Available Units</a>
-        <a href="TRANSACTIONSPAGE.html">Transactions</a>
-        <a href="INBOXPAGE.html">Inbox</a>
+        <a href="TRANSACTIONSPAGE.php">Transactions</a>
+        <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="#">SIGN IN</a>
+          <a href="#">Profile</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
           <a href="#">Login</a>
         </div>
@@ -685,103 +715,29 @@
   
   <div class="availUnits">
     <div class="availUnitsContainer" id="availUnitsContainer">
-      <!-- First Row -->
-      <div class="availUnitsBox">
-        <img src="apart9.jpg" alt="Studio Unit">
-        <div class="unitLabel">A-001</div>
-        <div class="unitInfo">
-          <p class="unitType">Studio Unit</p>
-          <p class="unitDetails">Studio unit accommodating up to 5 persons</p>
-          <p class="unitDetails">Kitchen sink, toilet</p>
-          <p class="unitPrice">₱16,000 monthly</p>
-          <a href="#" class="inquireButton">Inquire Now</a>
-        </div>
-      </div>
-
-      <div class="availUnitsBox">
-        <img src="apart9.jpg" alt="1BR Unit">
-        <div class="unitLabel">A-002</div>
-        <div class="unitInfo">
-          <p class="unitType">1BR Unit</p>
-          <p class="unitDetails">1BR unit accommodating up to 5 persons</p>
-          <p class="unitDetails">Kitchen sink, toilet</p>
-          <p class="unitPrice">₱16,000 monthly</p>
-          <a href="#" class="inquireButton">Inquire Now</a>
-        </div>
-      </div>
-
-      <div class="availUnitsBox">
-        <img src="apart9.jpg" alt="Studio Unit">
-        <div class="unitLabel">A-003</div>
-        <div class="unitInfo">
-          <p class="unitType">Studio Unit</p>
-          <p class="unitDetails">Studio unit accommodating up to 5 persons</p>
-          <p class="unitDetails">Kitchen sink, toilet</p>
-          <p class="unitPrice">₱16,000 monthly</p>
-          <a href="#" class="inquireButton">Inquire Now</a>
-        </div>
-      </div>
-
-      <div class="availUnitsBox">
-        <img src="apart9.jpg" alt="1BR Unit">
-        <div class="unitLabel">A-004</div>
-        <div class="unitInfo">
-          <p class="unitType">1BR Unit</p>
-          <p class="unitDetails">1BR unit accommodating up to 5 persons</p>
-          <p class="unitDetails">Kitchen sink, toilet</p>
-          <p class="unitPrice">₱16,000 monthly</p>
-          <a href="#" class="inquireButton">Inquire Now</a>
-        </div>
-      </div>
-
-      <!-- Second Row -->
-      <div class="availUnitsBox">
-        <img src="apart9.jpg" alt="Studio Unit">
-        <div class="unitLabel">A-005</div>
-        <div class="unitInfo">
-          <p class="unitType">Studio Unit</p>
-          <p class="unitDetails">Studio unit accommodating up to 5 persons</p>
-          <p class="unitDetails">Kitchen sink, toilet</p>
-          <p class="unitPrice">₱16,000 monthly</p>
-          <a href="#" class="inquireButton">Inquire Now</a>
-        </div>
-      </div>
-
-      <div class="availUnitsBox">
-        <img src="apart9.jpg" alt="1BR Unit">
-        <div class="unitLabel">A-006</div>
-        <div class="unitInfo">
-          <p class="unitType">1BR Unit</p>
-          <p class="unitDetails">1BR unit accommodating up to 5 persons</p>
-          <p class="unitDetails">Kitchen sink, toilet</p>
-          <p class="unitPrice">₱16,000 monthly</p>
-          <a href="#" class="inquireButton">Inquire Now</a>
-        </div>
-      </div>
-
-      <div class="availUnitsBox">
-        <img src="apart9.jpg" alt="Studio Unit">
-        <div class="unitLabel">A-007</div>
-        <div class="unitInfo">
-          <p class="unitType">Studio Unit</p>
-          <p class="unitDetails">Studio unit accommodating up to 5 persons</p>
-          <p class="unitDetails">Kitchen sink, toilet</p>
-          <p class="unitPrice">₱16,000 monthly</p>
-          <a href="#" class="inquireButton">Inquire Now</a>
-        </div>
-      </div>
-
-      <div class="availUnitsBox">
-        <img src="apart9.jpg" alt="1BR Unit">
-        <div class="unitLabel">A-008</div>
-        <div class="unitInfo">
-          <p class="unitType">1BR Unit</p>
-          <p class="unitDetails">1BR unit accommodating up to 5 persons</p>
-          <p class="unitDetails">Kitchen sink, toilet</p>
-          <p class="unitPrice">₱16,000 monthly</p>
-          <a href="#" class="inquireButton">Inquire Now</a>
-        </div>
-      </div>
+      <?php
+      // Check if there are any available units
+      if (mysqli_num_rows($result) > 0) {
+          // Loop through all available units
+          while ($row = mysqli_fetch_assoc($result)) {
+              ?>
+              <div class="availUnitsBox">
+              <img src="../unitImages/<?php echo htmlspecialchars($row['unit_image']); ?>" alt="<?php echo htmlspecialchars($row['unit_type']); ?>" class="unit_image">
+                <div class="unit_no"><?php echo htmlspecialchars($row['unit_no']); ?></div>
+                <div class="unitInfo">
+                  <p class="unitT_type"><?php echo htmlspecialchars($row['unit_type']); ?></p>
+                  <p class="occupant_capacity">Studio unit accommodating up to <?php echo htmlspecialchars($row['occupant_capacity']); ?> persons</p>
+                  <p class="unitDetails"><?php echo htmlspecialchars($row['unit_address']); ?></p>
+                  <p class="monthly_rent_amount">₱<?php echo number_format($row['monthly_rent_amount']); ?> monthly</p>
+                  <a href="inquire.php?unit_no=<?php echo htmlspecialchars($row['unit_no']); ?>" class="inquireButton">Inquire Now</a>
+                </div>
+              </div>
+              <?php
+          }
+      } else {
+          echo "<p>No available units at the moment. Please check back later.</p>";
+      }
+      ?>
     </div>
   </div>
 
@@ -789,8 +745,8 @@
     <div class="footerContainer">
       <div class="contactleftside">
         <h6>Contact Information & Inquiry Form</h6>
-        <p><img src="tenantviewIcons/profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="tenantviewIcons/addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br>
-          <img src="tenantviewIcons/IconMail.png" alt="Mail Icon">Email: kyleangelacatiis@gmail.com<br><img src="tenantviewIcons/phoneIcon.png" alt="Phone Icon">Phone: 0912-345-6789</p>
+        <p><img src="../tenantviewIcons/profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="../tenantviewIcons/addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br>
+          <img src="../tenantviewIcons/IconMail.png" alt="Mail Icon">Email: kyleangelacatiis@gmail.com<br><img src="../tenantviewIcons/phoneIcon.png" alt="Phone Icon">Phone: 0912-345-6789</p>
       </div>
       <div class="contactrightside">
         <p>Apartment Management System @ 2025.<br>All Rights Reserved.<br>Developed by Joriz Gutierrez</p>
@@ -819,3 +775,7 @@
   
 </body>
 </html>
+<?php 
+// Close database connection
+mysqli_close($conn);
+?>

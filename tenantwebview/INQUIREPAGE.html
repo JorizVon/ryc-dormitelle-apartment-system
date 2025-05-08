@@ -16,11 +16,11 @@
     body {
       display: flex;
       flex-direction: column;
-      min-height: 100vh; /* Full viewport height */
+      min-height: 100vh;
     }
 
     .content {
-      flex: 1 0 auto; /* Grow but don't shrink */
+      flex: 1 0 auto;
       display: flex;
       flex-direction: column;
     }
@@ -29,32 +29,12 @@
       flex: 1;
     }
 
+    /* Header styles */
     .header {
       display: flex;
       justify-content: space-between;
       width: 100%;
       height: 80px;
-    }
-
-    .fullpage-image {
-      width: 100%;
-      height: calc(100vh - 80px);
-    }
-
-    .fullpage-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .hanburgerandaccContainer {
-      background-color: #01214B;
-      width: 22%;
-      height: 100%;
-      display: none;
-      justify-content: center;
-      align-items: center;
     }
 
     .containerSystemName {
@@ -118,6 +98,16 @@
       margin-left: 50px;
     }
 
+    /* Mobile menu styles */
+    .hanburgerandaccContainer {
+      background-color: #01214B;
+      width: 22%;
+      height: 100%;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
     .hamburger {
       display: none;
       font-size: 28px;
@@ -129,6 +119,231 @@
       margin-bottom: 5px;
     }
 
+    /* Unit image styles */
+    .unit-image {
+      width: 100%;
+      height: 50vh; /* Half of viewport height */
+      overflow: hidden;
+    }
+
+    .unit-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Unit information section */
+    .main-content {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .unit-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 15px;
+    }
+
+    .unit-id {
+      background-color: #004AAD;
+      color: white;
+      padding: 12px 25px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+    }
+
+    .inquire-button {
+      background-color: #004AAD;
+      color: white;
+      padding: 12px 25px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .inquire-button:hover {
+      background-color: #003080;
+    }
+
+    .unit-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      color: #333;
+      padding: 5px 0;
+    }
+
+    .unit-address {
+      font-size: 16px;
+      color: #555;
+      margin: 0;
+      padding-bottom: 10px;
+    }
+
+    /* Unit info and form layout */
+    .unit-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+
+    .unit-details-section {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .section-heading {
+      font-size: 18px;
+      font-weight: bold;
+      color: #004AAD;
+      margin-bottom: 15px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #79B1FC;
+    }
+
+    .details-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .details-list li {
+      display: flex;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    .details-list li:before {
+      content: "•";
+      color: #004AAD;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    /* Inquiry form styles */
+    .inquiry-form-container {
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      background-color: #f9f9f9;
+      display: none;
+    }
+
+    .form-heading {
+      text-align: center;
+      color: #004AAD;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .form-row {
+      margin-bottom: 15px;
+    }
+
+    .form-row label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-row input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    .form-row input[readonly] {
+      background-color: #f0f0f0;
+    }
+
+    .submit-btn {
+      background-color: #004AAD;
+      color: white;
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+
+    .submit-btn:hover {
+      background-color: #003080;
+    }
+
+    .form-notification {
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-top: 15px;
+    }
+
+    .error-message {
+      color: #d9534f;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .error-input {
+      border: 1px solid #d9534f !important;
+    }
+
+    /* Footer styles */
+    .footer {
+      background-color: #2262B8;
+      color: white;
+      padding: 20px;
+      margin-top: 30px;
+      flex-shrink: 0;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-left h4 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .footer-left p {
+      font-size: 14px;
+      margin: 5px 0;
+    }
+
+    .footer-right {
+      text-align: right;
+    }
+
+    .footer-right p {
+      font-size: 14px;
+    }
+
+    /* Responsive styles */
     @media screen and (max-width: 768px) {
       .header {
         height: 60px;
@@ -150,23 +365,14 @@
         left: 0;
         background-color: #01214B;
         width: 100%;
-        padding: 10px 0;
         z-index: 10;
-        height: 40px;
-        flex-direction: column;
+        height: auto;
+        padding: 10px 0;
       }
 
       .containerSystemName.show {
         display: flex;
         width: 50vw;
-      }
-
-      .systemName h2 {
-        font-size: 18px;
-      }
-
-      .systemName h4 {
-        font-size: 14px;
       }
 
       .navbar {
@@ -181,23 +387,26 @@
         display: block;
         width: 50vw;
         height: 85vh;
+        z-index: 10;
       }
 
       .navbarContent {
         flex-direction: column;
         align-items: flex-start;
-        padding: 10px 20px;
         margin: 0;
+        padding: 20px;
       }
 
       .navbarContent a {
-        margin: 8px 0;
-        font-size: 18px;
-        color: white;
+        margin: 10px 0;
       }
 
       .loginLogOut {
         display: none;
+      }
+
+      .hamburger {
+        display: block;
       }
 
       .adminSection {
@@ -214,357 +423,22 @@
         margin-left: 5px;
       }
 
-      .hamburger {
-        display: block;
-        font-size: 35px;
-      }
-    }
-
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      height: 140px;
-      flex-shrink: 0; /* Prevent footer from shrinking */
-    }
-    
-    .footerContainer {
-      background-color: #2262B8;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .contactleftside {
-      position: relative;
-      bottom: 13px;
-      margin-left: 30px;
-    }
-    
-    .contactleftside h6 {
-      font-size: 15px;
-      margin-bottom: 0;
-      color: #fff;
-    }
-    
-    .contactleftside p {
-      font-size: 13px;
-      margin-top: 0;
-      color: #fff;
-    }
-    
-    .contactleftside img {
-      margin-right: 5px;
-    }
-    
-    .contactrightside {
-      margin-right: 30px;
-      text-align: center;
-    }
-    
-    .contactrightside p {
-      font-size: 14px;
-      color: #fff;
-    }
-    
-    /* Responsive styles for footer */
-    @media screen and (max-width: 992px) {
-      .footer {
-        height: auto;
-      }
-      
-      .footerContainer {
-        padding: 20px 0;
-      }
-      
-      .contactleftside {
-        margin-left: 20px;
-        bottom: 0;
-      }
-      
-      .contactrightside {
-        margin-right: 20px;
-      }
-    }
-    
-    @media screen and (max-width: 768px) {
-      .footerContainer {
-        flex-direction: column;
-        padding: 15px 0;
-      }
-      
-      .contactleftside {
-        margin: 0 0 15px 0;
-        text-align: center;
-        width: 90%;
-      }
-      
-      .contactleftside h6 {
-        font-size: 14px;
-      }
-      
-      .contactleftside p {
-        font-size: 12px;
-      }
-      
-      .contactrightside {
-        margin: 0;
-        width: 90%;
-      }
-      
-      .contactrightside p {
-        font-size: 12px;
-      }
-    }
-    
-    @media screen and (max-width: 480px) {
-      .footerContainer {
-        padding: 10px 0;
-      }
-      
-      .contactleftside h6 {
-        font-size: 12px;
-      }
-      
-      .contactleftside p {
-        font-size: 10px;
-      }
-      
-      .contactrightside p {
-        font-size: 10px;
-      }
-      
-      .contactleftside img {
-        width: 12px;
-        height: auto;
-      }
-    }
-
-    .unit-info-section {
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      margin: 10px 10px 20px 10px;
-      gap: 20px;
-      max-width: 600px;
-    }
-
-    .unit-number {
-      background-color: #004AAD;
-      color: white;
-      padding: 15px 30px;
-      font-size: 18px;
-      border: none;
-      border-radius: 0;
-      text-align: center;
-    }
-
-    .inquire-button {
-      background-color: #004AAD;
-      color: white;
-      padding: 15px 30px;
-      font-size: 18px;
-      border: none;
-      border-radius: 30px;
-      text-align: center;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .inquire-button:hover {
-      background-color: #003080;
-    }
-
-    .unit-description {
-      font-weight: 600;
-      font-size: 19px;
-      color: #333;
-      margin-top: 10px;
-      margin-left: 20px;
-    }
-
-    .apartment-address {
-      font-size: 17px;
-      color: black;
-      margin-top: -10px;
-      margin-left: 20px;
-    }
-
-    .unit-details {
-      font-size: 16px;
-      color: #333;
-      font-weight: 400;
-      margin-top: 20px;
-      margin-left: 20px;
-    }
-
-    .unit-details ul {
-      list-style-type: disc;
-      padding: 0;
-      margin-left: 20px;
-    }
-
-    .unit-details li {
-      color: #000;
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-
-    .payment-terms {
-      font-size: 16px;
-      color: #333;
-      font-weight: 400;
-      margin-top: 20px;
-      margin-left: 20px;
-    }
-
-    .payment-terms ul {
-      list-style-type: disc;
-      padding: 0;
-      margin-left: 20px;
-    }
-
-    .payment-terms li {
-      color: #000;
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-
-    .unit-details-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-start; /* Changed from space-between to allow better control */
-      align-items: flex-start;
-      gap: 40px; /* Increased gap to create space between details and form */
-      margin: 20px;
-      position: relative;
-      margin-bottom: 60px; /* More space before footer */
-    }
-
-    .payment-terms-container {
-      flex: 1;
-      min-width: 300px;
-      max-width: 50%;
-    }
-
-    /* Updated Inquiry Form Styles */
-    .inquiry-form {
-      max-width: 500px;
-      width: 40%;
-      border: 2px solid #004AAD;
-      padding: 20px;
-      background-color: #f9f9f9;
-      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-      display: none;
-      margin: 0;
-      position: relative;
-      top: -100px; /* Move form even further up */
-      z-index: 10;
-      align-self: flex-start;
-    }
-
-    .inquiry-form .form-group {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-
-    .inquiry-form label {
-      width: 30%;
-      margin-bottom: 5px;
-      text-align: right;
-      padding-right: 15px;
-      font-weight: 600;
-      color: #2262B8;
-    }
-
-    .inquiry-form input,
-    .inquiry-form textarea {
-      width: 60%;
-      padding: 10px;
-      border: 1px solid #2262B8; 
-      border-radius: 5px;
-      background-color: white;
-      color: black;
-      box-sizing: border-box;
-    }
-
-    .inquiry-form button {
-      background-color: #004AAD;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      display: block;
-      margin: 20px 0 0 auto; /* Push to right side */
-    }
-
-    .inquiry-form button:hover {
-      background-color: #003080;
-    }
-
-    .form-title-box {
-      margin: 10px 0;
-      padding: 10px;
-      background-color: #fff;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-      border-radius: 5px;
-      text-align: center;
-    }
-
-    .form-title-box h3 {
-      color: #2262B8;
-      font-weight: 600;
-      margin: 0;
-      font-size: 20px;
-    }
-
-    /* Read-only fields styling */
-    .inquiry-form input[readonly] {
-      background-color: #f0f0f0;
-      color: #555;
-    }
-
-    /* Media queries for form responsiveness */
-    @media screen and (max-width: 768px) {
-      .unit-details-container {
-        flex-direction: column;
-      }
-      
-      .payment-terms-container {
-        max-width: 100%;
-      }
-      
-      .inquiry-form {
-        position: relative;
-        width: 100%;
-        margin: 20px 0;
-        top: 0; /* Reset top position on mobile */
-      }
-      
-      .inquiry-form .form-group {
+      .unit-header {
         flex-direction: column;
         align-items: flex-start;
       }
-      
-      .inquiry-form label {
-        width: 100%;
-        text-align: left;
-        padding-right: 0;
-        margin-bottom: 5px;
-      }
-      
-      .inquiry-form input,
-      .inquiry-form textarea {
-        width: 100%;
+
+      .footer-content {
+        flex-direction: column;
       }
 
-      .unit-info-section {
-        flex-wrap: wrap;
+      .footer-left, .footer-right {
+        text-align: center;
+        margin-bottom: 15px;
+      }
+
+      .unit-image {
+        height: 35vh;
       }
     }
   </style>
@@ -572,6 +446,7 @@
 <body>
   <div class="content">
     <div class="page-wrapper">
+      <!-- Header Section -->
       <div class="header">
         <div class="hanburgerandaccContainer">
           <button class="hamburger" onclick="toggleMenu()">☰</button>
@@ -602,101 +477,116 @@
         </div>
       </div>
 
-      <div class="fullpage-image">
-        <img src="image/sign.jpg" alt="Sign">
+      <!-- Unit Image -->
+      <div class="unit-image">
+        <img src="/api/placeholder/1200/600" alt="Unit A-001">
       </div>
 
-      <div class="unit-info-section">
-        <div class="unit-number">A-001</div>
-        <button class="inquire-button" onclick="toggleForm()">Inquire Now</button>
-      </div>
-
-      <p class="unit-description">1BR Unit accommodating up to 5 persons</p>
-      <p class="apartment-address">Ofelia Pasig, Daet, Camarines Norte</p>
-
-      <div class="unit-details-container">
-        <div class="payment-terms-container">
-          <div class="unit-details">
-            <h3>UNIT DETAILS</h3>
-            <ul>
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Unit Header -->
+        <div class="unit-header">
+          <div class="unit-id">A-001</div>
+          <button class="inquire-button" onclick="toggleForm()">Inquire Now</button>
+        </div>
+        
+        <h2 class="unit-title">1BR Unit accommodating up to 5 persons</h2>
+        <p class="unit-address">Ofelia Pasig, Daet, Camarines Norte</p>
+        
+        <!-- Unit Information and Form Container -->
+        <div class="unit-content">
+          <!-- Details Section -->
+          <div class="unit-details-section">
+            <h3 class="section-heading">UNIT DETAILS</h3>
+            <ul class="details-list">
               <li>Unit Size: 28 Sqm</li>
               <li>Floor Level Type: 2</li>
               <li>Capacity: 4-5 Persons</li>
               <li>Type: Studio</li>
-              <li>Monthly Rent Amount: 10,000</li>
+              <li>Monthly Rent Amount: ₱10,000</li>
+            </ul>
+            
+            <h3 class="section-heading">PAYMENT TERMS</h3>
+            <ul class="details-list">
+              <li>Advance Payments: ₱10,000 (1 month)</li>
+              <li>Security Deposit: ₱20,000 (2 months)</li>
             </ul>
           </div>
-
-          <div class="payment-terms">
-            <h3>PAYMENT TERMS</h3>
-            <ul>
-              <li>Advance Payments: 10,000 (1 month)</li>
-              <li>Security Deposit: 20,000 (2 months)</li>
-            </ul>
+          
+          <!-- Inquiry Form -->
+          <div id="inquiry-form" class="inquiry-form-container">
+            <h3 class="form-heading">Unit Inquiry Form</h3>
+            <form id="rentalForm">
+              <div class="form-row">
+                <label for="fullname">Full Name:</label>
+                <input type="text" id="fullname" name="fullname" required placeholder="Juan Dela Cruz">
+                <span id="fullname-error" class="error-message">Please enter a valid full name (at least first and last name)</span>
+              </div>
+              
+              <div class="form-row">
+                <label for="contact">Contact Number:</label>
+                <input type="tel" id="contact" name="contact" required placeholder="+639123456789">
+                <span id="contact-error" class="error-message">Please enter a valid Philippine phone number (+639XXXXXXXXX)</span>
+              </div>
+              
+              <div class="form-row">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" name="email" required placeholder="example@gmail.com">
+                <span id="email-error" class="error-message">Please enter a valid email address (example@domain.com)</span>
+              </div>
+              
+              <div class="form-row">
+                <label for="movein">Preferred Move-in Date:</label>
+                <input type="date" id="movein" name="movein" required onchange="updateDates()">
+              </div>
+              
+              <div class="form-row">
+                <label for="leaseStart">Lease Start Date:</label>
+                <input type="date" id="leaseStart" name="leaseStart" readonly onchange="updateDueDate()">
+              </div>
+              
+              <div class="form-row">
+                <label for="leaseEnd">Lease End Date:</label>
+                <input type="date" id="leaseEnd" name="leaseEnd" required>
+              </div>
+              
+              <div class="form-row">
+                <label for="dueDate">Payment Due Date:</label>
+                <input type="text" id="dueDate" name="dueDate" readonly placeholder="Every Nth day of the month">
+              </div>
+              
+              <div class="form-row">
+                <label for="rent">Monthly Rent Amount (₱):</label>
+                <input type="number" id="rent" name="rent" value="10000" readonly>
+              </div>
+              
+              <button type="submit" class="submit-btn">Submit Inquiry</button>
+              
+              <p class="form-notification">
+                Thank you for your inquiry. Once the landlord confirms your request, 
+                you will receive a text message notification.
+              </p>
+            </form>
           </div>
-        </div>
-
-        <!-- Updated Inquiry Form with auto-dates feature -->
-        <div id="inquiry-form" class="inquiry-form">
-          <div class="form-title-box">
-            <h3>Inquiry Form</h3>
-          </div>
-          <form id="rentalForm">
-            <div class="form-group">
-              <label for="fullname">Full Name:</label>
-              <input type="text" id="fullname" name="fullname" required>
-            </div>
-        
-            <div class="form-group">
-              <label for="contact">Contact Number:</label>
-              <input type="tel" id="contact" name="contact" required>
-            </div>
-        
-            <div class="form-group">
-              <label for="email">Email Address:</label>
-              <input type="email" id="email" name="email" required>
-            </div>
-        
-            <div class="form-group">
-              <label for="movein">Preferred Move-in Date:</label>
-              <input type="date" id="movein" name="movein" required onchange="updateDates()">
-            </div>
-        
-            <div class="form-group">
-              <label for="leaseStart">Lease Start Date:</label>
-              <input type="date" id="leaseStart" name="leaseStart" required readonly>
-            </div>
-        
-            <div class="form-group">
-              <label for="leaseEnd">Lease End Date:</label>
-              <input type="date" id="leaseEnd" name="leaseEnd" required>
-            </div>
-        
-            <div class="form-group">
-              <label for="dueDate">Payment Due Date:</label>
-              <input type="date" id="dueDate" name="dueDate" required readonly>
-            </div>
-        
-            <div class="form-group">
-              <label for="rent">Monthly Rent Amount (₱):</label>
-              <input type="number" id="rent" name="rent" value="10000" readonly>
-            </div>
-        
-            <button type="submit">Submit</button>
-          </form>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Footer -->
   <div class="footer">
-    <div class="footerContainer">
-      <div class="contactleftside">
-        <h6>Contact Information & Inquiry Form</h6>
-        <p><img src="profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br><img src="IconMail.png" alt="Mail Icon">Email: kyleangelacatiis@gmail.com<br><img src="phoneIcon.png" alt="Phone Icon">Phone: 0912-345-6789</p>
+    <div class="footer-content">
+      <div class="footer-left">
+        <h4>Contact Information</h4>
+        <p>Manager: Kyle Angela Catiis</p>
+        <p>Address: Ofelia Pasig, Daet, Camarines Norte</p>
+        <p>Email: kyleangelacatiis@gmail.com</p>
+        <p>Phone: 0912-345-6789</p>
       </div>
-      <div class="contactrightside">
-        <p>Apartment Management System @ 2025.<br>All Rights Reserved.<br>Developed by Joriz Gutierrez</p>
+      <div class="footer-right">
+        <p>Apartment Management System @ 2025.</p>
+        <p>All Rights Reserved.</p>
+        <p>Developed by Joriz Gutierrez</p>
       </div>
     </div>
   </div>
@@ -708,7 +598,8 @@
       const formattedDate = today.toISOString().split('T')[0];
       document.getElementById('movein').min = formattedDate;
       
-      // Don't set any default dates - leave fields blank
+      // Set up form validation
+      setupFormValidation();
     });
     
     function toggleMenu() {
@@ -720,13 +611,12 @@
       const form = document.getElementById('inquiry-form');
       const inquireButton = document.querySelector('.inquire-button');
       
-      // Check if the form is currently visible or hidden
       if (form.style.display === 'block') {
-        form.style.display = 'none';  // Hide the form
-        inquireButton.textContent = 'Inquire Now';  // Reset button text
+        form.style.display = 'none';
+        inquireButton.textContent = 'Inquire Now';
       } else {
-        form.style.display = 'block';  // Show the form
-        inquireButton.textContent = 'Hide Form';  // Change button text
+        form.style.display = 'block';
+        inquireButton.textContent = 'Hide Form';
       }
     }
     
@@ -738,7 +628,6 @@
       if (!moveInValue) {
         document.getElementById('leaseStart').value = '';
         document.getElementById('dueDate').value = '';
-        document.getElementById('leaseEnd').value = '';
         return;
       }
       
@@ -748,32 +637,166 @@
       // Set lease start date to the same as move-in date
       document.getElementById('leaseStart').value = moveInDate.toISOString().split('T')[0];
       
-      // Calculate payment due date (one month from move-in date)
-      const dueDate = new Date(moveInDate);
-      dueDate.setMonth(dueDate.getMonth() + 1);
-      document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
+      // Update the payment due date text
+      updateDueDate();
       
-      // Set default lease end date to one year from move-in
-      const leaseEndDate = new Date(moveInDate);
-      leaseEndDate.setFullYear(leaseEndDate.getFullYear() + 1);
-      document.getElementById('leaseEnd').value = leaseEndDate.toISOString().split('T')[0];
+
+    }
+    
+    function updateDueDate() {
+      // Get the lease start date
+      const leaseStartValue = document.getElementById('leaseStart').value;
+      
+      if (!leaseStartValue) {
+        document.getElementById('dueDate').value = '';
+        return;
+      }
+      
+      const leaseStartDate = new Date(leaseStartValue);
+      const day = leaseStartDate.getDate();
+      
+      // Format the due date text
+      let dueDateText;
+      let dayNumber = day;
+      
+      // Ensure we don't go beyond the 28th (since some months don't have 29, 30, 31)
+      if (dayNumber > 28) {
+        dayNumber = 28;
+      }
+      
+      // Add suffix to the day number
+      let suffix;
+      if (dayNumber === 1 || dayNumber === 21) {
+        suffix = 'st';
+      } else if (dayNumber === 2 || dayNumber === 22) {
+        suffix = 'nd';
+      } else if (dayNumber === 3 || dayNumber === 23) {
+        suffix = 'rd';
+      } else {
+        suffix = 'th';
+      }
+      
+      dueDateText = `Every ${dayNumber}${suffix} day of the month`;
+      document.getElementById('dueDate').value = dueDateText;
+    }
+    
+    function setupFormValidation() {
+      // Full name validation
+      const fullnameInput = document.getElementById('fullname');
+      const fullnameError = document.getElementById('fullname-error');
+      
+      fullnameInput.addEventListener('input', function() {
+        validateFullName(this, fullnameError);
+      });
+      
+      fullnameInput.addEventListener('blur', function() {
+        validateFullName(this, fullnameError);
+      });
+      
+      // Contact number validation
+      const contactInput = document.getElementById('contact');
+      const contactError = document.getElementById('contact-error');
+      
+      contactInput.addEventListener('input', function() {
+        validatePhoneNumber(this, contactError);
+      });
+      
+      contactInput.addEventListener('blur', function() {
+        validatePhoneNumber(this, contactError);
+      });
+      
+      // Email validation
+      const emailInput = document.getElementById('email');
+      const emailError = document.getElementById('email-error');
+      
+      emailInput.addEventListener('input', function() {
+        validateEmail(this, emailError);
+      });
+      
+      emailInput.addEventListener('blur', function() {
+        validateEmail(this, emailError);
+      });
+    }
+    
+    function validateFullName(input, errorElement) {
+      // Check if name has at least two words and each word is at least 2 characters
+      const value = input.value.trim();
+      const words = value.split(/\s+/).filter(word => word.length > 0);
+      const isValid = words.length >= 2 && words.every(word => word.length >= 2) && 
+                    /^[A-Za-z\s\-']+$/.test(value); // Only allow letters, spaces, hyphens, and apostrophes
+      
+      if (isValid) {
+        input.classList.remove('error-input');
+        errorElement.style.display = 'none';
+        return true;
+      } else {
+        input.classList.add('error-input');
+        errorElement.style.display = 'block';
+        return false;
+      }
+    }
+    
+    function validatePhoneNumber(input, errorElement) {
+      // Philippine phone number format: +639XXXXXXXXX
+      const phoneRegex = /^\+639\d{9}$/;
+      const isValid = phoneRegex.test(input.value.trim());
+      
+      if (isValid) {
+        input.classList.remove('error-input');
+        errorElement.style.display = 'none';
+        return true;
+      } else {
+        input.classList.add('error-input');
+        errorElement.style.display = 'block';
+        return false;
+      }
+    }
+    
+    function validateEmail(input, errorElement) {
+      // Basic email validation
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      const isValid = emailRegex.test(input.value.trim());
+      
+      if (isValid) {
+        input.classList.remove('error-input');
+        errorElement.style.display = 'none';
+        return true;
+      } else {
+        input.classList.add('error-input');
+        errorElement.style.display = 'block';
+        return false;
+      }
     }
     
     // Form submission handler
     document.getElementById('rentalForm').addEventListener('submit', function(event) {
       event.preventDefault();
       
-      // You can add form validation and submission logic here
-      alert('Form submitted successfully!');
+      // Validate all fields before submission
+      const fullnameInput = document.getElementById('fullname');
+      const fullnameError = document.getElementById('fullname-error');
+      const fullnameValid = validateFullName(fullnameInput, fullnameError);
       
-      // Optionally reset the form
-      // this.reset();
+      const contactInput = document.getElementById('contact');
+      const contactError = document.getElementById('contact-error');
+      const contactValid = validatePhoneNumber(contactInput, contactError);
       
-      // Hide the form after submission
-      document.getElementById('inquiry-form').style.display = 'none';
-      document.querySelector('.inquire-button').textContent = 'Inquire Now';
+      const emailInput = document.getElementById('email');
+      const emailError = document.getElementById('email-error');
+      const emailValid = validateEmail(emailInput, emailError);
+      
+      // Check if all validations passed
+      if (fullnameValid && contactValid && emailValid) {
+        // You can add form submission logic here
+        alert('Form submitted successfully!');
+        
+        // Hide the form after submission
+        document.getElementById('inquiry-form').style.display = 'none';
+        document.querySelector('.inquire-button').textContent = 'Inquire Now';
+      } else {
+        alert('Please correct the errors in the form before submitting.');
+      }
     });
   </script>
-  
 </body>
 </html>

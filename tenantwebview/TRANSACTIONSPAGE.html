@@ -14,6 +14,7 @@
 
     .header {
       display: flex;
+      position:fixed;
       justify-content: space-between;
       width: 100%;
       height: 80px;
@@ -304,7 +305,10 @@
         color: #fff;
         background-color: #2262B8;
     }
-
+    .mainBody {
+      position: relative;
+      top: 75px;
+    }
     /* Responsive Styles for mainBody */
     @media screen and (max-width: 992px) {
       .transactionformContainer {
@@ -563,11 +567,11 @@
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="#">Home</a>
-        <a href="#">About</a>
-        <a href="#">Available Units</a>
-        <a href="#">Transactions</a>
-        <a href="#">Inbox</a>
+        <a href="USERHOMEPAGE.html">Home</a>
+        <a href="USERHOMEPAGE.html#aboutRYC" class="scroll-link">About</a>
+        <a href="USERHOMEPAGE.html#availUnitsContainer" class="scroll-link">Available Units</a>
+        <a href="TRANSACTIONSPAGE.html">Transactions</a>
+        <a href="INBOXPAGE.html">Inbox</a>
         <div class="loginLogOut">
           <a href="#">SIGN IN</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
@@ -604,8 +608,8 @@
                 </div>
                <form action="" class="form">
                     <div class="transactionNo">
-                        <label for="transacnum"><b>Transaction No.</b></label>
-                        <span name="transacnum"><b>20250421A001</b></span>
+                        <label for="transaction_no"><b>Transaction No.</b></label>
+                        <span name="transaction_no"><b>20250421A001</b></span>
                     </div>
                     <div>
                         <label for="tenant_ID">Tenant ID</label>
@@ -652,8 +656,8 @@
     <div class="footerContainer">
       <div class="contactleftside">
         <h6>Contact Information & Inquiry Form</h6>
-        <p><img src="tenantviewIcons/profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="tenantviewIcons/addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br>
-          <img src="tenantviewIcons/IconMail.png" alt="Mail Icon">Email: kyleangelacatiis@gmail.com<br><img src="tenantviewIcons/phoneIcon.png" alt="Phone Icon">Phone: 0912-345-6789</p>
+        <p><img src="../tenantviewIcons/profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="../tenantviewIcons/addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br>
+          <img src="../tenantviewIcons/IconMail.png" alt="Mail Icon">Email: kyleangelacatiis@gmail.com<br><img src="../tenantviewIcons/phoneIcon.png" alt="Phone Icon">Phone: 0912-345-6789</p>
       </div>
       <div class="contactrightside">
         <p>Apartment Management System @ 2025.<br>All Rights Reserved.<br>Developed by Joriz Gutierrez</p>
