@@ -17,6 +17,8 @@
       justify-content: space-between;
       width: 100%;
       height: 80px;
+      position: fixed;
+      z-index: 1;
     }
 
     .hanburgerandaccContainer {
@@ -221,6 +223,14 @@
         margin-top: 40px;
         font-size: 33px;
         color: #2262B8;
+    }
+    .backbtn a {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 30px;
+      position: relative;
+      left: 60px;
+      top: 33px;
     }
     .transactionchoices {
         width: 100%;
@@ -453,7 +463,7 @@
 
     /*FOOTER*/
     .footer {
-      margin-top: 50px;
+      margin-top: 140px;
       display: flex;
       justify-content: space-between;
       width: 100%;
@@ -582,8 +592,8 @@
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="#">TENANT</a> |
-        <a href="#">Log Out</a>
+        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -594,15 +604,15 @@
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.html">Home</a>
-        <a href="USERHOMEPAGE.html#aboutRYC" class="scroll-link">About</a>
-        <a href="USERHOMEPAGE.html#availUnitsContainer" class="scroll-link">Available Units</a>
-        <a href="TRANSACTIONSPAGE.html">Transactions</a>
-        <a href="INBOXPAGE.html">Inbox</a>
+        <a href="USERHOMEPAGE.php">Home</a>
+        <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
+        <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
+        <a href="TRANSACTIONSPAGE.php">Transactions</a>
+        <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="#">SIGN IN</a>
+          <a href="ACCOUNTPAGE.php">Profile</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="#">Login</a>
+          <a href="LOGIN.php">Login</a>
         </div>
       </div>
     </div>
@@ -614,6 +624,9 @@
             <h1>Inbox</h1>
         </div>
         <div class="transactionchoices">
+          <div class="backbtn">
+            <a href="INBOXPAGE.php">&larr;</a>
+          </div>
             <h1>Inbox</h1>
         </div>
         <div class="transactionformContainer">
@@ -623,10 +636,9 @@
                             <div class="iconContainer">
                                 <img src="emailone.png" alt="mail" class="maillogo"></div>
                             <p class="notif">Apr 24, 2025</p>
-                            <p class="notiftext"><b>Rent Payment Reminder</b></p>
-                            <p class="text">This is a friendly reminder that your rent for April 2025 is now due. 
-                                Please settle the amount of ₱5,000 on or before April 30, 2025, to avoid any 
-                                late fees. Thank you for your prompt attention!</p>
+                            <p class="notiftext"><b>Balance Payment Confirmation</b></p>
+                            <p class="text">We’ve received your rent balance payment of ₱3,000.Your rent for April 2025 
+                                is now fully paid. Thank you!</p>
                          </div>
                      </div>
             </div>

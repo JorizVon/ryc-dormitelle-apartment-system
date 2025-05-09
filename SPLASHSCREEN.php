@@ -49,7 +49,7 @@
 
     // After fade-out animation, redirect to login
     setTimeout(() => {
-      window.location.href = 'ADMINLOGIN.php'; // Redirect after fade completes
+      window.location.href = 'LOGIN.php'; // Redirect after fade completes
     }, 1000); // Match this time with CSS transition time (1s = 1000ms)
   }, 1500); // Show splash for 1.5 seconds first
 </script>

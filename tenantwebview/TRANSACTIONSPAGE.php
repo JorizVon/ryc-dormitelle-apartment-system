@@ -14,10 +14,11 @@
 
     .header {
       display: flex;
+      position:fixed;
+      z-index: 1;
       justify-content: space-between;
       width: 100%;
       height: 80px;
-      position: fixed;
     }
 
     .hanburgerandaccContainer {
@@ -207,10 +208,6 @@
       }
     }
 
-    .mainBody {
-      position: relative;
-      top: 75px;
-    }
     .pageTitle {
         height: 100px;
         display: flex;
@@ -230,98 +227,104 @@
         display: flex;
         justify-content: center;
     }
-    .transactionchoices h1 {
+    .transactionchoices a {
         text-decoration: none;
         font-size: 22px;
         margin: 0 10px;
         margin-top: 70px;
-        color: #FFFF;
-        background-color: #2262B8;
+        border: solid 2px #2262B8;
+        color: #2262B8;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-top-right-radius: 45px;
-        width: 47%;
+        border-radius: 30px;
+        width: 350px;
         height: 50px;
     }
     .transactionformContainer {
         width: 100%;
-        height: 300px;
+        height: 500px;
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-top: 10px;
+        margin-top: 30px;
     }
     .transactionform {
         width: 48%;
         height: 100%;
+        border: solid 2px #79B1FC;
         border-bottom-left-radius: 45px;
     }
-    .transacdate p {
-        font-size: 17px;
-        margin-left: 25px;
-        color: #2262B8;
-    }
-    .boxContainer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid #B7B5B5;
-        margin: 0 5px;
-        padding: 0 22px;
-    }
-    .box {
+    .transactionTypecontainer {
         width: 100%;
-        height: 60px;
-        
+        height: 50px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        box-shadow:  0 4px 2px -1px rgb(0, 0, 0, 0.2);
     }
-    .notif {
-        font-size: 14px;
-        margin: 0;
-        position: relative;
-        top: 5px;
-        margin-top: 10px;
+    .transactionTypecontainer input {
+        font-size: 12px;
+    }
+    .transactionTypecontainer label {
+        font-size: 17px;
+        margin: 0 8px;
+    }
+    .form {
+        margin-top: 20px;
+        margin-left: 50px;
+    }
+    .form label {
+        width: 200px;
+        font-size: 16px;
+        margin-right: 50px;
+        display: inline-block;
+        margin-bottom: 15px;
         color: #2262B8;
     }
-    .notiftext {
-        font-size: 12px;
-        margin: 0;
-        margin-top: 5px;
-        color: #B7B5B5;
+    .form input {
+        width: 360px;
+        font: 16px;
     }
-    .amountpaid {
-        font-size: 14px;
-        position: relative;
-        top: 5px;
+    .form span {
+        color: #2262B8;
     }
-    
-    /* RESPONSIVE STYLES FOR MAINBODY */
+    .submitbtnContainer {
+        width: 91%;
+        justify-content: right;
+        align-items: center;
+        display: flex;
+        margin-top: 20px;
+    }
+    .submitbtnContainer a {
+        text-decoration: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 200px;
+        height: 40px;
+        color: #fff;
+        background-color: #2262B8;
+    }
+    .mainBody {
+      position: relative;
+      top: 75px;
+    }
+    /* Responsive Styles for mainBody */
     @media screen and (max-width: 992px) {
-      .pageTitle {
-        height: 80px;
-      }
-      
-      .pageTitle h1 {
-        margin-left: 40px;
-        margin-top: 30px;
-        font-size: 28px;
-      }
-      
-      .transactionchoices {
-        height: 80px;
-      }
-      
-      .transactionchoices h1 {
-        font-size: 20px;
-        margin-top: 50px;
-        width: 60%;
+      .transactionformContainer {
+        height: auto;
       }
       
       .transactionform {
-        width: 60%;
+        width: 70%;
+      }
+      
+      .form input {
+        width: 280px;
       }
     }
-    
+
     @media screen and (max-width: 768px) {
       .pageTitle {
         height: 70px;
@@ -329,97 +332,102 @@
       
       .pageTitle h1 {
         margin-left: 30px;
-        margin-top: 25px;
-        font-size: 24px;
+        margin-top: 20px;
+        font-size: 28px;
       }
       
       .transactionchoices {
-        height: 70px;
+        height: auto;
+        flex-direction: column;
+        padding: 20px 0;
       }
       
-      .transactionchoices h1 {
+      .transactionchoices a {
+        width: 80%;
+        margin: 10px auto;
         font-size: 18px;
-        margin-top: 40px;
-        width: 75%;
         height: 45px;
       }
       
-      .transactionformContainer {
-        height: auto;
-      }
-      
       .transactionform {
-        width: 75%;
-        height: 100%;
-      }
-      
-      .transacdate p {
-        font-size: 16px;
-        margin-left: 20px;
-      }
-      
-      .boxContainer {
-        padding: 0 15px;
-        margin: 0 5px 10px;
-      }
-      
-      .box {
+        width: 85%;
         height: auto;
-        min-height: 60px;
-        padding: 5px 0;
+        min-height: 500px;
+      }
+      
+      .transactionTypecontainer {
+        flex-direction: column;
+        height: auto;
+        padding: 10px 0;
+      }
+      
+      .transactionTypecontainer div {
+        margin: 5px 0;
+      }
+      
+      .form {
+        margin-left: 20px;
+        margin-right: 20px;
+      }
+      
+      .form label {
+        width: 100%;
+        display: block;
+        margin-right: 0;
+        margin-bottom: 5px;
+      }
+      
+      .form input {
+        width: 100%;
+        margin-bottom: 15px;
+      }
+      
+      .submitbtnContainer {
+        width: 100%;
+        justify-content: center;
       }
     }
-    
+
     @media screen and (max-width: 480px) {
-      .pageTitle {
-        height: 60px;
-      }
-      
       .pageTitle h1 {
         margin-left: 20px;
-        margin-top: 20px;
-        font-size: 22px;
+        font-size: 24px;
       }
       
-      .transactionchoices {
-        height: 60px;
-      }
-      
-      .transactionchoices h1 {
-        font-size: 16px;
-        margin-top: 30px;
+      .transactionchoices a {
         width: 85%;
+        font-size: 16px;
         height: 40px;
-        border-top-right-radius: 30px;
       }
       
       .transactionform {
-        width: 85%;
+        width: 90%;
         border-bottom-left-radius: 30px;
       }
       
-      .transacdate p {
-        font-size: 15px;
+      .transactionTypecontainer label {
+        font-size: 14px;
+      }
+      
+      .form {
         margin-left: 15px;
+        margin-right: 15px;
       }
       
-      .boxContainer {
-        padding: 0 10px;
-        margin: 0 5px 8px;
+      .form label {
+        font-size: 14px;
       }
       
-      .notif {
-        font-size: 13px;
-      }
-      
-      .notiftext {
-        font-size: 11px;
+      .submitbtnContainer a {
+        width: 160px;
+        height: 35px;
+        font-size: 14px;
       }
     }
 
     /*FOOTER*/
     .footer {
-      margin-top: 50px;
+      margin-top: 100px;
       display: flex;
       justify-content: space-between;
       width: 100%;
@@ -548,8 +556,8 @@
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="#">TENANT</a> |
-        <a href="#">Log Out</a>
+        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -560,15 +568,15 @@
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.html">Home</a>
-        <a href="USERHOMEPAGE.html#aboutRYC" class="scroll-link">About</a>
-        <a href="USERHOMEPAGE.html#availUnitsContainer" class="scroll-link">Available Units</a>
-        <a href="TRANSACTIONSPAGE.html">Transactions</a>
-        <a href="INBOXPAGE.html">Inbox</a>
+        <a href="USERHOMEPAGE.php">Home</a>
+        <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
+        <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
+        <a href="TRANSACTIONSPAGE.php">Transactions</a>
+        <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="#">SIGN IN</a>
+          <a href="ACCOUNTPAGE.php">Profile</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="#">Login</a>
+          <a href="LOGIN.php">Login</a>
         </div>
       </div>
     </div>
@@ -577,36 +585,69 @@
   <div class="mainBody">
     <div class="mainBodyContiner">
         <div class="pageTitle">
-            <h1>Inbox</h1>
+            <h1>Transactions</h1>
         </div>
         <div class="transactionchoices">
-            <h1>Inbox</h1>
+            <a href="TRANSACTIONPAGE.php" style="background-color: #2262B8; color: #fff;">Rent Payments</a>
+            <a href="TRANSACTIONHISTORYPAGE.php">Transaction History</a>
         </div>
         <div class="transactionformContainer">
             <div class="transactionform">
-                <div class="todaystransactbox">
-                    <div class="transacdate">
-                        <p><b>Latest</b></p>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Rent Payment Reminder</b></p>
-                            <p class="notiftext">This is a friendly reminder that your rent for April 2025 is now due.</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Deposit Adjustment Notification</b></p>
-                            <p class="notiftext">You have used ₱3,000 from your security deposit to cover part of this month's rent.</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Balance Payment Confirmation</b></p>
-                            <p class="notiftext">We've received your rent balance payment of ₱3,000.</p>
-                         </div>
-                     </div>
+                <div class="transactionTypecontainer">
+                    <div>
+                        <input type="checkbox" name="deposit">
+                        <label for="deposit">Add to deposit</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" name="payrent">
+                        <label for="payrent">Pay rent</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" name="depositToPay">
+                        <label for="depositToPay">Use deposit to pay</label>
+                    </div>
                 </div>
+               <form action="" class="form">
+                    <div class="transactionNo">
+                        <label for="transaction_no"><b>Transaction No.</b></label>
+                        <span name="transaction_no"><b>20250421A001</b></span>
+                    </div>
+                    <div>
+                        <label for="tenant_ID">Tenant ID</label>
+                        <input type="text" name="tenant_ID">
+                    </div>
+                    <div>
+                        <label for="tenant_name">Full Name</label>
+                        <input type="text" name="tenant_name">
+                    </div>
+                    <div>
+                        <label for="lease_payment_due">Payment Due</label>
+                        <input type="text" name="lease_payment_due">
+                    </div>
+                    <div>
+                        <label for="billing_period">Billing Period</label>
+                        <input type="text" name="billing_period">
+                    </div>
+                    <div>
+                        <label for="deposit">Current Deposit</label>
+                        <input type="text" name="deposit">
+                    </div>
+                    <div>
+                        <label for="balance">Remaining Balance</label>
+                        <input type="text" name="balance">
+                    </div>
+                    <div>
+                        <label for="amount_paid">Amount</label>
+                        <input type="text" name="amount_paid">
+                    </div>
+                    <div>
+                        <label for="payment_date">Payment Date</label>
+                        <input type="text" name="payment_date">
+                    </div>
+                    <div class="submitbtnContainer">
+                        <a href="#" class="transactionchoice">Add to deposit</a>
+                    </div>
+               </form>
             </div>
         </div>
     </div>

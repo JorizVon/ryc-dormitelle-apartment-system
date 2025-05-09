@@ -18,6 +18,7 @@
       width: 100%;
       height: 80px;
       position: fixed;
+      z-index: 1;
     }
 
     .hanburgerandaccContainer {
@@ -207,255 +208,247 @@
       }
     }
 
-    /* Main Body Styles */
+    /* MAIN BODY STYLES */
     .mainBody {
       position: relative;
       top: 75px;
-      width: 100%;
     }
-
-    .mainBodyContiner {
-      width: 100%;
-    }
-
     .pageTitle {
-      height: 100px;
-      display: flex;
-      align-items: center;
-      border-bottom: solid 1px #2262B8;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        border-bottom: solid 1px #2262B8;
     }
-
     .pageTitle h1 {
-      margin-left: 60px;
-      margin-top: 40px;
-      font-size: 33px;
-      color: #2262B8;
+        margin-left: 60px;
+        margin-top: 40px;
+        font-size: 33px;
+        color: #2262B8;
     }
-
     .transactionchoices {
-      width: 100%;
-      height: 100px;
-      align-items: center;
-      display: flex;
-      justify-content: center;
+        width: 100%;
+        height: 100px;
+        align-items: center;
+        display: flex;
+        justify-content: center;
     }
-
     .profileHeader {
-      margin: 0 10px;
-      margin-top: 50px;
-      color: #FFFF;
-      background-color: #2262B8;
-      display: flex;
-      align-items: center;
-      justify-content: left;
-      width: 47.3%;
-      height: 110px;
+        margin: 0 10px;
+        margin-top: 50px;
+        color: #FFFF;
+        background-color: #2262B8;
+        display: flex;
+        align-items: center;
+        justify-content: left;
+        width: 47.3%;
+        height: 110px;
     }
-
-    .accInfo {
-      display: inline-block;
-      margin-left: 20px;
-    }
-
-    .accInfo h5 {
-      font-size: 16px;
-      margin: 0;
-    }
-
-    .accInfo p {
-      font-size: 14px;
-      margin: 2px 0;
-    }
-
-    .transactionformContainer {
-      width: 100%;
-      height: auto;
-      min-height: 400px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 30px;
-    }
-
-    .transactionform {
-      width: 100%;
-      height: 100%;
-    }
-
-    .instruct p {
-      font-size: 11px;
-      color: #2262B8;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      margin-bottom: 50px;
-      text-align: center;
-      padding: 0 20px;
-      box-sizing: border-box;
-    }
-
-    .changepassForm {
-      width: 48%;
-      height: auto;
-      margin: 0 auto;
-    }
-
-    .changepassForm input {
-      padding: 12px; 
-      font-size: 16px;
-      border-radius: 30px;
-      width: 300px;
-      max-width: 100%;
-      margin: 0 auto;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-      display: block;
-    }
-
-    .changepassForm button {
-      padding: 12px;
-      background-color: #2262B8;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      width: 150px;
-      margin: 0 auto;
-      margin-top: 50px;
-      display: block;
-    }
-
-    /* Responsive styles for mainBody */
-    @media screen and (max-width: 992px) {
-      .pageTitle h1 {
+    .profile {
+        height: 50px;
+        width: 50px;
         margin-left: 40px;
-        font-size: 30px;
-      }
+        margin-right: 20px;
+    }
+    .profile img {
+        height: 100%;
+        width: 100%;
+    }
+    .accInfo {
+        display: inline-block;
+    }
+    .accInfo h5 {
+        font-size: 16px;
+        margin: 0;
+    }
+    .accInfo h6 {
+        font-size: 15px;
+        margin: 0;
+    }
+    .accInfo p {
+        font-size: 14px;
+        margin: 2px 0;
+    }
+    .transactionformContainer {
+        width: 100%;
+        height: 600px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 30px;
+    }
+    .transactionform {
+        width: 48%;
+        height: 100%;
+        border-bottom-left-radius: 45px;
+    }
+    .boxContainer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #B7B5B5;
+        margin: 0 5px;
+        padding: 0 22px;
+    }
+    .box {
+        width: 100%;
+        height: 60px;
+    }
+    .box a {
+      text-decoration: none;
+    }
+    .notif {
+        font-size: 14px;
+        margin: 0;
+        position: relative;
+        top: 5px;
+        margin-top: 10px;
+        color: #2262B8;
+    }
+    .notiftext {
+        font-size: 12px;
+        margin: 0;
+        margin-top: 5px;
+        color: #B7B5B5;
+    }
+    .amountpaid {
+        font-size: 14px;
+        position: relative;
+        top: 5px;
+    }
 
-      .profileHeader {
-        width: 60%;
-      }
-
-      .changepassForm {
-        width: 60%;
-      }
+    /* RESPONSIVE STYLES FOR MAIN BODY */
+    @media screen and (max-width: 992px) {
+        .mainBody {
+          top: 0;
+        }
+        .pageTitle {
+            height: 80px;
+        }
+        .pageTitle h1 {
+            margin-left: 40px;
+            margin-top: 30px;
+            font-size: 28px;
+        }
+        .profileHeader {
+            width: 60%;
+            height: 100px;
+        }
+        .transactionform {
+            width: 60%;
+        }
     }
 
     @media screen and (max-width: 768px) {
-      .pageTitle {
-        height: 80px;
-      }
-
-      .pageTitle h1 {
-        margin-left: 30px;
-        margin-top: 30px;
-        font-size: 26px;
-      }
-      
-      .transactionchoices {
-        height: auto;
-      }
-
-      .profileHeader {
-        width: 80%;
-        height: 90px;
-        margin-top: 30px;
-      }
-
-      .accInfo h5 {
-        font-size: 15px;
-      }
-
-      .accInfo p {
-        font-size: 13px;
-      }
-
-      .transactionformContainer {
-        margin-top: 20px;
-      }
-
-      .instruct p {
-        font-size: 10px;
-        margin-bottom: 30px;
-      }
-
-      .changepassForm {
-        width: 70%;
-      }
-
-      .changepassForm input {
-        width: 100%;
-        padding: 10px;
-        font-size: 14px;
-      }
-
-      .changepassForm button {
-        width: 130px;
-        padding: 10px;
-        font-size: 14px;
-        margin-top: 30px;
-      }
+        .mainBody {
+          top: 0;
+        }
+        .pageTitle {
+            height: 70px;
+            justify-content: center;
+        }
+        .pageTitle h1 {
+            margin-left: 0;
+            margin-top: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+        .transactionchoices {
+            height: auto;
+        }
+        .profileHeader {
+            width: 80%;
+            margin-top: 30px;
+            height: 90px;
+        }
+        .profile {
+            height: 40px;
+            width: 40px;
+            margin-left: 20px;
+        }
+        .accInfo h5 {
+            font-size: 14px;
+        }
+        .accInfo h6 {
+            font-size: 13px;
+        }
+        .accInfo p {
+            font-size: 12px;
+        }
+        .transactionformContainer {
+            height: auto;
+            margin-top: 20px;
+        }
+        .transactionform {
+            width: 80%;
+            height: auto;
+        }
+        .boxContainer {
+            padding: 0 15px;
+        }
+        .box {
+            height: 50px;
+        }
+        .notif {
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        .notiftext {
+            font-size: 11px;
+        }
     }
 
     @media screen and (max-width: 480px) {
-      .pageTitle {
-        height: 60px;
-      }
-
-      .pageTitle h1 {
-        margin-left: 20px;
-        margin-top: 20px;
-        font-size: 22px;
-      }
-
-      .profileHeader {
-        width: 90%;
-        height: 80px;
-        margin-top: 20px;
-      }
-
-      .accInfo {
-        margin-left: 15px;
-      }
-
-      .accInfo h5 {
-        font-size: 14px;
-      }
-
-      .accInfo p {
-        font-size: 12px;
-      }
-
-      .transactionformContainer {
-        margin-top: 15px;
-      }
-
-      .instruct p {
-        font-size: 9px;
-        margin-bottom: 20px;
-      }
-
-      .changepassForm {
-        width: 90%;
-      }
-
-      .changepassForm input {
-        padding: 8px;
-        font-size: 13px;
-      }
-
-      .changepassForm button {
-        width: 120px;
-        padding: 8px;
-        font-size: 13px;
-        margin-top: 25px;
-      }
+       .mainBody {
+          top: 0;
+        }
+        .pageTitle {
+            height: 60px;
+        }
+        .pageTitle h1 {
+            font-size: 20px;
+            margin-top: 15px;
+        }
+        .profileHeader {
+            width: 90%;
+            height: 80px;
+            margin-top: 20px;
+        }
+        .profile {
+            height: 35px;
+            width: 35px;
+            margin-left: 15px;
+            margin-right: 10px;
+        }
+        .accInfo h5 {
+            font-size: 12px;
+        }
+        .accInfo h6 {
+            font-size: 11px;
+        }
+        .accInfo p {
+            font-size: 10px;
+        }
+        .transactionform {
+            width: 90%;
+        }
+        .boxContainer {
+            padding: 0 10px;
+        }
+        .box {
+            height: 45px;
+        }
+        .notif {
+            font-size: 12px;
+            margin-top: 7px;
+        }
+        .notiftext {
+            font-size: 10px;
+        }
     }
 
     /*FOOTER*/
     .footer {
-      margin-top: 50px;
+      margin-top: 120px;
       display: flex;
       justify-content: space-between;
       width: 100%;
@@ -584,8 +577,8 @@
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="#">TENANT</a> |
-        <a href="#">Log Out</a>
+        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -596,15 +589,15 @@
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.html">Home</a>
-        <a href="USERHOMEPAGE.html#aboutRYC" class="scroll-link">About</a>
-        <a href="USERHOMEPAGE.html#availUnitsContainer" class="scroll-link">Available Units</a>
-        <a href="TRANSACTIONSPAGE.html">Transactions</a>
-        <a href="INBOXPAGE.html">Inbox</a>
+        <a href="USERHOMEPAGE.php">Home</a>
+        <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
+        <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
+        <a href="TRANSACTIONSPAGE.php">Transactions</a>
+        <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="#">SIGN IN</a>
+          <a href="ACCOUNTPAGE.php">Profile</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="#">Login</a>
+          <a href="LOGIN.php">Login</a>
         </div>
       </div>
     </div>
@@ -617,28 +610,78 @@
         </div>
         <div class="transactionchoices">
            <div class="profileHeader">
+            <div class="profile">
+                <img src="tenantviewIcons/profileIconn.png" alt="profile">
+            </div>
             <div class="accInfo">
-                <h5 class="tenant_name">Change password</h5>
-                <p class="contactnum">Kyle Angela Catiis</p>
+                <h5 class="tenant_name">Kyle Angela Catiis</h5>
+                <p class="contactnum">09236510085</p>
+                <h6 class="teanantID">Tenant ID: 202504A001</h6>
             </div>
            </div>
         </div>
         <div class="transactionformContainer">
             <div class="transactionform">
-                <div class="instruct">
-                    <p><b>Your password must be at least 6 characters and should include a combination of numbers, letters and special characters (!$@%).</b></p>
-                 </div>
-                 <form action="" class="changepassForm" method="post">
-                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                      <input type="password" placeholder="Old Password" required>
-                      <input type="password" placeholder="New Password" required>
-                      <input type="password" placeholder="Confirm New Password" required>
-                      <button type="submit">
-                        Submit
-                      </button>
-                    </div>
-                  </form>
-                  
+                <div class="todaystransactbox">
+                     <div class="boxContainer">
+                        <div class="box">
+                            <p class="notif"><b>Payment Due</b></p>
+                            <p class="notiftext">Every  23th day of the month</p>
+                         </div>
+                     </div>
+                     <div class="boxContainer">
+                        <div class="box">
+                            <p class="notif"><b>Billing Period</b></p>
+                            <p class="notiftext">Until the 28th day of the month</p>
+                         </div>
+                     </div>
+                     <div class="boxContainer">
+                        <div class="box">
+                            <p class="notif"><b>Total Rent Paid</b></p>
+                            <p class="notiftext">₱ 52,000</p>
+                         </div>
+                     </div>
+                     <div class="boxContainer">
+                        <div class="box">
+                            <p class="notif"><b>Current Deposit</b></p>
+                            <p class="notiftext">₱ 12,000</p>
+                         </div>
+                     </div>
+                     <div class="boxContainer">
+                        <div class="box">
+                            <p class="notif"><b>Remaining Balance</b></p>
+                            <p class="notiftext">₱ 3,000</p>
+                         </div>
+                     </div>
+                     <div class="boxContainer">
+                        <div class="box">
+                            <p class="notif"><b>Monthly Rent Payment</b></p>
+                            <p class="notiftext">₱ 10,000</p>
+                         </div>
+                     </div>
+                     <div class="boxContainer">
+                        <div class="box">
+                            <p class="notif"><b>Payment Status</b></p>
+                            <p class="notiftext">Paid</p>
+                         </div>
+                     </div>
+                     <div class="boxContainer">
+                        <div class="box">
+                            <p class="notif"><b>Card Status</b></p>
+                            <p class="notiftext">Active</p>
+                         </div>
+                     </div>
+                     <div class="boxContainer">
+                        <div class="box">
+                          <a href="CHANGEPASSPAGE.php"><p class="notif"><b>Change unit code</b></p></a>
+                         </div>
+                     </div>
+                     <div class="boxContainer">
+                        <div class="box">
+                            <p class="notif"><b>Log Out</b></p>
+                         </div>
+                     </div>
+                </div>
             </div>
         </div>
     </div>

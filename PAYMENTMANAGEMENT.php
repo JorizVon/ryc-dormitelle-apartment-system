@@ -649,7 +649,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="headerContent">
                 <a href="ADMINPROFILE.php" class="adminTitle">ADMIN</a>
                 <p class="adminLogoutspace">&nbsp;|&nbsp;</p>
-                <a href="ADMINLOGIN.php" class="logOutbtn">Log Out</a>
+                <a href="LOGIN.php" class="logOutbtn">Log Out</a>
             </div>
         </div>
         <div class="mainContent">

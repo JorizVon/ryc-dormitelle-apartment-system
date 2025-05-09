@@ -17,6 +17,8 @@
       justify-content: space-between;
       width: 100%;
       height: 80px;
+      position: fixed;
+      z-index: 1;
     }
 
     .hanburgerandaccContainer {
@@ -206,7 +208,10 @@
       }
     }
 
-    /* MAIN BODY STYLES */
+    .mainBody {
+      position: relative;
+      top: 75px;
+    }
     .pageTitle {
         height: 100px;
         display: flex;
@@ -219,6 +224,14 @@
         font-size: 33px;
         color: #2262B8;
     }
+    .backbtn a {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 30px;
+      position: relative;
+      left: 60px;
+      top: 33px;
+    }
     .transactionchoices {
         width: 100%;
         height: 100px;
@@ -226,70 +239,98 @@
         display: flex;
         justify-content: center;
     }
-    .transactionchoices a {
+    .transactionchoices h1 {
         text-decoration: none;
         font-size: 22px;
         margin: 0 10px;
         margin-top: 70px;
-        border: solid 2px #2262B8;
-        color: #2262B8;
+        color: #FFFF;
+        background-color: #2262B8;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 30px;
-        width: 350px;
+        border-top-right-radius: 45px;
+        width: 47%;
         height: 50px;
     }
     .transactionformContainer {
         width: 100%;
-        height: 500px;
+        height: 300px;
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-top: 30px;
+        margin-top: 10px;
     }
     .transactionform {
         width: 48%;
         height: 100%;
-        border: solid 2px #79B1FC;
+        display: flex;
+        justify-content: center;
         border-bottom-left-radius: 45px;
     }
-    .transactionTypecontainer {
-        width: 100%;
-        height: 50px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow:  0 4px 2px -1px rgb(0, 0, 0, 0.2);
-    }
-    .transactionTypecontainer p {
+    .transacdate p {
         font-size: 17px;
         margin-left: 25px;
-    }
-    .transacdate p {
-        font-size: 13px;
-        margin-left: 25px;
+        color: #2262B8;
     }
     .boxContainer {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
         border: 1px solid #B7B5B5;
         margin: 0 5px;
+        margin-top: 50px;
         padding: 0 22px;
+        width: 75%;
     }
     .box {
+        height: 200px;
+        
+    }
+    .iconContainer {
         width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .maillogo {
+        width: 60px;
         height: 40px;
     }
-    .time {
-        font-size: 10px;
+    .text {
+        font-size: 12px;
         margin: 0;
-        margin-top: 5px;
+        width: 100%;
+        margin-top: 25px;
+        color: #B7B5B5;
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        border-top: solid 1.5px #B7B5B5;
+        padding-top: 15px;
+  
     }
-    .transacType {
+    .notif {
+        font-size: 12px;
+        margin: 0;
+        width: 100%;
+        margin-top: 10px;
+        color: #B7B5B5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+    }
+    .notiftext {
         font-size: 14px;
         margin: 0;
+        position: relative;
+        top: 5px;
+        margin-top: 5px;
+        color: #2262B8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
     .amountpaid {
         font-size: 14px;
@@ -297,119 +338,132 @@
         top: 5px;
     }
 
-    /* MAIN BODY RESPONSIVE STYLES */
+    /* Added responsive styles for mainBody section */
     @media screen and (max-width: 992px) {
-        .transactionform {
-            width: 65%;
-        }
-        
-        .pageTitle h1 {
-            margin-left: 40px;
-            font-size: 30px;
-        }
-        
-        .transactionchoices a {
-            width: 300px;
-            font-size: 20px;
-        }
+      .pageTitle h1 {
+        margin-left: 40px;
+        font-size: 28px;
+      }
+      
+      .transactionchoices h1 {
+        font-size: 20px;
+        width: 60%;
+      }
+      
+      .transactionform {
+        width: 65%;
+      }
     }
 
     @media screen and (max-width: 768px) {
-        .pageTitle {
-            height: 80px;
-        }
-        
-        .pageTitle h1 {
-            margin-left: 30px;
-            margin-top: 30px;
-            font-size: 26px;
-        }
-        
-        .transactionchoices {
-            height: auto;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .transactionchoices a {
-            width: 80%;
-            margin: 10px auto;
-            font-size: 18px;
-            height: 45px;
-        }
-        
-        .transactionformContainer {
-            height: auto;
-            margin-top: 20px;
-        }
-        
-        .transactionform {
-            width: 85%;
-            margin-bottom: 30px;
-        }
-        
-        .transactionTypecontainer p {
-            font-size: 15px;
-            margin-left: 15px;
-        }
+      .pageTitle {
+        height: 80px;
+      }
+      
+      .pageTitle h1 {
+        margin-left: 25px;
+        margin-top: 25px;
+        font-size: 24px;
+      }
+      
+      .transactionchoices {
+        height: 80px;
+      }
+      
+      .transactionchoices h1 {
+        font-size: 18px;
+        width: 75%;
+        height: 45px;
+        margin-top: 50px;
+      }
+      
+      .transactionformContainer {
+        height: auto;
+        margin-bottom: 40px;
+      }
+      
+      .transactionform {
+        width: 80%;
+      }
+      
+      .boxContainer {
+        width: 90%;
+        padding: 0 15px;
+      }
+      
+      .transacdate p {
+        font-size: 15px;
+        margin-left: 15px;
+      }
     }
 
     @media screen and (max-width: 480px) {
-        .pageTitle {
-            height: 70px;
-        }
-        
-        .pageTitle h1 {
-            margin-left: 20px;
-            margin-top: 25px;
-            font-size: 22px;
-        }
-        
-        .transactionchoices a {
-            width: 90%;
-            font-size: 16px;
-            height: 40px;
-        }
-        
-        .transactionform {
-            width: 95%;
-            border-bottom-left-radius: 30px;
-        }
-        
-        .transactionTypecontainer {
-            height: 40px;
-        }
-        
-        .transactionTypecontainer p {
-            font-size: 13px;
-            margin-left: 10px;
-        }
-        
-        .transacdate p {
-            font-size: 12px;
-            margin-left: 15px;
-        }
-        
-        .boxContainer {
-            padding: 0 15px;
-        }
-        
-        .time {
-            font-size: 9px;
-        }
-        
-        .transacType {
-            font-size: 12px;
-        }
-        
-        .amountpaid {
-            font-size: 12px;
-        }
+      .pageTitle {
+        height: 60px;
+      }
+      
+      .pageTitle h1 {
+        margin-left: 15px;
+        margin-top: 20px;
+        font-size: 20px;
+      }
+      
+      .transactionchoices {
+        height: 60px;
+      }
+      
+      .transactionchoices h1 {
+        font-size: 16px;
+        width: 90%;
+        height: 40px;
+        margin-top: 40px;
+        border-top-right-radius: 30px;
+      }
+      
+      .transactionform {
+        width: 95%;
+        border-bottom-left-radius: 30px;
+      }
+      
+      .boxContainer {
+        width: 100%;
+        padding: 0 10px;
+        margin-top: 30px;
+      }
+      
+      .box {
+        height: auto;
+        padding-bottom: 15px;
+      }
+      
+      .maillogo {
+        width: 50px;
+        height: 30px;
+      }
+      
+      .notif {
+        font-size: 10px;
+      }
+      
+      .notiftext {
+        font-size: 12px;
+      }
+      
+      .text {
+        font-size: 10px;
+        padding-top: 10px;
+        margin-top: 15px;
+      }
+      
+      .transacdate p {
+        font-size: 13px;
+        margin-left: 10px;
+      }
     }
 
     /*FOOTER*/
     .footer {
-      margin-top: 50px;
+      margin-top: 140px;
       display: flex;
       justify-content: space-between;
       width: 100%;
@@ -538,8 +592,8 @@
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="#">TENANT</a> |
-        <a href="#">Log Out</a>
+        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -550,15 +604,15 @@
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.html">Home</a>
-        <a href="USERHOMEPAGE.html#aboutRYC" class="scroll-link">About</a>
-        <a href="USERHOMEPAGE.html#availUnitsContainer" class="scroll-link">Available Units</a>
-        <a href="TRANSACTIONSPAGE.html">Transactions</a>
-        <a href="INBOXPAGE.html">Inbox</a>
+        <a href="USERHOMEPAGE.php">Home</a>
+        <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
+        <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
+        <a href="TRANSACTIONSPAGE.php">Transactions</a>
+        <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="#">SIGN IN</a>
+          <a href="ACCOUNTPAGE.php">Profile</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="#">Login</a>
+          <a href="LOGIN.php">Login</a>
         </div>
       </div>
     </div>
@@ -567,53 +621,27 @@
   <div class="mainBody">
     <div class="mainBodyContiner">
         <div class="pageTitle">
-            <h1>Transactions</h1>
+            <h1>Inbox</h1>
         </div>
         <div class="transactionchoices">
-            <a href="#">Rent Payments</a>
-            <a href="#" style="background-color: #2262B8; color: #fff;">Transaction History</a>
+          <div class="backbtn">
+            <a href="INBOXPAGE.php">&larr;</a>
+          </div>
+            <h1>Inbox</h1>
         </div>
         <div class="transactionformContainer">
             <div class="transactionform">
-                <div class="transactionTypecontainer">
-                    <p>As of Apr 24, 2025</p>
-                </div>
-                <div class="todaystransactbox">
-                    <div class="transacdate">
-                        <p><b>Today</b></p>
-                     </div>
                      <div class="boxContainer">
                         <div class="box">
-                            <p class="time">5:02 PM</p>
-                            <p class="transacType"><b>Pay rent</b></p>
+                            <div class="iconContainer">
+                                <img src="emailone.png" alt="mail" class="maillogo"></div>
+                            <p class="notif">Apr 24, 2025</p>
+                            <p class="notiftext"><b>Rent Payment Reminder</b></p>
+                            <p class="text">This is a friendly reminder that your rent for April 2025 is now due. 
+                                Please settle the amount of ₱5,000 on or before April 30, 2025, to avoid any 
+                                late fees. Thank you for your prompt attention!</p>
                          </div>
-                         <p class="amountpaid"><b>+10000</b></p>
                      </div>
-                </div>
-                <div class="todaystransactbox">
-                    <div class="transacdate">
-                        <p><b>Mar 24, 2025</b></p>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="time">5:02 PM</p>
-                            <p class="transacType"><b>Pay rent</b></p>
-                         </div>
-                         <p class="amountpaid"><b>+10000</b></p>
-                     </div>
-                </div>
-                <div class="todaystransactbox">
-                    <div class="transacdate">
-                        <p><b>Feb 24, 2025</b></p>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="time">5:32 AM</p>
-                            <p class="transacType"><b>Deposit</b></p>
-                         </div>
-                         <p class="amountpaid"><b>-10000</b></p>
-                     </div>
-                </div>
             </div>
         </div>
     </div>

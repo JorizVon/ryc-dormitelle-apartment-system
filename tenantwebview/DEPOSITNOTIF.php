@@ -18,6 +18,7 @@
       width: 100%;
       height: 80px;
       position: fixed;
+      z-index: 1;
     }
 
     .hanburgerandaccContainer {
@@ -207,7 +208,6 @@
       }
     }
 
-    /* MAIN BODY STYLES */
     .mainBody {
       position: relative;
       top: 75px;
@@ -224,6 +224,14 @@
         font-size: 33px;
         color: #2262B8;
     }
+    .backbtn a {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 30px;
+      position: relative;
+      left: 60px;
+      top: 33px;
+    }
     .transactionchoices {
         width: 100%;
         height: 100px;
@@ -231,80 +239,98 @@
         display: flex;
         justify-content: center;
     }
-    .profileHeader {
+    .transactionchoices h1 {
+        text-decoration: none;
+        font-size: 22px;
         margin: 0 10px;
-        margin-top: 50px;
+        margin-top: 70px;
         color: #FFFF;
         background-color: #2262B8;
         display: flex;
         align-items: center;
-        justify-content: left;
-        width: 47.3%;
-        height: 110px;
-    }
-    .profile {
+        justify-content: center;
+        border-top-right-radius: 45px;
+        width: 47%;
         height: 50px;
-        width: 50px;
-        margin-left: 40px;
-        margin-right: 20px;
-    }
-    .profile img {
-        height: 100%;
-        width: 100%;
-    }
-    .accInfo {
-        display: inline-block;
-    }
-    .accInfo h5 {
-        font-size: 16px;
-        margin: 0;
-    }
-    .accInfo h6 {
-        font-size: 15px;
-        margin: 0;
-    }
-    .accInfo p {
-        font-size: 14px;
-        margin: 2px 0;
     }
     .transactionformContainer {
         width: 100%;
-        height: 600px;
+        height: 300px;
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-top: 30px;
+        margin-top: 10px;
     }
     .transactionform {
         width: 48%;
         height: 100%;
+        display: flex;
+        justify-content: center;
         border-bottom-left-radius: 45px;
+    }
+    .transacdate p {
+        font-size: 17px;
+        margin-left: 25px;
+        color: #2262B8;
     }
     .boxContainer {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
         border: 1px solid #B7B5B5;
         margin: 0 5px;
+        margin-top: 50px;
         padding: 0 22px;
+        width: 75%;
     }
     .box {
+        height: 200px;
+        
+    }
+    .iconContainer {
         width: 100%;
-        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .maillogo {
+        width: 60px;
+        height: 40px;
+    }
+    .text {
+        font-size: 12px;
+        margin: 0;
+        width: 100%;
+        margin-top: 25px;
+        color: #B7B5B5;
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        border-top: solid 1.5px #B7B5B5;
+        padding-top: 15px;
+  
     }
     .notif {
+        font-size: 12px;
+        margin: 0;
+        width: 100%;
+        margin-top: 10px;
+        color: #B7B5B5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+    }
+    .notiftext {
         font-size: 14px;
         margin: 0;
         position: relative;
         top: 5px;
-        margin-top: 10px;
-        color: #2262B8;
-    }
-    .notiftext {
-        font-size: 12px;
-        margin: 0;
         margin-top: 5px;
-        color: #B7B5B5;
+        color: #2262B8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
     .amountpaid {
         font-size: 14px;
@@ -312,130 +338,132 @@
         top: 5px;
     }
 
-    /* RESPONSIVE STYLES FOR MAIN BODY */
+    /* Added responsive styles for mainBody section */
     @media screen and (max-width: 992px) {
-        .pageTitle {
-            height: 80px;
-        }
-        .pageTitle h1 {
-            margin-left: 40px;
-            margin-top: 30px;
-            font-size: 28px;
-        }
-        .profileHeader {
-            width: 60%;
-            height: 100px;
-        }
-        .transactionform {
-            width: 60%;
-        }
+      .pageTitle h1 {
+        margin-left: 40px;
+        font-size: 28px;
+      }
+      
+      .transactionchoices h1 {
+        font-size: 20px;
+        width: 60%;
+      }
+      
+      .transactionform {
+        width: 65%;
+      }
     }
 
     @media screen and (max-width: 768px) {
-        .pageTitle {
-            height: 70px;
-            justify-content: center;
-        }
-        .pageTitle h1 {
-            margin-left: 0;
-            margin-top: 20px;
-            font-size: 24px;
-            text-align: center;
-        }
-        .transactionchoices {
-            height: auto;
-        }
-        .profileHeader {
-            width: 80%;
-            margin-top: 30px;
-            height: 90px;
-        }
-        .profile {
-            height: 40px;
-            width: 40px;
-            margin-left: 20px;
-        }
-        .accInfo h5 {
-            font-size: 14px;
-        }
-        .accInfo h6 {
-            font-size: 13px;
-        }
-        .accInfo p {
-            font-size: 12px;
-        }
-        .transactionformContainer {
-            height: auto;
-            margin-top: 20px;
-        }
-        .transactionform {
-            width: 80%;
-            height: auto;
-        }
-        .boxContainer {
-            padding: 0 15px;
-        }
-        .box {
-            height: 50px;
-        }
-        .notif {
-            font-size: 13px;
-            margin-top: 8px;
-        }
-        .notiftext {
-            font-size: 11px;
-        }
+      .pageTitle {
+        height: 80px;
+      }
+      
+      .pageTitle h1 {
+        margin-left: 25px;
+        margin-top: 25px;
+        font-size: 24px;
+      }
+      
+      .transactionchoices {
+        height: 80px;
+      }
+      
+      .transactionchoices h1 {
+        font-size: 18px;
+        width: 75%;
+        height: 45px;
+        margin-top: 50px;
+      }
+      
+      .transactionformContainer {
+        height: auto;
+        margin-bottom: 40px;
+      }
+      
+      .transactionform {
+        width: 80%;
+      }
+      
+      .boxContainer {
+        width: 90%;
+        padding: 0 15px;
+      }
+      
+      .transacdate p {
+        font-size: 15px;
+        margin-left: 15px;
+      }
     }
 
     @media screen and (max-width: 480px) {
-        .pageTitle {
-            height: 60px;
-        }
-        .pageTitle h1 {
-            font-size: 20px;
-            margin-top: 15px;
-        }
-        .profileHeader {
-            width: 90%;
-            height: 80px;
-            margin-top: 20px;
-        }
-        .profile {
-            height: 35px;
-            width: 35px;
-            margin-left: 15px;
-            margin-right: 10px;
-        }
-        .accInfo h5 {
-            font-size: 12px;
-        }
-        .accInfo h6 {
-            font-size: 11px;
-        }
-        .accInfo p {
-            font-size: 10px;
-        }
-        .transactionform {
-            width: 90%;
-        }
-        .boxContainer {
-            padding: 0 10px;
-        }
-        .box {
-            height: 45px;
-        }
-        .notif {
-            font-size: 12px;
-            margin-top: 7px;
-        }
-        .notiftext {
-            font-size: 10px;
-        }
+      .pageTitle {
+        height: 60px;
+      }
+      
+      .pageTitle h1 {
+        margin-left: 15px;
+        margin-top: 20px;
+        font-size: 20px;
+      }
+      
+      .transactionchoices {
+        height: 60px;
+      }
+      
+      .transactionchoices h1 {
+        font-size: 16px;
+        width: 90%;
+        height: 40px;
+        margin-top: 40px;
+        border-top-right-radius: 30px;
+      }
+      
+      .transactionform {
+        width: 95%;
+        border-bottom-left-radius: 30px;
+      }
+      
+      .boxContainer {
+        width: 100%;
+        padding: 0 10px;
+        margin-top: 30px;
+      }
+      
+      .box {
+        height: auto;
+        padding-bottom: 15px;
+      }
+      
+      .maillogo {
+        width: 50px;
+        height: 30px;
+      }
+      
+      .notif {
+        font-size: 10px;
+      }
+      
+      .notiftext {
+        font-size: 12px;
+      }
+      
+      .text {
+        font-size: 10px;
+        padding-top: 10px;
+        margin-top: 15px;
+      }
+      
+      .transacdate p {
+        font-size: 13px;
+        margin-left: 10px;
+      }
     }
 
     /*FOOTER*/
     .footer {
-      margin-top: 50px;
+      margin-top: 140px;
       display: flex;
       justify-content: space-between;
       width: 100%;
@@ -564,8 +592,8 @@
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="#">TENANT</a> |
-        <a href="#">Log Out</a>
+        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -576,15 +604,15 @@
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.html">Home</a>
-        <a href="USERHOMEPAGE.html#aboutRYC" class="scroll-link">About</a>
-        <a href="USERHOMEPAGE.html#availUnitsContainer" class="scroll-link">Available Units</a>
-        <a href="TRANSACTIONSPAGE.html">Transactions</a>
-        <a href="INBOXPAGE.html">Inbox</a>
+        <a href="USERHOMEPAGE.php">Home</a>
+        <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
+        <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
+        <a href="TRANSACTIONSPAGE.php">Transactions</a>
+        <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="#">SIGN IN</a>
+          <a href="ACCOUNTPAGE.php">Profile</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="#">Login</a>
+          <a href="LOGIN.php">Login</a>
         </div>
       </div>
     </div>
@@ -593,82 +621,27 @@
   <div class="mainBody">
     <div class="mainBodyContiner">
         <div class="pageTitle">
-            <h1>Account</h1>
+            <h1>Inbox</h1>
         </div>
         <div class="transactionchoices">
-           <div class="profileHeader">
-            <div class="profile">
-                <img src="tenantviewIcons/profileIconn.png" alt="profile">
-            </div>
-            <div class="accInfo">
-                <h5 class="tenant_name">Kyle Angela Catiis</h5>
-                <p class="contactnum">09236510085</p>
-                <h6 class="teanantID">Tenant ID: 202504A001</h6>
-            </div>
-           </div>
+          <div class="backbtn">
+            <a href="INBOXPAGE.php">&larr;</a>
+          </div>
+            <h1>Inbox</h1>
         </div>
         <div class="transactionformContainer">
             <div class="transactionform">
-                <div class="todaystransactbox">
                      <div class="boxContainer">
                         <div class="box">
-                            <p class="notif"><b>Payment Due</b></p>
-                            <p class="notiftext">Every  23th day of the month</p>
+                            <div class="iconContainer">
+                                <img src="emailone.png" alt="mail" class="maillogo"></div>
+                            <p class="notif">Apr 24, 2025</p>
+                            <p class="notiftext"><b>Deposit Adjustment Notification</b></p>
+                            <p class="text">You have used ₱3,000 from your security deposit to cover part of this 
+                                month's rent. Your current deposit balance is now: ₱2,000. Please make 
+                                arrangements to replenish your deposit if needed.</p>
                          </div>
                      </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Billing Period</b></p>
-                            <p class="notiftext">Until the 28th day of the month</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Total Rent Paid</b></p>
-                            <p class="notiftext">₱ 52,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Current Deposit</b></p>
-                            <p class="notiftext">₱ 12,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Remaining Balance</b></p>
-                            <p class="notiftext">₱ 3,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Monthly Rent Payment</b></p>
-                            <p class="notiftext">₱ 10,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Payment Status</b></p>
-                            <p class="notiftext">Paid</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Card Status</b></p>
-                            <p class="notiftext">Active</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Change unit code</b></p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Log Out</b></p>
-                         </div>
-                     </div>
-                </div>
             </div>
         </div>
     </div>

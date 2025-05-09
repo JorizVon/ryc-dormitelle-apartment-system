@@ -3,7 +3,7 @@ session_start();
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin_ID'])) {
-    header("Location: ADMINLOGIN.php");
+    header("Location: LOGIN.php");
     exit();
 }
 require_once 'db_connect.php';

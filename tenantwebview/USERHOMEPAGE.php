@@ -47,6 +47,8 @@ if (!$result) {
 
     .header {
       display: flex;
+      position: fixed;
+      z-index: 1;
       justify-content: space-between;
       width: 100%;
       height: 80px;
@@ -240,7 +242,7 @@ if (!$result) {
     }
 
     .mainBody {
-      background-image: url("ss.png");
+      background-image: url("../staticImages/userhomepagebg.png");
       background-color: #cccccc;
       width: 100%;
       height: 89vh;
@@ -248,6 +250,8 @@ if (!$result) {
       background-repeat: no-repeat;
       background-position: top;
       margin-top: 0;
+      position: relative;
+      top: 80px;
     }
 
     .mainBodyName {
@@ -356,9 +360,11 @@ if (!$result) {
       display: flex;
       justify-content: center;
       align-items: center;
+      margin-top: 70px;
     }
 
     .aboutRYCcontent img {
+      margin: 0 auto;
       text-align: center;
       height: 25vh;
     }
@@ -377,6 +383,7 @@ if (!$result) {
     @media screen and (max-width: 992px) {
       .aboutRYCcontent img {
         height: 20vh;
+        width: 100%;
       }
       
       .aboutRYCcontent h1 {
@@ -387,11 +394,15 @@ if (!$result) {
         font-size: 18px;
         padding: 0 20px;
       }
+      .mainBody {
+        margin-top: 0;
+      }
     }
 
     @media screen and (max-width: 768px) {
       .aboutRYCcontent img {
         height: 15vh;
+        width: 100%;
       }
       
       .aboutRYCcontent h1 {
@@ -405,11 +416,15 @@ if (!$result) {
           display: none;
         }
       }
+      .mainBody {
+         top: 0;
+      }
     }
 
     @media screen and (max-width: 480px) {
       .aboutRYCcontent img {
         height: 12vh;
+        width: 100%;
       }
       
       .aboutRYCcontent h1 {
@@ -420,12 +435,15 @@ if (!$result) {
         font-size: 14px;
         padding: 0 15px;
       }
+      .mainBody {
+        top: 0;
+      }
     }
 
     /* Available Units Section - Fixed */
     .availUnitsContent {
       max-width: 1200px;
-      margin: 50px auto 20px;
+      margin: 80px auto 20px;
       padding: 0 20px;
     }
 
@@ -664,27 +682,27 @@ if (!$result) {
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="#">TENANT</a> |
-        <a href="#">Log Out</a>
+        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
       <div class="systemName">
         <h2>RYC Dormitelle</h2>
-        <h4>APARTMENT MANAGEMENT SYSTEM</h4>       
+        <h4>APARTMENT MANAGEMENT SYSTEM</h4>
       </div>
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="index.php">Home</a>
+        <a href="USERHOMEPAGE.php">Home</a>
         <a href="#aboutRYC" class="scroll-link">About</a>
         <a href="#availUnitsContainer" class="scroll-link">Available Units</a>
         <a href="TRANSACTIONSPAGE.php">Transactions</a>
         <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="#">Profile</a>
+          <a href="ACCOUNTPAGE.php">Profile</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="#">Login</a>
+          <a href="LOGIN.php">Login</a>
         </div>
       </div>
     </div>
@@ -700,7 +718,7 @@ if (!$result) {
 
   <div class="aboutRYC" id="aboutRYC">
     <div class="aboutRYCcontent">
-      <img src="logo.png" alt="systemLogo">
+      <img src="../otherIcons/systemLogo.png" alt="systemLogo">
       <h1>About RYC Dormitelle</h1>
       <p>RYC Dormitelle is a modern apartment-style residence designed for<br>students and working professionals seeking comfort, convenience, and<br>security. Located in a prime area near schools, offices, and transportation<br>hubs, RYC Dormitelle offers easy access to everything you need. <br><br>
         Each unit is fully furnished and equipped with essential amenities such as<br>air-conditioning, high-speed Wi-Fi, study and sleeping areas, and private<br>bathrooms. The building features 24/7 security, CCTV monitoring, and a<br>clean, well-maintained environment to ensure a safe and peaceful stay. <br><br>

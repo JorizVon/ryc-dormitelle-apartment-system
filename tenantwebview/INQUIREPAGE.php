@@ -451,8 +451,8 @@
         <div class="hanburgerandaccContainer">
           <button class="hamburger" onclick="toggleMenu()">☰</button>
           <div class="adminSection">
-            <a href="#">TENANT</a> |
-            <a href="#">Log Out</a>
+        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="LOGIN.php">Log Out</a>
           </div>
         </div>
         <div class="containerSystemName" id="containerSystemName">
@@ -463,15 +463,15 @@
         </div>
         <div class="navbar" id="navbar">
           <div class="navbarContent">
-            <a href="#">Home</a>
-            <a href="#">About</a>
-            <a href="#">Available Units</a>
-            <a href="#">Transactions</a>
-            <a href="#">Inbox</a>
+            <a href="USERHOMEPAGE.php">Home</a>
+            <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
+            <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
+            <a href="TRANSACTIONSPAGE.php">Transactions</a>
+            <a href="INBOXPAGE.php">Inbox</a>
             <div class="loginLogOut">
-              <a href="#">SIGN IN</a>
+              <a href="ACCOUNTPAGE.php">Profile</a>
               <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-              <a href="#">Login</a>
+              <a href="LOGIN.php">Login</a>
             </div>
           </div>
         </div>
