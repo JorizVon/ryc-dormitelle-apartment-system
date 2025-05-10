@@ -152,13 +152,13 @@ $result = $conn->query($sql);
             margin: 0px auto;
             background-color: #FFFF;
         }
-        .tenantHistoryHead {
+        .pendingInquiryHead {
             display: flex;
             justify-content: space-between;
             width: 100%;
             align-items: center;
         }
-        .tenantHistoryHead h4 {
+        .pendingInquiryHead h4 {
             color: #01214B;
             font-size: 32px;
             margin-left: 60px;
@@ -344,13 +344,13 @@ $result = $conn->query($sql);
                 margin: 0 auto;
             }
 
-            .tenantHistoryHead {
+            .pendingInquiryHead {
                 flex-direction: column;
                 align-items: center;
                 text-align: center;
             }
 
-            .tenantHistoryHead h4 {
+            .pendingInquiryHead h4 {
                 margin: 20px 0 0 15px;
                 font-size: 30px;
             }
@@ -449,8 +449,8 @@ $result = $conn->query($sql);
                     Units Information</a>
             </div>
             <div class="card">
-                <a href="TENANTSLIST.php" style="background-color: #FFFF; color: #004AAD;">
-                    <img src="sidebarIcons/TenantsInfoIcon.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 10px;">
+                <a href="TENANTS LIST.php">
+                    <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 10px;">
                     Tenants List</a>
             </div>
             <div class="card">
@@ -469,8 +469,8 @@ $result = $conn->query($sql);
                     Card Registration</a>
             </div>
             <div class="card">
-                <a href="PENDINGINQUIRY.php">
-                    <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
+                <a href="PENDINGINQUIRY.php" style="background-color: #FFFF; color: #004AAD;">
+                    <img src="sidebarIcons/PendingInquiryIcon.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
                     Pending Inquiry</a>
             </div>
             
@@ -485,8 +485,8 @@ $result = $conn->query($sql);
                 </div>
             </div>
             <div class="mainContent">
-        <div class="tenantHistoryHead">
-            <h4>Tenants List</h4>
+        <div class="pendingInquiryHead">
+            <h4>Pending Inquiry</h4>
             <input type="text" placeholder="Search" class="searbar">
         </div>
         <div class="table-container">
@@ -494,14 +494,13 @@ $result = $conn->query($sql);
                 <table>
                     <thead>
                         <tr>
-                            <th id="tenant_ID">Tenants<br>ID</th>
-                            <th id="tenant_name">Name</th>
-                            <th id="contact_number">Contact<br>Number</th>
-                            <th id="lease_status">Start<br>Date</th>
-                            <th id="occupant_count">Occupant<br>Count</th>
-                            <th id="deposit">Current<br>Deposit</th>
-                            <th id="balance">Current<br>Balance</th>
-                            <th id="lease_start_date">Status</th>
+                            <th id="inquiry_date">Inquiry Date</th>
+                            <th id="unit_no">Unit No</th>
+                            <th id="tenant_name">Tenant Name</th>
+                            <th id="contact_number">Contact Number</th>
+                            <th id="pref_move_date">Preferred Move-In Date</th>
+                            <th id="start_date">Start Date</th>
+                            <th id="end_date">End Date</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -517,7 +516,6 @@ $result = $conn->query($sql);
                                 echo "<td>". htmlspecialchars($row["occupant_count"]) . "</td>";
                                 echo "<td>". htmlspecialchars($row["deposit"]) . "</td>";
                                 echo "<td>". htmlspecialchars($row["balance"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["lease_status"]) . "</td>";
                                 echo '<td><a href="TENANTINFORMATION.php?tenant_ID=' . urlencode($row["tenant_ID"]) . '" class="action-btn">View Details</a></td>';
                                 echo "</tr>";
                             }
@@ -532,9 +530,6 @@ $result = $conn->query($sql);
     </div>
             <div class="footbtnContainer">
                 <a href="DASHBOARD.php" class="backbtn">&#10558; Back</a>
-                <a href="TENANTPROFILECREATION.php" class="addtenantbtn">
-                    <img src="UnitsInfoIcons/pluswht.png" alt="Plus Sign" class="addtenantbtnIcon">
-                    Add New Tenant</a>
             </div>
         </div>
     </div>
