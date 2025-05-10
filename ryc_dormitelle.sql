@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 08, 2025 at 07:27 PM
+-- Generation Time: May 10, 2025 at 08:55 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -133,6 +133,24 @@ INSERT INTO `payments` (`transaction_no`, `unit_no`, `tenant_ID`, `amount_paid`,
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `pending_inquiry`
+--
+
+CREATE TABLE `pending_inquiry` (
+  `inquiry_date_time` datetime NOT NULL,
+  `unit_no` varchar(10) NOT NULL,
+  `full_name` varchar(30) NOT NULL,
+  `contact_no` varchar(13) NOT NULL,
+  `email` varchar(30) NOT NULL,
+  `pref_move_date` date NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `payment_due_date` varchar(30) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tenants`
 --
 
@@ -209,7 +227,8 @@ CREATE TABLE `units` (
 INSERT INTO `units` (`unit_no`, `apartment_no`, `unit_address`, `unit_size`, `occupant_capacity`, `floor_level`, `unit_type`, `monthly_rent_amount`, `unit_status`) VALUES
 ('A-001', 'APT-001', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied'),
 ('A-002', 'APT-002', 'Daet, Camarines Norte', '70', 1, '2', '1BR', '10000', 'Occupied'),
-('A-003', 'APT-003', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied');
+('A-003', 'APT-003', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied'),
+('A-004', 'APT-001', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Available');
 
 -- --------------------------------------------------------
 
@@ -222,6 +241,20 @@ CREATE TABLE `unit_images` (
   `unit_no` varchar(10) NOT NULL,
   `unit_image` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `unit_images`
+--
+
+INSERT INTO `unit_images` (`unit_image_ID`, `unit_no`, `unit_image`) VALUES
+(17, 'A-004', '20231124_123115.jpg'),
+(18, 'A-004', '20231124_123126.jpg'),
+(19, 'A-004', '20231124_123128.jpg'),
+(20, 'A-004', '20231124_123130.jpg'),
+(21, 'A-004', '20231124_123135.jpg'),
+(22, 'A-004', '20231124_123137.jpg'),
+(23, 'A-004', '20231124_123139.jpg'),
+(24, 'A-004', '20231124_123143.jpg');
 
 --
 -- Indexes for dumped tables
@@ -295,7 +328,7 @@ ALTER TABLE `admin_account`
 -- AUTO_INCREMENT for table `unit_images`
 --
 ALTER TABLE `unit_images`
-  MODIFY `unit_image_ID` mediumint(9) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `unit_image_ID` mediumint(9) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
