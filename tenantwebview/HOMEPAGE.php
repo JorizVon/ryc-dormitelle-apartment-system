@@ -702,13 +702,13 @@ if (!$result) {
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.php">Home</a>
+        <a href="HOMEPAGE.php">Home</a>
         <a href="#aboutRYC" class="scroll-link">About</a>
         <a href="#availUnitsContainer" class="scroll-link">Available Units</a>
         <div class="loginLogOut">
-          <a href="ACCOUNTPAGE.php">Profile</a>
+          <a href="../SIGNIN.php">Sign Up</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Log Out</a>
+          <a href="../LOGIN.php">Log In</a>
         </div>
       </div>
     </div>

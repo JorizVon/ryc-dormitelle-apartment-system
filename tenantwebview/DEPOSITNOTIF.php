@@ -592,7 +592,7 @@
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 20px; width: 20px;"></a> |
         <a href="LOGIN.php">Log Out</a>
       </div>
     </div>

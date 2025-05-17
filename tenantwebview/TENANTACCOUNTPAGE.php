@@ -2,23 +2,23 @@
 session_start();
 require_once '../db_connect.php';
 
-// Check if user is logged in
 $email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
 
-// Default values if no data found
-$tenant_image = "tenantviewIcons/profileIconn.png";
+// Default values
+$tenant_image = "../staticImages/userIcon.png";
 $tenant_name = "none";
 $contact_number = "none";
 $tenant_ID = "none";
 $payment_due = "none";
 $billing_period = "none";
-$deposit = "none";
-$balance = "none";
-$monthly_rent_amount = "none";
+$deposit = "₱ 0.00";
+$balance = "₱ 0.00";
+$monthly_rent_amount = "₱ 0.00";
 $payment_status = "none";
 $card_status = "none";
+$total_rent_paid = "₱ 0.00";
 
-// Query if email is available
+// Fetch tenant details if email is present
 if ($email) {
     $sql = "SELECT tenants.email, tenants.tenant_image, tenants.tenant_name, tenants.contact_number, 
                    tenants.tenant_ID, tenant_unit.payment_due, tenant_unit.billing_period, 
@@ -48,6 +48,18 @@ if ($email) {
         $monthly_rent_amount = '₱ ' . number_format($row['monthly_rent_amount'], 2);
         $payment_status = $row['payment_status'];
         $card_status = $row['card_status'];
+
+        // Fetch total rent paid
+        $tid = $row['tenant_ID'];
+        $sumQuery = "SELECT SUM(amount_paid) AS total FROM payments 
+                     WHERE transaction_type = 'Rent Payment' 
+                     AND confirmation_status = 'confirmed' 
+                     AND tenant_ID = '$tid'";
+        $sumResult = mysqli_query($conn, $sumQuery);
+        if ($sumResult && mysqli_num_rows($sumResult) > 0) {
+            $sumRow = mysqli_fetch_assoc($sumResult);
+            $total_rent_paid = '₱ ' . number_format($sumRow['total'], 2);
+        }
     }
 }
 ?>
@@ -278,7 +290,7 @@ if ($email) {
         font-size: 33px;
         color: #2262B8;
     }
-    .transactionchoices {
+    .profileContent {
         width: 100%;
         height: 100px;
         align-items: center;
@@ -297,10 +309,10 @@ if ($email) {
         height: 110px;
     }
     .profile {
-        height: 50px;
-        width: 50px;
-        margin-left: 40px;
-        margin-right: 20px;
+        height: 80px;
+        width: 80px;
+        margin-left: 30px;
+        margin-right: 10px;
     }
     .profile img {
         height: 100%;
@@ -321,7 +333,7 @@ if ($email) {
         font-size: 14px;
         margin: 2px 0;
     }
-    .transactionformContainer {
+    .profileFormContainer {
         width: 100%;
         height: 600px;
         display: flex;
@@ -329,7 +341,7 @@ if ($email) {
         align-items: center;
         margin-top: 30px;
     }
-    .transactionform {
+    .profileForm {
         width: 48%;
         height: 100%;
         border-bottom-left-radius: 45px;
@@ -386,7 +398,7 @@ if ($email) {
             width: 60%;
             height: 100px;
         }
-        .transactionform {
+        .profileForm {
             width: 60%;
         }
     }
@@ -405,7 +417,7 @@ if ($email) {
             font-size: 24px;
             text-align: center;
         }
-        .transactionchoices {
+        .profileContent {
             height: auto;
         }
         .profileHeader {
@@ -427,11 +439,11 @@ if ($email) {
         .accInfo p {
             font-size: 12px;
         }
-        .transactionformContainer {
+        .profileFormContainer {
             height: auto;
             margin-top: 20px;
         }
-        .transactionform {
+        .profileForm {
             width: 80%;
             height: auto;
         }
@@ -481,7 +493,7 @@ if ($email) {
         .accInfo p {
             font-size: 10px;
         }
-        .transactionform {
+        .profileForm {
             width: 90%;
         }
         .boxContainer {
@@ -630,14 +642,14 @@ if ($email) {
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 20px; width: 20px;"></a> |
         <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
       <div class="systemName">
         <h2>RYC Dormitelle</h2>
-        <h4>APARTMENT MANAGEMENT SYSTEM</h4>       
+        <h4>APARTMENT MANAGEMENT SYSTEM</h4>
       </div>
     </div>
     <div class="navbar" id="navbar">
@@ -650,7 +662,7 @@ if ($email) {
         <div class="loginLogOut">
           <a href="ACCOUNTPAGE.php">Profile</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Login</a>
+          <a href="LOGIN.php">Log Out</a>
         </div>
       </div>
     </div>
@@ -661,80 +673,81 @@ if ($email) {
         <div class="pageTitle">
             <h1>Account</h1>
         </div>
-        <div class="transactionchoices">
+        <div class="profileContent">
            <div class="profileHeader">
             <div class="profile">
-                <img src="tenantviewIcons/profileIconn.png" alt="profile">
+                <img src="<?php echo $tenant_image; ?>" alt="profile" id="tenant_image">
             </div>
             <div class="accInfo">
-                <h5 class="tenant_name">Kyle Angela Catiis</h5>
-                <p class="contact_number">09236510085</p>
-                <h6 class="teanant_ID">Tenant ID: 202504A001</h6>
+                <h5 class="tenant_name"><?php echo $tenant_name; ?></h5>
+                <p class="contact_number"><?php echo $contact_number; ?></p>
+                <h6 class="teanant_ID">Tenant ID: <?php echo $tenant_ID; ?></h6>
             </div>
            </div>
         </div>
-        <div class="transactionformContainer">
-            <div class="transactionform">
-                <div class="todaystransactbox">
-                     <div class="boxContainer">
+        <div class="profileFormContainer">
+            <div class="profileForm">
+                <div class="profilebox">
+                    <div class="boxContainer">
                         <div class="box">
                             <p class="notif"><b>Payment Due</b></p>
-                            <p class="notiftext" id="lease_payment_due">Every  23th day of the month</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
+                            <p class="notiftext" id="lease_payment_due"><?php echo $payment_due; ?></p>
+                        </div>
+                    </div>
+                    <div class="boxContainer">
                         <div class="box">
                             <p class="notif"><b>Billing Period</b></p>
-                            <p class="notiftext" id="billing_period">Until the 28th day of the month</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
+                            <p class="notiftext" id="billing_period"><?php echo $billing_period; ?></p>
+                        </div>
+                    </div>
+                    <div class="boxContainer">
                         <div class="box">
                             <p class="notif"><b>Total Rent Paid</b></p>
-                            <p class="notiftext" id="total_rent_paid">₱ 52,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
+                           <p class="notiftext" id="total_rent_paid"><?php echo $total_rent_paid; ?></p>
+                        </div>
+                    </div>
+                    <div class="boxContainer">
                         <div class="box">
                             <p class="notif"><b>Current Deposit</b></p>
-                            <p class="notiftext" id="deposit">₱ 12,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
+                            <p class="notiftext" id="deposit"><?php echo $deposit; ?></p>
+                        </div>
+                    </div>
+                    <div class="boxContainer">
                         <div class="box">
                             <p class="notif"><b>Remaining Balance</b></p>
-                            <p class="notiftext" id="balance">₱ 3,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
+                            <p class="notiftext" id="balance"><?php echo $balance; ?></p>
+                        </div>
+                    </div>
+                    <div class="boxContainer">
                         <div class="box">
                             <p class="notif"><b>Monthly Rent Payment</b></p>
-                            <p class="notiftext" id="lease_payment_amount">₱ 10,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
+                            <p class="notiftext" id="lease_payment_amount"><?php echo $monthly_rent_amount; ?></p>
+                        </div>
+                    </div>
+                    <div class="boxContainer">
                         <div class="box">
                             <p class="notif"><b>Payment Status</b></p>
-                            <p class="notiftext" id="payment_status">Paid</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
+                            <p class="notiftext" id="payment_status"><?php echo $payment_status; ?></p>
+                        </div>
+                    </div>
+                    <div class="boxContainer">
                         <div class="box">
                             <p class="notif"><b>Card Status</b></p>
-                            <p class="notiftext" id="card_status">Active</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
+                            <p class="notiftext" id="card_status"><?php echo $card_status; ?></p>
+                        </div>
+                    </div>
+                    <div class="boxContainer">
                         <div class="box">
-                          <a href="CHANGEPASSPAGE.php"><p class="notif"><b>Change unit code</b></p></a>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
+                            <a href="CHANGEPASSPAGE.php"><p class="notif"><b>Change unit code</b></p></a>
+                        </div>
+                    </div>
+                    <div class="boxContainer">
                         <div class="box">
                             <a href="../LOGIN.php"><p class="notif"><b>Log Out</b></p></a>
-                         </div>
-                     </div>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>

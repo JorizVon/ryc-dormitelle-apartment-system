@@ -6,30 +6,46 @@ $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
     $passwordInput = trim($_POST['password']);
 
-    if (empty($username) || empty($passwordInput)) {
-        $error = "Please fill in both email and password.";
+    if (empty($email) || empty($passwordInput) || empty($username)) {
+        $error = "Please fill in all fields.";
     } else {
-        $stmt = $conn->prepare("SELECT admin_ID, username, password FROM admin_account WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // Check if email already exists to prevent duplicate insertion
+        $checkStmt = $conn->prepare("SELECT * FROM accounts WHERE email_account = ?");
+        $checkStmt->bind_param("s", $email);
+        $checkStmt->execute();
+        $checkResult = $checkStmt->get_result();
 
-        if ($result && $result->num_rows === 1) {
-            $row = $result->fetch_assoc();
-            if (password_verify($passwordInput, $row['password'])) {
-                $_SESSION['admin_ID'] = $row['admin_ID'];
-                $_SESSION['username'] = $row['username'];
-                header('Location: DASHBOARD.php');
-                exit();
-            } else {
-                $error = "Invalid email or password.";
-            }
+        if ($checkResult->num_rows > 0) {
+            $error = "This email is already registered.";
         } else {
-            $error = "Invalid email or password.";
+            // Hash the password before storing it
+            $hashedPassword = password_hash($passwordInput, PASSWORD_DEFAULT);
+            $user_type = "user";
+
+            // CORRECTED: Use $stmt consistently
+            $stmt = $conn->prepare("INSERT INTO accounts (username, email_account, password, user_type) VALUES (?, ?, ?, ?)");
+
+            if ($stmt) {
+                $stmt->bind_param("ssss", $username, $email, $hashedPassword, $user_type);
+
+                if ($stmt->execute()) {
+                    $_SESSION['account_created'] = true;
+                    header('Location: SIGNIN.php');
+                    exit();
+                } else {
+                    $error = "An error occurred during registration.";
+                }
+
+                $stmt->close();
+            } else {
+                $error = "Database error: " . $conn->error;
+            }
         }
-        $stmt->close();
+
+        $checkStmt->close();
     }
 }
 ?>
@@ -168,13 +184,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <img src="otherIcons/systemLogo.png" alt="RYC Dormitelle">
     </div>
     
-    <h1>Sign In</h1>
-    <p class="subtitle">Use your registered tenant details to sign in securely.</p>
+    <h1>Sign Up</h1>
+    <p class="subtitle">Register Your email account here.</p>
 
     <?php if (!empty($error)) { echo "<div class='error'>$error</div>"; } ?>
 
-    <label class="form-label" for="username">Email Address</label>
-    <input type="email" name="username" id="username" class="form-input" placeholder="Enter your email address" required>
+    <label class="form-label" for="username">Username</label>
+    <input type="text" name="username" id="username" class="form-input" placeholder="Enter username" required>
+
+    <label class="form-label" for="email">Email Address</label>
+    <input type="email" name="email" id="email" class="form-input" placeholder="Enter your email address" required>
 
     <label class="form-label" for="password">Password</label>
     <div style="position: relative;">
@@ -184,9 +203,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </button>
     </div>
 
-    <a href="#" class="forgot-password">Already Have an Account?</a>
+    <a href="LOGIN.php" class="forgot-password">Already Have an Account?</a>
     
-    <button type="submit" class="sign-in-btn">Sign In</button>
+    <button type="submit" class="sign-in-btn">Sign up</button>
     <button type="button" class="google-btn">Continue with Google</button>
   </form>
 
@@ -204,5 +223,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // The JavaScript for Google Sign-In would go here
   </script>
+  <?php if (isset($_SESSION['account_created']) && $_SESSION['account_created']) : ?>
+    <script>
+      window.onload = function() {
+        // Create the modal container
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = '9999';
+
+        // Create the popup box
+        const popup = document.createElement('div');
+        popup.style.background = 'white';
+        popup.style.padding = '30px 20px';
+        popup.style.borderRadius = '12px';
+        popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+        popup.style.textAlign = 'center';
+        popup.innerHTML = `
+          <h2 style="margin-bottom: 10px;">Success!</h2>
+          <p style="margin-bottom: 20px;">Your account has been created successfully.</p>
+          <button id="okBtn" style="padding: 10px 20px; border: none; background-color: #2262B8; color: white; border-radius: 6px; font-size: 14px; cursor: pointer;">OK</button>
+        `;
+
+        modal.appendChild(popup);
+        document.body.appendChild(modal);
+
+        // Add click event
+        document.getElementById('okBtn').addEventListener('click', function() {
+          window.location.href = 'LOGIN.php';
+        });
+      };
+    </script>
+    <?php unset($_SESSION['account_created']); ?>
+  <?php endif; ?>
+
 </body>
 </html>

@@ -110,7 +110,7 @@ if (!$result) {
       display: flex;
       align-items: center;
       width: 100%;
-      margin-left: 500px;
+      margin-left: 300px;
       margin-right: 90px;
     }
 
@@ -702,13 +702,15 @@ if (!$result) {
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.php">Home</a>
+        <a href="TENANTHOMEPAGE.php">Home</a>
         <a href="#aboutRYC" class="scroll-link">About</a>
         <a href="#availUnitsContainer" class="scroll-link">Available Units</a>
+        <a href="TRANSACTIONSPAGE.php">Transactions</a>
+        <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="ACCOUNTPAGE.php">Profile</a>
+          <a href="TENANTACCOUNTPAGE.php">Profile</a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Log Out</a>
+          <a href="LOGIN.php">Login</a>
         </div>
       </div>
     </div>
