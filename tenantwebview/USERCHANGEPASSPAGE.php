@@ -1,3 +1,56 @@
+<?php
+session_start();
+require_once '../db_connect.php';
+
+$email_account = 'none';
+$username = 'none';
+$message = '';  // To hold success or error messages
+
+if (isset($_SESSION['email_account'])) {
+    $email_account = $_SESSION['email_account'];
+
+    $stmt = $conn->prepare("SELECT username, password FROM accounts WHERE email_account = ?");
+    $stmt->bind_param("s", $email_account);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        $username = $row['username'];
+        $hashed_password = $row['password'];
+    }
+    $stmt->close();
+} 
+
+// Handle Change Password form submission
+if (isset($_POST['change_password_submit'])) {
+    $old_password = $_POST['old_password'] ?? '';
+    $new_password = $_POST['new_password'] ?? '';
+    $confirm_new_password = $_POST['confirm_new_password'] ?? '';
+
+    // Verify old password
+    if (!password_verify($old_password, $hashed_password)) {
+        $message = "Old password is incorrect.";
+    } elseif ($new_password !== $confirm_new_password) {
+        $message = "New passwords do not match.";
+    } elseif (strlen($new_password) < 6) {
+        $message = "New password must be at least 6 characters.";
+    } else {
+        // Hash the new password and update DB
+        $new_hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+
+        $update_stmt = $conn->prepare("UPDATE accounts SET password = ? WHERE email_account = ?");
+        $update_stmt->bind_param("ss", $new_hashed_password, $email_account);
+
+        if ($update_stmt->execute()) {
+            $message = "Password changed successfully!";
+        } else {
+            $message = "Error updating password. Please try again.";
+        }
+        $update_stmt->close();
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,6 +71,7 @@
       width: 100%;
       height: 80px;
       position: fixed;
+      z-index: 1;
     }
 
     .hanburgerandaccContainer {
@@ -211,222 +265,255 @@
       }
     }
 
+    /* Main Body Styles */
     .mainBody {
       position: relative;
       top: 75px;
+      width: 100%;
     }
+
+    .mainBodyContiner {
+      width: 100%;
+    }
+
     .pageTitle {
-        height: 100px;
-        display: flex;
-        align-items: center;
-        border-bottom: solid 1px #2262B8;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      border-bottom: solid 1px #2262B8;
     }
+
     .pageTitle h1 {
-        margin-left: 60px;
-        margin-top: 40px;
-        font-size: 33px;
-        color: #2262B8;
+      margin-left: 60px;
+      margin-top: 40px;
+      font-size: 33px;
+      color: #2262B8;
     }
+
     .transactionchoices {
-        width: 100%;
-        height: 100px;
-        align-items: center;
-        display: flex;
-        justify-content: center;
+      width: 100%;
+      height: 100px;
+      align-items: center;
+      display: flex;
+      justify-content: center;
     }
-    .transactionchoices h1 {
-        text-decoration: none;
-        font-size: 22px;
-        margin: 0 10px;
-        margin-top: 70px;
-        color: #FFFF;
-        background-color: #2262B8;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-top-right-radius: 45px;
-        width: 47%;
-        height: 50px;
+
+    .profileHeader {
+      margin: 0 10px;
+      margin-top: 50px;
+      color: #FFFF;
+      background-color: #2262B8;
+      display: flex;
+      align-items: center;
+      justify-content: left;
+      width: 47.3%;
+      height: 110px;
     }
+
+    .accInfo {
+      display: inline-block;
+      margin-left: 20px;
+    }
+
+    .accInfo h5 {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .accInfo p {
+      font-size: 14px;
+      margin: 2px 0;
+    }
+
     .transactionformContainer {
-        width: 100%;
-        height: 300px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-top: 10px;
+      width: 100%;
+      height: auto;
+      min-height: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 30px;
     }
+
     .transactionform {
-        width: 48%;
-        height: 100%;
-        border-bottom-left-radius: 45px;
+      width: 100%;
+      height: 100%;
     }
-    .transacdate p {
-        font-size: 17px;
-        margin-left: 25px;
-        color: #2262B8;
+
+    .instruct p {
+      font-size: 11px;
+      color: #2262B8;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 50px;
+      text-align: center;
+      padding: 0 20px;
+      box-sizing: border-box;
     }
-    .boxContainer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid #B7B5B5;
-        margin: 0 5px;
-        padding: 0 22px;
+
+    .changepassForm {
+      width: 48%;
+      height: auto;
+      margin: 0 auto;
     }
-    .box {
-        width: 100%;
-        height: 60px;
-        
+
+    .changepassForm input {
+      padding: 12px; 
+      font-size: 16px;
+      border-radius: 30px;
+      width: 300px;
+      max-width: 100%;
+      margin: 0 auto;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      display: block;
     }
-    .box a {
-      text-decoration: none;
+
+    .changepassForm button {
+      padding: 12px;
+      background-color: #2262B8;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      width: 150px;
+      margin: 0 auto;
+      margin-top: 50px;
+      display: block;
     }
-    .notif {
-        font-size: 14px;
-        margin: 0;
-        position: relative;
-        top: 5px;
-        margin-top: 10px;
-        color: #2262B8;
-    }
-    .notiftext {
-        font-size: 12px;
-        margin: 0;
-        margin-top: 5px;
-        color: #B7B5B5;
-    }
-    .amountpaid {
-        font-size: 14px;
-        position: relative;
-        top: 5px;
-    }
-    
-    /* RESPONSIVE STYLES FOR MAINBODY */
+
+    /* Responsive styles for mainBody */
     @media screen and (max-width: 992px) {
-      .pageTitle {
-        height: 80px;
-      }
-      
       .pageTitle h1 {
         margin-left: 40px;
-        margin-top: 30px;
-        font-size: 28px;
+        font-size: 30px;
       }
-      
-      .transactionchoices {
-        height: 80px;
-      }
-      
-      .transactionchoices h1 {
-        font-size: 20px;
-        margin-top: 50px;
+
+      .profileHeader {
         width: 60%;
       }
-      
-      .transactionform {
+
+      .changepassForm {
         width: 60%;
       }
     }
-    
+
     @media screen and (max-width: 768px) {
       .pageTitle {
-        height: 70px;
+        height: 80px;
       }
-      
+
       .pageTitle h1 {
         margin-left: 30px;
-        margin-top: 25px;
-        font-size: 24px;
+        margin-top: 30px;
+        font-size: 26px;
       }
       
       .transactionchoices {
-        height: 70px;
+        height: auto;
       }
-      
-      .transactionchoices h1 {
-        font-size: 18px;
-        margin-top: 40px;
-        width: 75%;
-        height: 45px;
+
+      .profileHeader {
+        width: 80%;
+        height: 90px;
+        margin-top: 30px;
       }
-      
+
+      .accInfo h5 {
+        font-size: 15px;
+      }
+
+      .accInfo p {
+        font-size: 13px;
+      }
+
       .transactionformContainer {
-        height: auto;
+        margin-top: 20px;
       }
-      
-      .transactionform {
-        width: 75%;
-        height: 100%;
+
+      .instruct p {
+        font-size: 10px;
+        margin-bottom: 30px;
       }
-      
-      .transacdate p {
-        font-size: 16px;
-        margin-left: 20px;
+
+      .changepassForm {
+        width: 70%;
       }
-      
-      .boxContainer {
-        padding: 0 15px;
-        margin: 0 5px 10px;
+
+      .changepassForm input {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
       }
-      
-      .box {
-        height: auto;
-        min-height: 60px;
-        padding: 5px 0;
+
+      .changepassForm button {
+        width: 130px;
+        padding: 10px;
+        font-size: 14px;
+        margin-top: 30px;
       }
     }
-    
+
     @media screen and (max-width: 480px) {
       .pageTitle {
         height: 60px;
       }
-      
+
       .pageTitle h1 {
         margin-left: 20px;
         margin-top: 20px;
         font-size: 22px;
       }
-      
-      .transactionchoices {
-        height: 60px;
+
+      .profileHeader {
+        width: 90%;
+        height: 80px;
+        margin-top: 20px;
       }
-      
-      .transactionchoices h1 {
-        font-size: 16px;
-        margin-top: 30px;
-        width: 85%;
-        height: 40px;
-        border-top-right-radius: 30px;
-      }
-      
-      .transactionform {
-        width: 85%;
-        border-bottom-left-radius: 30px;
-      }
-      
-      .transacdate p {
-        font-size: 15px;
+
+      .accInfo {
         margin-left: 15px;
       }
-      
-      .boxContainer {
-        padding: 0 10px;
-        margin: 0 5px 8px;
+
+      .accInfo h5 {
+        font-size: 14px;
       }
-      
-      .notif {
+
+      .accInfo p {
+        font-size: 12px;
+      }
+
+      .transactionformContainer {
+        margin-top: 15px;
+      }
+
+      .instruct p {
+        font-size: 9px;
+        margin-bottom: 20px;
+      }
+
+      .changepassForm {
+        width: 90%;
+      }
+
+      .changepassForm input {
+        padding: 8px;
         font-size: 13px;
       }
-      
-      .notiftext {
-        font-size: 11px;
+
+      .changepassForm button {
+        width: 120px;
+        padding: 8px;
+        font-size: 13px;
+        margin-top: 25px;
       }
     }
 
     /*FOOTER*/
     .footer {
-      margin-top: 85px;
+      margin-top: 100px;
       display: flex;
       justify-content: space-between;
       width: 100%;
@@ -555,14 +642,14 @@
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
+        <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
         <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
       <div class="systemName">
         <h2>RYC Dormitelle</h2>
-        <h4>APARTMENT MANAGEMENT SYSTEM</h4>       
+        <h4>APARTMENT MANAGEMENT SYSTEM</h4>
       </div>
     </div>
     <div class="navbar" id="navbar">
@@ -570,12 +657,10 @@
         <a href="USERHOMEPAGE.php">Home</a>
         <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
         <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
-        <a href="TRANSACTIONSPAGE.php">Transactions</a>
-        <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="ACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
+          <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Login</a>
+          <a href="LOGIN.php">Log Out</a>
         </div>
       </div>
     </div>
@@ -584,36 +669,36 @@
   <div class="mainBody">
     <div class="mainBodyContiner">
         <div class="pageTitle">
-            <h1>Inbox</h1>
+            <h1>Account</h1>
         </div>
         <div class="transactionchoices">
-            <h1>Inbox</h1>
+           <div class="profileHeader">
+            <div class="accInfo">
+                <h5 class="email_account">Change Password</h5>
+                <h5 class="username">Email Account: <?php echo $email_account; ?></h5>
+            </div>
+           </div>
         </div>
         <div class="transactionformContainer">
             <div class="transactionform">
-                <div class="todaystransactbox">
-                    <div class="transacdate">
-                        <p><b>Latest</b></p>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <a href="INBOXTEXTPAGE.php"><p class="notif"><b>Rent Payment Reminder</b></p></a>
-                            <p class="notiftext">This is a friendly reminder that your rent for April 2025 is now due.</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <a href="DEPOSITNOTIF.php"><p class="notif"><b>Deposit Adjustment Notification</b></p></a>
-                            <p class="notiftext">You have used ₱3,000 from your security deposit to cover part of this month's rent.</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <a href="BALANCENOTIF.php"><p class="notif"><b>Balance Payment Confirmation</b></p></a>
-                            <p class="notiftext">We've received your rent balance payment of ₱3,000.</p>
-                         </div>
-                     </div>
-                </div>
+                <div class="instruct">
+                    <p><b>Your password must be at least 6 characters and should include a combination of numbers, letters and special characters (!$@%).</b></p>
+                 </div>
+                 <?php if ($message): ?>
+                    <p style="display:flex; justify-content: center; height:auto; color: <?php echo (strpos($message, 'successfully') !== false) ? 'green' : 'red'; ?>">
+                      <?php echo htmlspecialchars($message); ?>
+                    </p>
+                  <?php endif; ?>
+                 <form action="" class="changepassForm" method="post">
+                  <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <input type="password" name="old_password" placeholder="Old Password" required>
+                    <input type="password" name="new_password" placeholder="New Password" required>
+                    <input type="password" name="confirm_new_password" placeholder="Confirm New Password" required>
+                    <button type="submit" name="change_password_submit">
+                      Submit
+                    </button>
+                  </div>
+                </form>
             </div>
         </div>
     </div>

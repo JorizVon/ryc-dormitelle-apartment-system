@@ -415,12 +415,16 @@
         top: 20px;
         color: white;
         font-size: 16px;
+        display: flex;
+        width: 120px;
+        align-items: center;
       }
 
       .adminSection a {
         color: white;
         text-decoration: none;
         margin-left: 5px;
+        margin-right: 5px;
       }
 
       .unit-header {
@@ -451,7 +455,7 @@
         <div class="hanburgerandaccContainer">
           <button class="hamburger" onclick="toggleMenu()">☰</button>
           <div class="adminSection">
-        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="SIGNIN.php">Sign Up</a> |
         <a href="LOGIN.php">Log Out</a>
           </div>
         </div>

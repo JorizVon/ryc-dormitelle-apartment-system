@@ -1,3 +1,56 @@
+<?php
+session_start();
+require_once '../db_connect.php';
+
+$email_account = 'none';
+$username = 'none';
+$message = '';  // To hold success or error messages
+
+if (isset($_SESSION['email_account'])) {
+    $email_account = $_SESSION['email_account'];
+
+    $stmt = $conn->prepare("SELECT username, password FROM accounts WHERE email_account = ?");
+    $stmt->bind_param("s", $email_account);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        $username = $row['username'];
+        $hashed_password = $row['password'];
+    }
+    $stmt->close();
+} 
+
+// Handle Change Password form submission
+if (isset($_POST['change_password_submit'])) {
+    $old_password = $_POST['old_password'] ?? '';
+    $new_password = $_POST['new_password'] ?? '';
+    $confirm_new_password = $_POST['confirm_new_password'] ?? '';
+
+    // Verify old password
+    if (!password_verify($old_password, $hashed_password)) {
+        $message = "Old password is incorrect.";
+    } elseif ($new_password !== $confirm_new_password) {
+        $message = "New passwords do not match.";
+    } elseif (strlen($new_password) < 6) {
+        $message = "New password must be at least 6 characters.";
+    } else {
+        // Hash the new password and update DB
+        $new_hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+
+        $update_stmt = $conn->prepare("UPDATE accounts SET password = ? WHERE email_account = ?");
+        $update_stmt->bind_param("ss", $new_hashed_password, $email_account);
+
+        if ($update_stmt->execute()) {
+            $message = "Password changed successfully!";
+        } else {
+            $message = "Error updating password. Please try again.";
+        }
+        $update_stmt->close();
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -180,12 +233,16 @@
         top: 20px;
         color: white;
         font-size: 16px;
+        display: flex;
+        width: 120px;
+        align-items: center;
       }
 
       .adminSection a {
         color: white;
         text-decoration: none;
         margin-left: 5px;
+        margin-right: 5px;
       }
 
       .hamburger {
@@ -585,7 +642,7 @@
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
         <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
@@ -603,9 +660,9 @@
         <a href="TRANSACTIONSPAGE.php">Transactions</a>
         <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="ACCOUNTPAGE.php">Profile</a>
+          <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Login</a>
+          <a href="LOGIN.php">Log Out</a>
         </div>
       </div>
     </div>
@@ -619,8 +676,8 @@
         <div class="transactionchoices">
            <div class="profileHeader">
             <div class="accInfo">
-                <h5 class="tenant_name">Change password</h5>
-                <p class="contactnum">Kyle Angela Catiis</p>
+                <h5 class="email_account">Change Password</h5>
+                <h5 class="username">Email Account: <?php echo $email_account; ?></h5>
             </div>
            </div>
         </div>
@@ -629,17 +686,21 @@
                 <div class="instruct">
                     <p><b>Your password must be at least 6 characters and should include a combination of numbers, letters and special characters (!$@%).</b></p>
                  </div>
+                 <?php if ($message): ?>
+                    <p style="display:flex; justify-content: center; height:auto; color: <?php echo (strpos($message, 'successfully') !== false) ? 'green' : 'red'; ?>">
+                      <?php echo htmlspecialchars($message); ?>
+                    </p>
+                  <?php endif; ?>
                  <form action="" class="changepassForm" method="post">
-                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                      <input type="password" placeholder="Old Password" required>
-                      <input type="password" placeholder="New Password" required>
-                      <input type="password" placeholder="Confirm New Password" required>
-                      <button type="submit">
-                        Submit
-                      </button>
-                    </div>
-                  </form>
-                  
+                  <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <input type="password" name="old_password" placeholder="Old Password" required>
+                    <input type="password" name="new_password" placeholder="New Password" required>
+                    <input type="password" name="confirm_new_password" placeholder="Confirm New Password" required>
+                    <button type="submit" name="change_password_submit">
+                      Submit
+                    </button>
+                  </div>
+                </form>
             </div>
         </div>
     </div>

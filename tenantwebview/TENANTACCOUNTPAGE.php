@@ -245,12 +245,16 @@ if ($email) {
         top: 20px;
         color: white;
         font-size: 16px;
+        display: flex;
+        width: 120px;
+        align-items: center;
       }
 
       .adminSection a {
         color: white;
         text-decoration: none;
         margin-left: 5px;
+        margin-right: 5px;
       }
 
       .hamburger {
@@ -642,7 +646,7 @@ if ($email) {
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 20px; width: 20px;"></a> |
+        <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
         <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
@@ -660,7 +664,7 @@ if ($email) {
         <a href="TRANSACTIONSPAGE.php">Transactions</a>
         <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="ACCOUNTPAGE.php">Profile</a>
+          <a href="ACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
           <a href="LOGIN.php">Log Out</a>
         </div>
@@ -738,7 +742,7 @@ if ($email) {
                     </div>
                     <div class="boxContainer">
                         <div class="box">
-                            <a href="CHANGEPASSPAGE.php"><p class="notif"><b>Change unit code</b></p></a>
+                            <a href="CHANGEPASSPAGE.php"><p class="notif"><b>Change Password</b></p></a>
                         </div>
                     </div>
                     <div class="boxContainer">

@@ -2,53 +2,23 @@
 session_start();
 require_once '../db_connect.php';
 
-// Check if user is logged in
-$email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
+$email_account = 'none';
+$username = 'none';
 
-// Default values if no data found
-$tenant_image = "tenantviewIcons/profileIconn.png";
-$tenant_name = "none";
-$contact_number = "none";
-$tenant_ID = "none";
-$payment_due = "none";
-$billing_period = "none";
-$deposit = "none";
-$balance = "none";
-$monthly_rent_amount = "none";
-$payment_status = "none";
-$card_status = "none";
+if (isset($_SESSION['email_account'])) {
+    $email_account = $_SESSION['email_account'];
 
-// Query if email is available
-if ($email) {
-    $sql = "SELECT tenants.email, tenants.tenant_image, tenants.tenant_name, tenants.contact_number, 
-                   tenants.tenant_ID, tenant_unit.payment_due, tenant_unit.billing_period, 
-                   tenant_unit.deposit, tenant_unit.balance, units.monthly_rent_amount, 
-                   payments.payment_status, card_registration.card_status
-            FROM tenants
-            INNER JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID
-            INNER JOIN payments ON tenant_unit.tenant_ID = payments.tenant_ID
-            INNER JOIN units ON payments.unit_no = units.unit_no
-            INNER JOIN card_registration ON units.unit_no = card_registration.unit_no
-            WHERE tenants.email = '$email'
-            LIMIT 1";
+    $stmt = $conn->prepare("SELECT username FROM accounts WHERE email_account = ?");
+    $stmt->bind_param("s", $email_account);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    $result = mysqli_query($conn, $sql);
-
-    if ($result && mysqli_num_rows($result) > 0) {
-        $row = mysqli_fetch_assoc($result);
-
-        $tenant_image = $row['tenant_image'];
-        $tenant_name = $row['tenant_name'];
-        $contact_number = $row['contact_number'];
-        $tenant_ID = $row['tenant_ID'];
-        $payment_due = $row['payment_due'];
-        $billing_period = $row['billing_period'];
-        $deposit = '₱ ' . number_format($row['deposit'], 2);
-        $balance = '₱ ' . number_format($row['balance'], 2);
-        $monthly_rent_amount = '₱ ' . number_format($row['monthly_rent_amount'], 2);
-        $payment_status = $row['payment_status'];
-        $card_status = $row['card_status'];
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        $username = $row['username'];
     }
+
+    $stmt->close();
 }
 ?>
 <!DOCTYPE html>
@@ -233,12 +203,16 @@ if ($email) {
         top: 20px;
         color: white;
         font-size: 16px;
+        display: flex;
+        width: 120px;
+        align-items: center;
       }
 
       .adminSection a {
         color: white;
         text-decoration: none;
         margin-left: 5px;
+        margin-right: 5px;
       }
 
       .hamburger {
@@ -297,10 +271,10 @@ if ($email) {
         height: 110px;
     }
     .profile {
-        height: 50px;
-        width: 50px;
-        margin-left: 40px;
-        margin-right: 20px;
+        height: 80px;
+        width: 80px;
+        margin-left: 30px;
+        margin-right: 10px;
     }
     .profile img {
         height: 100%;
@@ -501,7 +475,7 @@ if ($email) {
 
     /*FOOTER*/
     .footer {
-      margin-top: 120px;
+      margin-top: 10px;
       display: flex;
       justify-content: space-between;
       width: 100%;
@@ -555,6 +529,7 @@ if ($email) {
     @media screen and (max-width: 992px) {
       .footer {
         height: auto;
+        margin-top: 135px;
       }
       
       .footerContainer {
@@ -575,6 +550,7 @@ if ($email) {
       .footerContainer {
         flex-direction: column;
         padding: 15px 0;
+        margin-top: 65px;
       }
       
       .contactleftside {
@@ -630,14 +606,14 @@ if ($email) {
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="ACCOUNTPAGE.php">Profile</a> |
+        <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
         <a href="LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
       <div class="systemName">
         <h2>RYC Dormitelle</h2>
-        <h4>APARTMENT MANAGEMENT SYSTEM</h4>       
+        <h4>APARTMENT MANAGEMENT SYSTEM</h4>
       </div>
     </div>
     <div class="navbar" id="navbar">
@@ -648,9 +624,9 @@ if ($email) {
         <a href="TRANSACTIONSPAGE.php">Transactions</a>
         <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="ACCOUNTPAGE.php">Profile</a>
+          <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Login</a>
+          <a href="../LOGIN.php">Log Out</a>
         </div>
       </div>
     </div>
@@ -664,12 +640,12 @@ if ($email) {
         <div class="transactionchoices">
            <div class="profileHeader">
             <div class="profile">
-                <img src="tenantviewIcons/profileIconn.png" alt="profile">
+                <img src="../staticImages/userIcon.png" alt="profile">
             </div>
             <div class="accInfo">
-                <h5 class="tenant_name">Kyle Angela Catiis</h5>
-                <p class="contact_number">09236510085</p>
-                <h6 class="teanant_ID">Tenant ID: 202504A001</h6>
+                <h5 class="email_account">Email Account: <?php echo $email_account; ?></h5>
+                <br>
+                <h6 class="username">Username: <?php echo $username; ?></h6>
             </div>
            </div>
         </div>
@@ -678,55 +654,7 @@ if ($email) {
                 <div class="todaystransactbox">
                      <div class="boxContainer">
                         <div class="box">
-                            <p class="notif"><b>Payment Due</b></p>
-                            <p class="notiftext" id="lease_payment_due">Every  23th day of the month</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Billing Period</b></p>
-                            <p class="notiftext" id="billing_period">Until the 28th day of the month</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Total Rent Paid</b></p>
-                            <p class="notiftext" id="total_rent_paid">₱ 52,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Current Deposit</b></p>
-                            <p class="notiftext" id="deposit">₱ 12,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Remaining Balance</b></p>
-                            <p class="notiftext" id="balance">₱ 3,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Monthly Rent Payment</b></p>
-                            <p class="notiftext" id="lease_payment_amount">₱ 10,000</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Payment Status</b></p>
-                            <p class="notiftext" id="payment_status">Paid</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Card Status</b></p>
-                            <p class="notiftext" id="card_status">Active</p>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                          <a href="CHANGEPASSPAGE.php"><p class="notif"><b>Change unit code</b></p></a>
+                          <a href="USERCHANGEPASSPAGE.php"><p class="notif"><b>Change Password</b></p></a>
                          </div>
                      </div>
                      <div class="boxContainer">
