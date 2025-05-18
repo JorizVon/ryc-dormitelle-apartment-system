@@ -64,34 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $payment_status = "Paid Overdue";
     }
 
-    // Update balance when paying rent or using deposit
-    if ($transaction_type === "Rent Payment" || $transaction_type === "Use Deposit") {
-        $newBalance = max(0, $balance - $amount_paid);
-        $updateBalance = $conn->prepare("UPDATE tenant_unit SET balance = ? WHERE tenant_ID = ?");
-        $updateBalance->bind_param("di", $newBalance, $tenant_ID);
-        $updateBalance->execute();
-        $updateBalance->close();
-    }
-
-    // Update deposit based on transaction type
-    if ($transaction_type === "Add to Deposit") {
-        $newDeposit = $deposit + $amount_paid;
-        $updateDeposit = $conn->prepare("UPDATE tenant_unit SET deposit = ? WHERE tenant_ID = ?");
-        $updateDeposit->bind_param("di", $newDeposit, $tenant_ID);
-        $updateDeposit->execute();
-        $updateDeposit->close();
-    } elseif ($transaction_type === "Use Deposit") {
-        // Check if deposit is sufficient
-        if ($deposit < $amount_paid) {
-            echo "<script>alert('Insufficient deposit to pay. Available: ₱" . number_format($deposit, 2) . "'); window.history.back();</script>";
-            exit();
-        }
-        $newDeposit = $deposit - $amount_paid;
-        $updateDeposit = $conn->prepare("UPDATE tenant_unit SET deposit = ? WHERE tenant_ID = ?");
-        $updateDeposit->bind_param("di", $newDeposit, $tenant_ID);
-        $updateDeposit->execute();
-        $updateDeposit->close();
-    }
+    // Note: We've removed the balance and deposit update code based on the requirement
 
     // Generate unique transaction number
     $datePrefix = date("Ymd");
@@ -136,14 +109,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     $insert->close();
 
-    // Redirect or notify based on payment method
-    if ($payment_method === "Cash") {
+    // Store transaction info in session for Gcash payment
+    if ($payment_method === "Gcash") {
+        $_SESSION['payment_data'] = [
+            'transaction_no' => $transaction_no,
+            'amount_paid' => $amount_paid,
+            'tenant_name' => $tenant_name,
+            'transaction_type' => $transaction_type
+        ];
+        echo "<script>window.location.href='PAYMENTPAGE .php';</script>";
+    } else if ($payment_method === "Cash") {
         echo "<script>alert('Pay to the landlord through Cash on Hand to confirm payment'); window.location.href='TRANSACTIONSPAGE.php';</script>";
-    } elseif ($payment_method === "Gcash") {
-        echo "<script>window.location.href='gcash_payment_placeholder.php';</script>";
     } else {
         echo "<script>alert('Payment recorded successfully'); window.location.href='TRANSACTIONSPAGE.php';</script>";
     }
+    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -152,6 +132,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Transactions - Rent Payment</title>
+
+</head>
   <style>
     body {
       margin: 0;
@@ -815,7 +797,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       }
     }
   </style>
-</head>
 <body>
   <div class="header">
     <div class="hanburgerandaccContainer">
@@ -928,7 +909,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <div id="successModal" class="modal">
     <div class="modal-content">
       <h3>Transaction Successful</h3>
-      <p>Your transaction was submitted successfully!</p>
+      <p>Your transaction request was submitted successfully!</p>
       <button onclick="redirectToPage()" class="btn-ok">OK</button>
     </div>
   </div>
@@ -1060,9 +1041,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       .then(data => {
         isSubmitting = false; // Reset flag
         
-        // Only redirect to GCash if the payment method is GCash
-        if (paymentMethod === "gcash" || paymentMethod === "Gcash" || paymentMethod === "GCASH") {
-          window.location.href = 'gcash_payment_placeholder.php';
+        // Redirect based on payment method
+        if (paymentMethod === "Gcash") {
+          window.location.href = 'PAYMENTPAGE.php';
         } else {
           // For Cash and settle with deposit, show success modal
           document.getElementById("successModal").classList.add("show");
