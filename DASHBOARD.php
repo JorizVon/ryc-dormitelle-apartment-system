@@ -41,7 +41,7 @@ function getDashboardData($conn) {
 
     // Today's Monthly Due
     $query = 'SELECT COUNT(*) AS due_today_count FROM `tenant_unit`
-              WHERE DAY(tenant_unit.lease_start_date) = DAY(CURRENT_DATE());';
+              WHERE DAY(tenant_unit.start_date) = DAY(CURRENT_DATE());';
     $result = $conn->query($query);
     $row = $result->fetch_assoc();
     $data['due_today_count'] = $row['due_today_count'] ?? 0;
@@ -106,7 +106,7 @@ $dashboardData = getDashboardData($conn);
         }
         .card a {
             margin: auto 0px auto 0px;
-            font-size: 24px;
+            font-size: 20px;
             padding-left: 20px;
             font-weight: 500;
             display: flex;
@@ -141,6 +141,9 @@ $dashboardData = getDashboardData($conn);
         }
         .card a:hover .CGsidebarIcon {
             content: url('sidebarIcons/CardregisterIcon.png');
+        }
+        .card a:hover .PIsidebarIcon {
+            content: url('sidebarIcons/PendingInquiryIcon.png');
         }
         .mainBody {
             width: 100vw;
@@ -344,18 +347,18 @@ $dashboardData = getDashboardData($conn);
         <div class="sidebarContent">
             <div class="card">
                 <a href="DASHBOARD.php" class="changeicon" style="background-color: #FFFF; color: #004AAD;">
-                    <img src="sidebarIcons/DashboardIcon.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/DashboardIcon.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 8px;">
                     Dashboard
                 </a>
             </div>
             <div class="card">
                 <a href="UNITSINFORMATION.php">
-                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 5px;">
                     Units Information</a>
             </div>
             <div class="card">
                 <a href="TENANTSLIST.php">
-                    <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 3px;">
                     Tenants List</a>
             </div>
             <div class="card">
@@ -372,6 +375,11 @@ $dashboardData = getDashboardData($conn);
                 <a href="CARDREGISTRATION.php">
                     <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="CGsidebarIcon" style="margin-right: 10px;">
                     Card Registration</a>
+            </div>
+            <div class="card">
+                <a href="PENDINGINQUIRY.php">
+                    <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
+                    Pending Inquiry</a>
             </div>
         </div>
     </div>

@@ -103,7 +103,7 @@ $conn->close();
         }
         .card a {
             margin: auto 0px auto 0px;
-            font-size: 24px;
+            font-size: 20px;
             padding-left: 20px;
             font-weight: 500;
             display: flex;
@@ -138,6 +138,9 @@ $conn->close();
         }
         .card a:hover .CGsidebarIcon {
             content: url('sidebarIcons/CardregisterIcon.png');
+        }
+        .card a:hover .PIsidebarIcon {
+            content: url('sidebarIcons/PendingInquiryIcon.png');
         }
         .mainBody {
             width: 100vw;
@@ -384,45 +387,49 @@ $conn->close();
         </div>
         <div class="sidebarContent">
             <div class="card">
-                <a href="DASHBOARD.html" class="changeicon">
-                    <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 10px;">
+                <a href="DASHBOARD.php" class="changeicon">
+                    <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 8px;">
                     Dashboard
                 </a>
             </div>
             <div class="card">
-                <a href="UNITSINFORMATION.html">
-                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 10px;">
+                <a href="UNITSINFORMATION.php">
+                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 5px;">
                     Units Information</a>
             </div>
             <div class="card">
-                <a href="TENANTSLIST.html" style="background-color: #FFFF; color: #004AAD;">
-                    <img src="sidebarIcons/TenantsInfoIcon.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 10px;">
+                <a href="TENANTSLIST.php" style="background-color: #FFFF; color: #004AAD;">
+                    <img src="sidebarIcons/TenantsInfoIcon.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 3px;">
                     Tenants Lists</a>
             </div>
             <div class="card">
-                <a href="PAYMENTMANAGEMENT.html">
+                <a href="PAYMENTMANAGEMENT.php">
                     <img src="sidebarIcons/PaymentManagementIconWht.png" alt="Payment Management Icon" class="PMsidebarIcon" style="margin-right: 10px;">
                     Payment Management</a>
             </div>
             <div class="card">
-                <a href="ACCESSPOINTLOGS.html">
+                <a href="ACCESSPOINTLOGS.php">
                     <img src="sidebarIcons/AccesspointIconWht.png" alt="Access Point Logs Icon" class="APLsidebarIcon" style="margin-right: 10px;">
                     Access Point Logs</a>
             </div>
             <div class="card">
-                <a href="CARDREGISTRATION.html">
+                <a href="CARDREGISTRATION.php">
                     <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="CGsidebarIcon" style="margin-right: 10px;">
                     Card Registration</a>
             </div>
-            
+            <div class="card">
+                <a href="PENDINGINQUIRY.php">
+                    <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
+                    Pending Inquiry</a>
+            </div>
         </div>
     </div>
         <div class="mainBody">
             <div class="header">
                 <div class="headerContent">
-                    <a href="ADMINPROFILE.html" class="adminTitle">ADMIN</a>
+                    <a href="ADMINPROFILE.php" class="adminTitle">ADMIN</a>
                     <p class="adminLogoutspace">&nbsp;|&nbsp;</p>
-                    <a href="LOGIN.html" class="logOutbtn">Log Out</a>
+                    <a href="LOGIN.php" class="logOutbtn">Log Out</a>
                 </div>
             </div>
             <div class="mainContent">

@@ -98,7 +98,7 @@ $conn->close();
         }
         .card a {
             margin: auto 0px auto 0px;
-            font-size: 24px;
+            font-size: 20px;
             padding-left: 20px;
             font-weight: 500;
             display: flex;
@@ -133,6 +133,9 @@ $conn->close();
         }
         .card a:hover .CGsidebarIcon {
             content: url('sidebarIcons/CardregisterIcon.png');
+        }
+        .card a:hover .PIsidebarIcon {
+            content: url('sidebarIcons/PendingInquiryIcon.png');
         }
         .mainBody {
             width: 100vw;
@@ -585,17 +588,17 @@ $conn->close();
             </div>
             <div class="card">
                 <a href="UNITSINFORMATION.php" style="background-color: #FFFF; color: #004AAD;">
-                    <img src="sidebarIcons/UnitsInfoIcon.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/UnitsInfoIcon.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 8px;">
                     Units Information</a>
             </div>
             <div class="card">
                 <a href="TENANTSLIST.php">
-                    <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 5px;">
                     Tenants Lists</a>
             </div>
             <div class="card">
                 <a href="PAYMENTMANAGEMENT.php">
-                    <img src="sidebarIcons/PaymentManagementIconWht.png" alt="Payment Management Icon" class="PMsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/PaymentManagementIconWht.png" alt="Payment Management Icon" class="PMsidebarIcon" style="margin-right: 3px;">
                     Payment Management</a>
             </div>
             <div class="card">
@@ -608,7 +611,11 @@ $conn->close();
                     <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="CGsidebarIcon" style="margin-right: 10px;">
                     Card Registration</a>
             </div>
-            
+            <div class="card">
+                <a href="PENDINGINQUIRY.php">
+                    <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
+                    Pending Inquiry</a>
+            </div>
         </div>
     </div>
     <div class="mainBody">
