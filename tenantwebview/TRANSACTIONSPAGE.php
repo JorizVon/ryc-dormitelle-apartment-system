@@ -1,9 +1,157 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['email_account'])) {
+    header("Location: ../LOGIN.php");
+    exit();
+}
+
+include '../db_connect.php';
+
+$email = $_SESSION['email_account'];
+
+$tenant_ID = $tenant_name = $payment_due = $billing_period = $deposit = $balance = $unit_no = "";
+
+if (!empty($email)) {
+    $stmt = $conn->prepare("SELECT tenants.tenant_ID, tenant_name, tenant_unit.unit_no, tenant_unit.payment_due, tenant_unit.billing_period, tenant_unit.deposit, tenant_unit.balance 
+                            FROM tenants 
+                            INNER JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID 
+                            WHERE tenants.email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $stmt->bind_result($tenant_ID, $tenant_name, $unit_no, $payment_due, $billing_period, $deposit, $balance);
+    $stmt->fetch();
+    $stmt->close();
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get and validate amount_paid
+    $amount_paid = isset($_POST['amount_paid']) ? floatval($_POST['amount_paid']) : 0;
+    $payment_date = date("Y-m-d");
+    $payment_method = $_POST['payment_method'] ?? '';
+
+    // Validate amount_paid
+    if ($amount_paid <= 0) {
+        echo "<script>alert('Amount must be greater than 0'); window.history.back();</script>";
+        exit();
+    }
+
+    // Determine transaction type
+    $transaction_type = '';
+    if (isset($_POST['deposit']) && $_POST['deposit'] == 'on') {
+        $transaction_type = "Add to Deposit";
+    } elseif (isset($_POST['payrent']) && $_POST['payrent'] == 'on') {
+        $transaction_type = "Rent Payment";
+    } elseif (isset($_POST['depositToPay']) && $_POST['depositToPay'] == 'on') {
+        $transaction_type = "Use Deposit";
+        $payment_method = "settle with deposit"; // Override
+    } else {
+        echo "<script>alert('Please select a transaction type'); window.history.back();</script>";
+        exit();
+    }
+
+    // Validate payment method if not using deposit
+    if ($transaction_type !== "Use Deposit" && !in_array($payment_method, ['Cash', 'Gcash'])) {
+        echo "<script>alert('Please select a valid payment method'); window.history.back();</script>";
+        exit();
+    }
+
+    // Determine payment status
+    $payment_status = "Partially Paid";
+    if ($amount_paid >= $payment_due) {
+        $payment_status = "Fully Paid";
+    } elseif ($amount_paid < $payment_due && strtotime($payment_date) > strtotime($billing_period)) {
+        $payment_status = "Paid Overdue";
+    }
+
+    // Update balance when paying rent or using deposit
+    if ($transaction_type === "Rent Payment" || $transaction_type === "Use Deposit") {
+        $newBalance = max(0, $balance - $amount_paid);
+        $updateBalance = $conn->prepare("UPDATE tenant_unit SET balance = ? WHERE tenant_ID = ?");
+        $updateBalance->bind_param("di", $newBalance, $tenant_ID);
+        $updateBalance->execute();
+        $updateBalance->close();
+    }
+
+    // Update deposit based on transaction type
+    if ($transaction_type === "Add to Deposit") {
+        $newDeposit = $deposit + $amount_paid;
+        $updateDeposit = $conn->prepare("UPDATE tenant_unit SET deposit = ? WHERE tenant_ID = ?");
+        $updateDeposit->bind_param("di", $newDeposit, $tenant_ID);
+        $updateDeposit->execute();
+        $updateDeposit->close();
+    } elseif ($transaction_type === "Use Deposit") {
+        // Check if deposit is sufficient
+        if ($deposit < $amount_paid) {
+            echo "<script>alert('Insufficient deposit to pay. Available: ₱" . number_format($deposit, 2) . "'); window.history.back();</script>";
+            exit();
+        }
+        $newDeposit = $deposit - $amount_paid;
+        $updateDeposit = $conn->prepare("UPDATE tenant_unit SET deposit = ? WHERE tenant_ID = ?");
+        $updateDeposit->bind_param("di", $newDeposit, $tenant_ID);
+        $updateDeposit->execute();
+        $updateDeposit->close();
+    }
+
+    // Generate unique transaction number
+    $datePrefix = date("Ymd");
+
+    $result = $conn->prepare("SELECT COUNT(*) FROM payments WHERE transaction_no LIKE CONCAT(?, '%')");
+    $likeParam = $datePrefix . "%";
+    $result->bind_param("s", $likeParam);
+    $result->execute();
+    $result->bind_result($count);
+    $result->fetch();
+    $result->close();
+
+    $sequence = $count + 1;
+    $maxAttempts = 9999;
+
+    do {
+        $formattedSequence = str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        $transaction_no = $datePrefix . $formattedSequence;
+
+        $check = $conn->prepare("SELECT COUNT(*) FROM payments WHERE transaction_no = ?");
+        $check->bind_param("s", $transaction_no);
+        $check->execute();
+        $check->bind_result($existing);
+        $check->fetch();
+        $check->close();
+
+        $sequence++;
+    } while ($existing > 0 && $sequence <= $maxAttempts);
+
+    if ($sequence > $maxAttempts + 1) {
+        die("Error: Daily transaction limit reached.");
+    }
+
+    // Insert the payment record
+    $insert = $conn->prepare("INSERT INTO payments(transaction_no, unit_no, tenant_ID, amount_paid, payment_date, payment_status, payment_method, transaction_type, confirmation_status) 
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+    $insert->bind_param("sssissss", $transaction_no, $unit_no, $tenant_ID, $amount_paid, $payment_date, $payment_status, $payment_method, $transaction_type);
+    
+    if (!$insert->execute()) {
+        echo "<script>alert('Error saving payment: " . $conn->error . "'); window.history.back();</script>";
+        exit();
+    }
+    $insert->close();
+
+    // Redirect or notify based on payment method
+    if ($payment_method === "Cash") {
+        echo "<script>alert('Pay to the landlord through Cash on Hand to confirm payment'); window.location.href='TRANSACTIONSPAGE.php';</script>";
+    } elseif ($payment_method === "Gcash") {
+        echo "<script>window.location.href='gcash_payment_placeholder.php';</script>";
+    } else {
+        echo "<script>alert('Payment recorded successfully'); window.location.href='TRANSACTIONSPAGE.php';</script>";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Homepage</title>
+  <title>Transactions - Rent Payment</title>
   <style>
     body {
       margin: 0;
@@ -101,7 +249,58 @@
       margin-left: 12px;
       margin-bottom: 5px;
     }
+ /* Modal Styles */
+  .modal {
+    display: none; /* Initially hidden */
+    position: fixed; 
+    z-index: 9999; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+  }
 
+  /* When modal is shown, apply flex display */
+  .modal.show {
+    display: flex;
+  }
+
+  .modal-content {
+    background-color: #fff;
+    padding: 30px 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+
+  .modal-content button {
+    margin: 10px 5px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .btn-confirm {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btn-cancel {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-ok {
+    background-color: #007bff;
+    color: white;
+  }
     /* Tablet view */
     @media screen and (max-width: 768px) {
       .header {
@@ -247,85 +446,135 @@
     }
     .transactionformContainer {
         width: 100%;
-        height: 500px;
+        height: auto;
         display: flex;
         justify-content: center;
         align-items: center;
         margin-top: 30px;
+        padding-bottom: 40px;
     }
     .transactionform {
         width: 48%;
-        height: 100%;
+        height: auto;
         border: solid 2px #79B1FC;
         border-bottom-left-radius: 45px;
+        padding-bottom: 30px;
     }
+    
+    /* Improved checkbox container styles */
     .transactionTypecontainer {
-        width: 100%;
-        height: 50px;
+        width: 90%;
+        margin: 0 auto 20px auto;
+        padding: 15px 0;
         display: flex;
         justify-content: space-around;
         align-items: center;
-        box-shadow:  0 4px 2px -1px rgb(0, 0, 0, 0.2);
+        flex-wrap: wrap;
+        box-shadow: 0 4px 2px -1px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
     }
-    .transactionTypecontainer input {
-        font-size: 12px;
+    
+    .transactionTypecontainer div {
+        display: flex;
+        align-items: center;
+        margin: 8px 5px;
+        padding: 5px;
     }
-    .transactionTypecontainer label {
-        font-size: 17px;
-        margin: 0 8px;
+    
+    /* Improved checkbox styling */
+    .checkinput {
+        width: 20px !important;
+        height: 20px;
+        margin-right: 8px !important;
+        cursor: pointer;
+        accent-color: #2262B8;
     }
+    
+    .checklabel {
+        font-size: 17px !important;
+        color: #2262B8 !important;
+        margin: 0 !important;
+        cursor: pointer;
+        display: inline !important;
+        width: auto !important;
+    }
+    
     .form {
         margin-top: 20px;
         margin-left: 50px;
-    }
-    .form label {
-        width: 200px;
-        font-size: 16px;
         margin-right: 50px;
-        display: inline-block;
+    }
+    
+    .form > div {
         margin-bottom: 15px;
+    }
+    
+    .form label {
+        width: 180px;
+        font-size: 16px;
+        margin-right: 20px;
+        display: inline-block;
         color: #2262B8;
+        vertical-align: middle;
     }
+    
     .form input {
-        width: 360px;
-        font: 16px;
+        width: calc(100% - 230px);
+        font-size: 16px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        vertical-align: middle;
     }
+    .form select {
+        width: calc(100% - 212px);
+        font-size: 16px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        position: relative;
+        right: 5px;
+        vertical-align: middle;
+    }
+    
     .form span {
         color: #2262B8;
+        font-size: 16px;
     }
+    
     .submitbtnContainer {
-        width: 91%;
-        justify-content: right;
-        align-items: center;
+        width: 100%;
         display: flex;
-        margin-top: 20px;
+        justify-content: flex-end;
+        margin-top: 30px;
+        padding-right: 30px;
     }
-    .submitbtnContainer a {
-        text-decoration: none;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    
+    #submitBtn {
         width: 200px;
         height: 40px;
-        color: #fff;
         background-color: #2262B8;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
     }
+    
+    #submitBtn:hover {
+        background-color: #194b91;
+    }
+    
     .mainBody {
       position: relative;
       top: 75px;
     }
+    
     /* Responsive Styles for mainBody */
     @media screen and (max-width: 992px) {
-      .transactionformContainer {
-        height: auto;
-      }
-      
       .transactionform {
         width: 70%;
-      }
-      
-      .form input {
-        width: 280px;
       }
     }
 
@@ -355,18 +604,15 @@
       
       .transactionform {
         width: 85%;
-        height: auto;
-        min-height: 500px;
+        border-bottom-left-radius: 30px;
       }
       
       .transactionTypecontainer {
-        flex-direction: column;
-        height: auto;
-        padding: 10px 0;
+        justify-content: center;
       }
       
       .transactionTypecontainer div {
-        margin: 5px 0;
+        margin: 5px 10px;
       }
       
       .form {
@@ -383,12 +629,18 @@
       
       .form input {
         width: 100%;
-        margin-bottom: 15px;
+        display: block;
+      }
+      .form select {
+        width: 103.5%;
+        display: block;
+        position: relative;
+        left: 1px;
       }
       
       .submitbtnContainer {
-        width: 100%;
         justify-content: center;
+        padding-right: 0;
       }
     }
 
@@ -406,11 +658,15 @@
       
       .transactionform {
         width: 90%;
-        border-bottom-left-radius: 30px;
       }
       
-      .transactionTypecontainer label {
-        font-size: 14px;
+      .checkinput {
+        width: 18px !important;
+        height: 18px;
+      }
+      
+      .checklabel {
+        font-size: 15px !important;
       }
       
       .form {
@@ -422,7 +678,12 @@
         font-size: 14px;
       }
       
-      .submitbtnContainer a {
+      .form input, .form select {
+        font-size: 14px;
+        padding: 6px;
+      }
+      
+      #submitBtn {
         width: 160px;
         height: 35px;
         font-size: 14px;
@@ -561,13 +822,13 @@
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
         <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
-        <a href="LOGIN.php">Log Out</a>
+        <a href="../LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
       <div class="systemName">
         <h2>RYC Dormitelle</h2>
-        <h4>APARTMENT MANAGEMENT SYSTEM</h4>       
+        <h4>APARTMENT MANAGEMENT SYSTEM</h4>
       </div>
     </div>
     <div class="navbar" id="navbar">
@@ -578,9 +839,9 @@
         <a href="TRANSACTIONSPAGE.php">Transactions</a>
         <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
-          <a href="ACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
+          <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Login</a>
+          <a href="../LOGIN.php">Log Out</a>
         </div>
       </div>
     </div>
@@ -596,63 +857,47 @@
             <a href="TRANSACTIONHISTORYPAGE.php">Transaction History</a>
         </div>
         <div class="transactionformContainer">
-            <div class="transactionform">
-                <div class="transactionTypecontainer">
-                    <div>
-                        <input type="checkbox" name="deposit">
-                        <label for="deposit">Add to deposit</label>
-                    </div>
-                    <div>
-                        <input type="checkbox" name="payrent">
-                        <label for="payrent">Pay rent</label>
-                    </div>
-                    <div>
-                        <input type="checkbox" name="depositToPay">
-                        <label for="depositToPay">Use deposit to pay</label>
-                    </div>
-                </div>
-               <form action="" class="form">
-                    <div class="transactionNo">
-                        <label for="transaction_no"><b>Transaction No.</b></label>
-                        <span name="transaction_no"><b>20250421A001</b></span>
-                    </div>
-                    <div>
-                        <label for="tenant_ID">Tenant ID</label>
-                        <input type="text" name="tenant_ID">
-                    </div>
-                    <div>
-                        <label for="tenant_name">Full Name</label>
-                        <input type="text" name="tenant_name">
-                    </div>
-                    <div>
-                        <label for="lease_payment_due">Payment Due</label>
-                        <input type="text" name="lease_payment_due">
-                    </div>
-                    <div>
-                        <label for="billing_period">Billing Period</label>
-                        <input type="text" name="billing_period">
-                    </div>
-                    <div>
-                        <label for="deposit">Current Deposit</label>
-                        <input type="text" name="deposit">
-                    </div>
-                    <div>
-                        <label for="balance">Remaining Balance</label>
-                        <input type="text" name="balance">
-                    </div>
-                    <div>
-                        <label for="amount_paid">Amount</label>
-                        <input type="text" name="amount_paid">
-                    </div>
-                    <div>
-                        <label for="payment_date">Payment Date</label>
-                        <input type="text" name="payment_date">
-                    </div>
-                    <div class="submitbtnContainer">
-                        <a href="#" class="transactionchoice">Add to deposit</a>
-                    </div>
-               </form>
+        <div class="transactionform">
+          <form action="" method="POST" class="form" id="paymentForm">
+            <div class="transactionTypecontainer">
+              <div>
+                <input type="checkbox" name="deposit" id="deposit" class="checkinput" onclick="setTransactionType(this)" checked>
+                <label for="deposit" class="checklabel">Add to deposit</label>
+              </div>
+              <div>
+                <input type="checkbox" name="payrent" id="payrent" class="checkinput" onclick="setTransactionType(this)">
+                <label for="payrent" class="checklabel">Pay rent</label>
+              </div>
+              <div>
+                <input type="checkbox" name="depositToPay" id="depositToPay" class="checkinput" onclick="setTransactionType(this)">
+                <label for="depositToPay" class="checklabel">Use deposit to pay</label>
+              </div>
             </div>
+
+            <div><label><b>Payment Date</b></label><span name="payment_date"><b><?= date('Y-m-d') ?></b></span></div>
+            <div><label>Tenant ID</label><input type="text" name="tenant_ID" value="<?= htmlspecialchars($tenant_ID) ?>" readonly></div>
+            <div><label>Full Name</label><input type="text" name="tenant_name" value="<?= htmlspecialchars($tenant_name) ?>" readonly></div>
+            <div><label>Payment Due</label><input type="text" name="lease_payment_due" value="<?= htmlspecialchars($payment_due) ?>" readonly></div>
+            <div><label>Billing Period</label><input type="text" name="billing_period" value="<?= htmlspecialchars($billing_period) ?>" readonly></div>
+            <div><label>Current Deposit</label><input type="text" name="current_deposit" value="₱ <?= htmlspecialchars(number_format($deposit, 2)) ?>" readonly></div>
+            <div><label>Remaining Balance</label><input type="text" name="current_balance" value="₱ <?= htmlspecialchars(number_format($balance, 2)) ?>" readonly></div>
+            <div><label>Amount</label><input type="number" name="amount_paid" id="amount_paid" required min="1" step="0.01"></div>
+            
+            <div>
+              <label>Payment Method</label>
+              <select name="payment_method" id="payment_method" required>
+                <option value="">Select Payment Method</option>
+                <option value="Cash">Cash</option>
+                <option value="Gcash">Gcash</option>
+                <option value="settle with deposit" disabled>Settle with Deposit</option>
+              </select>
+            </div>
+
+            <div class="submitbtnContainer">
+              <button type="submit" id="submitBtn">Add to deposit</button>
+            </div>
+          </form>
+        </div>
         </div>
     </div>
   </div>
@@ -669,11 +914,170 @@
       </div>
     </div>
   </div>
+  <!-- Confirm Transaction Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <h3>Confirm Transaction</h3>
+      <p>Are you sure you want to proceed with this transaction?</p>
+      <button onclick="submitForm()" class="btn-confirm">Yes, Proceed</button>
+      <button onclick="closeModal('confirmModal')" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="modal">
+    <div class="modal-content">
+      <h3>Transaction Successful</h3>
+      <p>Your transaction was submitted successfully!</p>
+      <button onclick="redirectToPage()" class="btn-ok">OK</button>
+    </div>
+  </div>
+
 
   <script>
+    // Initial setup
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initial setup - ensure deposit is checked and set appropriate payment method options
+      setTransactionType(document.getElementById('deposit'));
+    });
+
     function toggleMenu() {
       document.getElementById('containerSystemName').classList.toggle('show');
       document.getElementById('navbar').classList.toggle('show');
+    }
+
+    function setTransactionType(selected) {
+      // Uncheck all first
+      document.querySelectorAll('.checkinput').forEach(cb => cb.checked = false);
+      selected.checked = true;
+
+      const paymentMethod = document.getElementById('payment_method');
+      const settleOption = paymentMethod.querySelector('option[value="settle with deposit"]');
+      const amountField = document.getElementById('amount_paid');
+
+      // Update submit button label
+      const labelMap = {
+        deposit: "Add to deposit",
+        payrent: "Pay rent",
+        depositToPay: "Use deposit to pay"
+      };
+      document.getElementById('submitBtn').textContent = labelMap[selected.id] || "Submit";
+      
+      // Handle payment method based on selected option
+      if (selected.id === 'depositToPay') {
+        // When using deposit to pay
+        paymentMethod.value = "settle with deposit";
+        settleOption.disabled = false;
+        
+        // Disable other options
+        Array.from(paymentMethod.options).forEach(opt => {
+          if (opt.value !== "settle with deposit") {
+            opt.disabled = true;
+          }
+        });
+        
+        // Set max amount to deposit value
+        const depositValue = parseFloat('<?= $deposit ?>');
+        if (depositValue > 0) {
+          amountField.max = depositValue;
+        }
+      } else {
+        // Remove max limit for other transaction types
+        amountField.removeAttribute('max');
+        
+        // For other payment types (Add to deposit or Pay rent)
+        if (paymentMethod.value === "settle with deposit") {
+          paymentMethod.value = ""; // Reset if previously set to settle with deposit
+        }
+        
+        settleOption.disabled = true;
+        
+        // Enable Cash and Gcash options
+        Array.from(paymentMethod.options).forEach(opt => {
+          if (opt.value !== "settle with deposit") {
+            opt.disabled = false;
+          }
+        });
+      }
+    }
+
+    // Form validation before submit
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+      const amount = parseFloat(document.getElementById('amount_paid').value);
+      const depositToPay = document.getElementById('depositToPay').checked;
+      
+      if (depositToPay) {
+        const depositValue = parseFloat('<?= $deposit ?>');
+        if (amount > depositValue) {
+          e.preventDefault();
+          alert('The amount cannot exceed your current deposit of ₱' + depositValue.toFixed(2));
+          return false;
+        }
+      }
+      
+      const paymentMethod = document.getElementById('payment_method').value;
+      if (!paymentMethod) {
+        e.preventDefault();
+        alert('Please select a payment method');
+        return false;
+      }
+      
+      return true;
+    });
+
+    const form = document.getElementById("paymentForm");
+    let isSubmitting = false; // Flag to prevent multiple submissions
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault(); // Prevent direct form submission
+      
+      // Prevent multiple submissions
+      if (isSubmitting) return;
+      
+      // Show confirmation modal only once
+      document.getElementById("confirmModal").classList.add("show");
+    });
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove("show");
+    }
+
+    function submitForm() {
+      if (isSubmitting) return; // Guard against multiple submissions
+      isSubmitting = true;
+      
+      closeModal('confirmModal');
+      
+      // Get the selected payment method
+      const paymentMethod = document.getElementById('payment_method').value;
+      
+      // Submit via fetch
+      fetch("", {
+        method: "POST",
+        body: new FormData(form)
+      })
+      .then(response => response.text())
+      .then(data => {
+        isSubmitting = false; // Reset flag
+        
+        // Only redirect to GCash if the payment method is GCash
+        if (paymentMethod === "gcash" || paymentMethod === "Gcash" || paymentMethod === "GCASH") {
+          window.location.href = 'gcash_payment_placeholder.php';
+        } else {
+          // For Cash and settle with deposit, show success modal
+          document.getElementById("successModal").classList.add("show");
+        }
+      })
+      .catch(error => {
+        isSubmitting = false; // Reset flag on error
+        alert("Error submitting form: " + error);
+      });
+    }
+
+    function redirectToPage() {
+      closeModal('successModal');
+      // Redirect to transactions page after successful payment
+      window.location.href = 'TRANSACTIONSPAGE.php';
     }
   </script>
 </body>

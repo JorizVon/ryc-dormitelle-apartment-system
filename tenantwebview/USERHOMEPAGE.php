@@ -3,7 +3,7 @@ session_start();
 
 // Redirect to login if not logged in
 if (!isset($_SESSION['email_account'])) {
-    header("Location: ../login.php");
+    header("Location: ../LOGIN.php");
     exit();
 }
 
@@ -695,7 +695,7 @@ if (!$result) {
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
         <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
-        <a href="LOGIN.php">Log Out</a>
+        <a href="../LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -712,7 +712,7 @@ if (!$result) {
         <div class="loginLogOut">
           <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Log Out</a>
+          <a href="../LOGIN.php">Log Out</a>
         </div>
       </div>
     </div>

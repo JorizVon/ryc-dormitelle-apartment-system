@@ -224,15 +224,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script>
       setTimeout(() => {
-        // Redirect based on user type stored in PHP session
         <?php if ($_SESSION['user_type'] === 'admin'): ?>
           window.location.href = "DASHBOARD.php";
+        <?php elseif ($_SESSION['user_type'] === 'tenant'): ?>
+          window.location.href = "./tenantwebview/TENANTHOMEPAGE.php";
         <?php else: ?>
-          window.location.href = "./tenantwebview/USERHOMEPAGE.php";
+          window.location.href = "USERHOMEPAGE.php";
         <?php endif; ?>
-      }, 2000); // Wait 2 seconds before redirect
+      }, 2000);
     </script>
-
     <?php unset($_SESSION['login_success'], $_SESSION['user_type']); ?>
     <?php endif; ?>
 
