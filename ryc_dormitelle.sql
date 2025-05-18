@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 10, 2025 at 08:55 AM
+-- Generation Time: May 18, 2025 at 09:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -28,7 +28,8 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `access_logs` (
-  `access_ID` varchar(10) NOT NULL,
+  `access_ID` mediumint(4) NOT NULL,
+  `unit_no` varchar(10) NOT NULL,
   `tenant_ID` varchar(12) NOT NULL,
   `card_no` varchar(10) NOT NULL,
   `date_and_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -39,12 +40,85 @@ CREATE TABLE `access_logs` (
 -- Dumping data for table `access_logs`
 --
 
-INSERT INTO `access_logs` (`access_ID`, `tenant_ID`, `card_no`, `date_and_time`, `access_status`) VALUES
-('1', '20250421A001', '1234567890', '2025-04-26 18:29:38', 'Successful'),
-('2', '20250422A002', '2345678901', '2025-04-26 18:29:38', 'Successful'),
-('3', '20250423A003', '3456789012', '2025-04-26 18:30:51', 'Successful'),
-('4', '20250424A004', '4567890123', '2025-04-26 18:29:38', 'Successful'),
-('5', '20250423A003', '5678901234', '2025-04-26 18:29:38', 'Failed');
+INSERT INTO `access_logs` (`access_ID`, `unit_no`, `tenant_ID`, `card_no`, `date_and_time`, `access_status`) VALUES
+(1, 'A-001', '20250424A004', '44739242', '2025-05-10 18:45:32', 'Success'),
+(2, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(3, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(4, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(5, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(6, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(7, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(8, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(9, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(10, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(11, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(12, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(13, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(14, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(15, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(16, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(17, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(18, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(19, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(20, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(21, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(22, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(23, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(24, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(25, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(26, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(27, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(28, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(29, 'A-001', '20250421A001', '44739242', '2025-05-10 18:45:32', 'Success'),
+(30, '', '20250421A001', '44739242', '2025-05-10 18:55:46', 'Success'),
+(31, '', '20250421A001', '44739242', '2025-05-10 18:56:00', 'Success'),
+(32, '', '20250421A001', '44739242', '2025-05-10 19:02:05', 'Success'),
+(33, '', '20250421A001', '44739242', '2025-05-10 19:02:19', 'Success'),
+(34, '', '20250421A001', '44739242', '2025-05-10 19:03:57', 'Success'),
+(35, '', '20250421A001', '44739242', '2025-05-10 19:04:24', 'Success'),
+(36, '', '20250421A001', '44739242', '2025-05-10 19:05:29', 'Success'),
+(37, '', '20250421A001', '44739242', '2025-05-10 19:05:55', 'Success'),
+(38, '', '20250421A001', '44739242', '2025-05-10 19:06:16', 'Success'),
+(39, '', '20250421A001', '44739242', '2025-05-10 19:06:48', 'Success'),
+(40, '', '20250421A001', '44739242', '2025-05-10 19:08:03', 'Success'),
+(41, '', '20250421A001', '44739242', '2025-05-10 19:08:20', 'Success'),
+(42, '', '20250421A001', '44739242', '2025-05-10 19:09:06', 'Success'),
+(43, '', '20250421A001', '44739242', '2025-05-10 19:09:41', 'Success'),
+(44, '', '20250421A001', '44739242', '2025-05-10 19:10:45', 'Success'),
+(45, '', '20250421A001', '44739242', '2025-05-10 19:11:42', 'Success'),
+(46, '', '20250421A001', '44739242', '2025-05-10 19:11:52', 'Success'),
+(47, '', '20250421A001', '44739242', '2025-05-10 19:14:57', 'Success'),
+(48, '', '20250421A001', '44739242', '2025-05-10 19:18:44', 'Success'),
+(49, '', '20250421A001', '44739242', '2025-05-10 19:19:17', 'Success'),
+(50, '', '20250421A001', '44739242', '2025-05-10 19:19:54', 'Success'),
+(51, '', '20250421A001', '44739242', '2025-05-10 19:28:31', 'Success'),
+(52, '', '20250421A001', '44739242', '2025-05-10 19:30:08', 'Success'),
+(53, '', '20250421A001', '44739242', '2025-05-10 19:30:39', 'Success'),
+(54, '', '20250421A001', '44739242', '2025-05-10 19:32:54', 'Success'),
+(55, '', '20250421A001', '44739242', '2025-05-10 19:43:38', 'Success'),
+(56, '', '20250421A001', '44739242', '2025-05-10 19:43:57', 'Success'),
+(57, '', '20250421A001', '44739242', '2025-05-10 19:47:23', 'Success'),
+(58, '', '20250421A001', '44739242', '2025-05-10 19:47:44', 'Success'),
+(59, '', '20250421A001', '44739242', '2025-05-10 19:48:19', 'Success'),
+(60, '', '20250421A001', '44739242', '2025-05-10 19:49:07', 'Success'),
+(61, '', '20250421A001', '44739242', '2025-05-10 19:53:18', 'Success'),
+(62, '', '20250421A001', '44739242', '2025-05-10 19:59:26', 'Success'),
+(63, '', '20250421A001', '44739242', '2025-05-10 20:11:04', 'Success'),
+(64, '', '20250421A001', '44739242', '2025-05-10 20:11:18', 'Success'),
+(65, '', '20250421A001', '44739242', '2025-05-10 20:16:09', 'Success'),
+(66, '', '20250421A001', '44739242', '2025-05-10 20:21:10', 'Success'),
+(67, '', '20250421A001', '44739242', '2025-05-10 20:29:28', 'Success'),
+(68, '', '20250421A001', '44739242', '2025-05-10 20:31:49', 'Success'),
+(69, '', '20250421A001', '44739242', '2025-05-10 20:32:30', 'Success'),
+(70, '', '20250421A001', '44739242', '2025-05-10 20:32:41', 'Success'),
+(71, '', '20250421A001', '44739242', '2025-05-10 20:35:56', 'Success'),
+(72, '', '20250421A001', '44739242', '2025-05-10 20:36:29', 'Success'),
+(73, '', '20250421A001', '44739242', '2025-05-10 20:37:06', 'Success'),
+(74, '', '20250421A001', '44739242', '2025-05-10 20:38:15', 'Success'),
+(75, '', '20250421A001', '44739242', '2025-05-10 20:40:26', 'Success'),
+(76, '', '20250421A001', '44739242', '2025-05-10 20:40:34', 'Success'),
+(77, '', '20250421A001', '44739242', '2025-05-10 20:40:41', 'Success'),
+(78, '', '20250421A001', '44739242', '2025-05-10 20:42:48', 'Success');
 
 -- --------------------------------------------------------
 
@@ -54,10 +128,19 @@ INSERT INTO `access_logs` (`access_ID`, `tenant_ID`, `card_no`, `date_and_time`,
 
 CREATE TABLE `accounts` (
   `account_ID` smallint(6) NOT NULL,
+  `username` varchar(15) NOT NULL,
   `email_account` varchar(30) NOT NULL,
-  `password` varchar(30) NOT NULL,
+  `password` varchar(100) NOT NULL,
   `user_type` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `accounts`
+--
+
+INSERT INTO `accounts` (`account_ID`, `username`, `email_account`, `password`, `user_type`) VALUES
+(1, 'Admin123', 'gjorizvon@gmail.com', '$2y$10$7ZibYsklvEX2FFkkHcu5/OuwmifG9b5GJBOsCKb2ROuy5ieCYUcD2', 'admin'),
+(2, 'abel123', 'abel@gmai.com', '$2y$10$LtNStjSWtbJfPUx2lX/t5.rro7VsJYGKXMdytbeCjyVp7u97sgUt2', 'user');
 
 -- --------------------------------------------------------
 
@@ -86,6 +169,7 @@ INSERT INTO `admin_account` (`admin_ID`, `username`, `password`) VALUES
 
 CREATE TABLE `card_registration` (
   `card_no` varchar(15) NOT NULL,
+  `unit_no` varchar(10) NOT NULL,
   `tenant_ID` varchar(12) NOT NULL,
   `registration_date` date NOT NULL,
   `card_expiry` date NOT NULL,
@@ -96,11 +180,8 @@ CREATE TABLE `card_registration` (
 -- Dumping data for table `card_registration`
 --
 
-INSERT INTO `card_registration` (`card_no`, `tenant_ID`, `registration_date`, `card_expiry`, `card_status`) VALUES
-('1234567890', '20250421A001', '2025-04-01', '2026-03-01', 'Active'),
-('2345678901', '20250422A002', '2025-04-02', '2026-03-02', 'Expired'),
-('3456789012', '20250423A003', '2025-04-03', '2026-03-03', 'Active'),
-('4567890123', '20250424A004', '2025-04-04', '2026-03-04', 'Expired');
+INSERT INTO `card_registration` (`card_no`, `unit_no`, `tenant_ID`, `registration_date`, `card_expiry`, `card_status`) VALUES
+('44739242', 'A-001', '20250421A001', '2025-04-01', '2026-03-01', 'Active');
 
 -- --------------------------------------------------------
 
@@ -114,9 +195,7 @@ CREATE TABLE `payments` (
   `tenant_ID` varchar(12) NOT NULL,
   `amount_paid` int(6) NOT NULL,
   `payment_date` date NOT NULL,
-  `payment_due` varchar(27) NOT NULL,
   `payment_status` varchar(15) NOT NULL,
-  `billing_period` varchar(31) NOT NULL,
   `payment_method` varchar(10) NOT NULL,
   `transaction_type` varchar(15) NOT NULL,
   `confirmation_status` varchar(15) NOT NULL
@@ -126,9 +205,9 @@ CREATE TABLE `payments` (
 -- Dumping data for table `payments`
 --
 
-INSERT INTO `payments` (`transaction_no`, `unit_no`, `tenant_ID`, `amount_paid`, `payment_date`, `payment_due`, `payment_status`, `billing_period`, `payment_method`, `transaction_type`, `confirmation_status`) VALUES
-('202504210001', 'A-001', '20250421A001', 10000, '2025-04-16', 'Every 4th day of the month', 'Fully Paid', 'Until the 9th day of the month', 'Gcash', 'Rent Payment', 'Confirmed'),
-('202504210002', 'A-003', '20250423A003', 10000, '2025-04-29', 'Every 24th day of the month', 'Paid Overdue', 'Until the 28th day of the month', 'Cash', 'Deposit', 'Pending');
+INSERT INTO `payments` (`transaction_no`, `unit_no`, `tenant_ID`, `amount_paid`, `payment_date`, `payment_status`, `payment_method`, `transaction_type`, `confirmation_status`) VALUES
+('202504210001', 'A-001', '20250421A001', 10000, '2025-04-16', 'Fully Paid', 'Gcash', 'Rent Payment', 'Confirmed'),
+('202504210002', 'A-003', '20250423A003', 10000, '2025-04-29', 'Paid Overdue', 'Cash', 'Deposit', 'Pending');
 
 -- --------------------------------------------------------
 
@@ -183,12 +262,13 @@ INSERT INTO `tenants` (`tenant_ID`, `tenant_name`, `contact_number`, `email`, `e
 CREATE TABLE `tenant_unit` (
   `tenant_ID` varchar(12) NOT NULL,
   `unit_no` varchar(10) NOT NULL,
-  `lease_start_date` date NOT NULL,
-  `lease_end_date` date NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
   `occupant_count` smallint(2) NOT NULL,
   `deposit` mediumint(6) NOT NULL,
   `balance` mediumint(6) NOT NULL,
-  `lease_payment_due` varchar(30) NOT NULL,
+  `payment_due` varchar(30) NOT NULL,
+  `billing_period` varchar(31) NOT NULL,
   `lease_status` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -196,11 +276,11 @@ CREATE TABLE `tenant_unit` (
 -- Dumping data for table `tenant_unit`
 --
 
-INSERT INTO `tenant_unit` (`tenant_ID`, `unit_no`, `lease_start_date`, `lease_end_date`, `occupant_count`, `deposit`, `balance`, `lease_payment_due`, `lease_status`) VALUES
-('20250421A001', 'A-001', '2025-04-01', '2032-04-01', 3, 10000, 10000, 'Every 1st day of the month', 'Active'),
-('20250422A002', 'A-002', '2025-04-02', '2032-04-02', 3, 10000, 10000, 'Every 2nd day of the month', 'Pending'),
-('20250423A003', 'A-003', '2025-02-01', '2032-02-01', 3, 10000, 10000, 'Every 3rd day of the month', 'Active'),
-('20250424A004', 'A-004', '2025-04-23', '2025-05-23', 3, 10000, 10000, 'Every 23th day of the month', 'Active');
+INSERT INTO `tenant_unit` (`tenant_ID`, `unit_no`, `start_date`, `end_date`, `occupant_count`, `deposit`, `balance`, `payment_due`, `billing_period`, `lease_status`) VALUES
+('20250421A001', 'A-001', '2025-04-01', '2032-04-01', 3, 10000, 10000, 'Every 1st day of the month', 'Until the 9th day of the month', 'Active'),
+('20250422A002', 'A-002', '2025-04-02', '2032-04-02', 3, 10000, 10000, 'Every 2nd day of the month', 'Until the 9th day of the month', 'Pending'),
+('20250423A003', 'A-003', '2025-02-01', '2032-02-01', 3, 10000, 10000, 'Every 3rd day of the month', 'Until the 9th day of the month', 'Active'),
+('20250424A004', 'A-004', '2025-04-23', '2025-05-23', 3, 10000, 10000, 'Every 23th day of the month', 'Until the 9th day of the month', 'Active');
 
 -- --------------------------------------------------------
 
@@ -313,10 +393,16 @@ ALTER TABLE `unit_images`
 --
 
 --
+-- AUTO_INCREMENT for table `access_logs`
+--
+ALTER TABLE `access_logs`
+  MODIFY `access_ID` mediumint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+
+--
 -- AUTO_INCREMENT for table `accounts`
 --
 ALTER TABLE `accounts`
-  MODIFY `account_ID` smallint(6) NOT NULL AUTO_INCREMENT;
+  MODIFY `account_ID` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `admin_account`
