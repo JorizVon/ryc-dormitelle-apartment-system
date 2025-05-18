@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 18, 2025 at 09:26 AM
+-- Generation Time: May 18, 2025 at 01:59 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -140,7 +140,8 @@ CREATE TABLE `accounts` (
 
 INSERT INTO `accounts` (`account_ID`, `username`, `email_account`, `password`, `user_type`) VALUES
 (1, 'Admin123', 'gjorizvon@gmail.com', '$2y$10$7ZibYsklvEX2FFkkHcu5/OuwmifG9b5GJBOsCKb2ROuy5ieCYUcD2', 'admin'),
-(2, 'abel123', 'abel@gmai.com', '$2y$10$LtNStjSWtbJfPUx2lX/t5.rro7VsJYGKXMdytbeCjyVp7u97sgUt2', 'user');
+(2, 'abel123', 'abel@gmail.com', '$2y$10$LtNStjSWtbJfPUx2lX/t5.rro7VsJYGKXMdytbeCjyVp7u97sgUt2', 'tenant'),
+(3, 'kyle0123', 'kyle@gmail.com', '$2y$10$CeAEMCakg7cXAEKFlDG/4eiXOI9flTcatWC1Rp5GlTlAo.DsVaDKS', 'user');
 
 -- --------------------------------------------------------
 
@@ -196,7 +197,7 @@ CREATE TABLE `payments` (
   `amount_paid` int(6) NOT NULL,
   `payment_date` date NOT NULL,
   `payment_status` varchar(15) NOT NULL,
-  `payment_method` varchar(10) NOT NULL,
+  `payment_method` varchar(30) NOT NULL,
   `transaction_type` varchar(15) NOT NULL,
   `confirmation_status` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -207,7 +208,13 @@ CREATE TABLE `payments` (
 
 INSERT INTO `payments` (`transaction_no`, `unit_no`, `tenant_ID`, `amount_paid`, `payment_date`, `payment_status`, `payment_method`, `transaction_type`, `confirmation_status`) VALUES
 ('202504210001', 'A-001', '20250421A001', 10000, '2025-04-16', 'Fully Paid', 'Gcash', 'Rent Payment', 'Confirmed'),
-('202504210002', 'A-003', '20250423A003', 10000, '2025-04-29', 'Paid Overdue', 'Cash', 'Deposit', 'Pending');
+('202504210002', 'A-003', '20250423A003', 10000, '2025-04-29', 'Paid Overdue', 'Cash', 'Deposit', 'Pending'),
+('20250518', 'A-003', '20250423', 5000, '2025-05-18', 'Partially Paid', 'settle with deposit', 'Use Deposit', 'pending'),
+('202505180002', 'A-003', '20250423', 5000, '2025-05-18', 'Partially Paid', 'settle with deposit', 'Use Deposit', 'pending'),
+('202505180003', 'A-003', '20250423A003', 5000, '2025-05-18', 'Paid Overdue', 'settle with deposit', 'Use Deposit', 'pending'),
+('202505180004', 'A-003', '20250423A003', 5000, '2025-05-18', 'Paid Overdue', 'settle with deposit', 'Use Deposit', 'pending'),
+('202505180005', 'A-003', '20250423A003', 5000, '2025-05-18', 'Paid Overdue', 'settle with deposit', 'Use Deposit', 'pending'),
+('202505180006', 'A-003', '20250423A003', 5000, '2025-05-18', 'Paid Overdue', 'settle with deposit', 'Use Deposit', 'pending');
 
 -- --------------------------------------------------------
 
@@ -250,7 +257,7 @@ CREATE TABLE `tenants` (
 INSERT INTO `tenants` (`tenant_ID`, `tenant_name`, `contact_number`, `email`, `emergency_contact_name`, `emergency_contact_num`, `tenant_image`) VALUES
 ('20250421A001', 'Kyle Catiis', '+639987654320', 'KyleCatiis@gmail.com', 'Abegail Rullan', '+639123456781', 'allen.jpg'),
 ('20250422A002', 'Adrian Abriol', '+639123456789', 'Abrioladrian@gmail.com', 'Luis Micheal Lapak', '+639123456786', '20231024_132008.jpg'),
-('20250423A003', 'Abel Reyes', '+639987654321', 'Abel@gmail.com', 'Joriz Pogi Gutierrez', '+639123456788', '20240215_112215.jpg'),
+('20250423A003', 'Abel Reyes', '+639987654321', 'abel@gmail.com', 'Joriz Pogi Gutierrez', '+639123456788', '20240215_112215.jpg'),
 ('20250424A004', 'karl pogings', '+639192871231', 'karl@gmail.com', 'Karl Pangit', '+639123456789', '93f1cba8-b9e2-49a9-a9da-dc61859fd4ddphoto.jpeg');
 
 -- --------------------------------------------------------
@@ -277,9 +284,9 @@ CREATE TABLE `tenant_unit` (
 --
 
 INSERT INTO `tenant_unit` (`tenant_ID`, `unit_no`, `start_date`, `end_date`, `occupant_count`, `deposit`, `balance`, `payment_due`, `billing_period`, `lease_status`) VALUES
-('20250421A001', 'A-001', '2025-04-01', '2032-04-01', 3, 10000, 10000, 'Every 1st day of the month', 'Until the 9th day of the month', 'Active'),
+('20250421A001', 'A-001', '2025-04-01', '2032-04-01', 3, 20000, 10000, 'Every 1st day of the month', 'Until the 9th day of the month', 'Active'),
 ('20250422A002', 'A-002', '2025-04-02', '2032-04-02', 3, 10000, 10000, 'Every 2nd day of the month', 'Until the 9th day of the month', 'Pending'),
-('20250423A003', 'A-003', '2025-02-01', '2032-02-01', 3, 10000, 10000, 'Every 3rd day of the month', 'Until the 9th day of the month', 'Active'),
+('20250423A003', 'A-003', '2025-02-01', '2032-02-01', 3, 25000, 5000, 'Every 3rd day of the month', 'Until the 9th day of the month', 'Active'),
 ('20250424A004', 'A-004', '2025-04-23', '2025-05-23', 3, 10000, 10000, 'Every 23th day of the month', 'Until the 9th day of the month', 'Active');
 
 -- --------------------------------------------------------
@@ -402,7 +409,7 @@ ALTER TABLE `access_logs`
 -- AUTO_INCREMENT for table `accounts`
 --
 ALTER TABLE `accounts`
-  MODIFY `account_ID` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `account_ID` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `admin_account`
