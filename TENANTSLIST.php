@@ -2,8 +2,8 @@
 
 require_once 'db_connect.php';
 
-$sql = "SELECT tenants.tenant_ID, tenant_name, contact_number, tenant_unit.lease_start_date, tenant_unit.occupant_count,
-        tenant_unit.deposit, tenant_unit.balance, tenant_unit.lease_status
+$sql = "SELECT tenants.tenant_ID, tenant_name, contact_number, tenant_unit.start_date, tenant_unit.occupant_count,
+        tenant_unit.deposit, tenant_unit.balance, tenant_unit.status
         FROM tenants
         INNER JOIN tenant_unit
         ON tenants.tenant_ID = tenant_unit.tenant_ID";
@@ -62,7 +62,7 @@ $result = $conn->query($sql);
         }
         .card a {
             margin: auto 0px auto 0px;
-            font-size: 24px;
+            font-size: 20px;
             padding-left: 20px;
             font-weight: 500;
             display: flex;
@@ -170,12 +170,12 @@ $result = $conn->query($sql);
             width: 270px;
             margin-right: 55px;
             border-style: solid;
-            font-size: 16px;
+            font-size: 12px;
             position: relative;
             top: 14px;
         }
         ::placeholder {
-            color: #000000;
+            color: #B7B5B5;
             opacity: 1;
         }
         .table-container {
@@ -439,18 +439,18 @@ $result = $conn->query($sql);
         <div class="sidebarContent">
             <div class="card">
                 <a href="DASHBOARD.php" class="changeicon">
-                    <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 8px;">
                     Dashboard
                 </a>
             </div>
             <div class="card">
                 <a href="UNITSINFORMATION.php">
-                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 5px;">
                     Units Information</a>
             </div>
             <div class="card">
                 <a href="TENANTSLIST.php" style="background-color: #FFFF; color: #004AAD;">
-                    <img src="sidebarIcons/TenantsInfoIcon.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/TenantsInfoIcon.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 3px;">
                     Tenants List</a>
             </div>
             <div class="card">
@@ -497,11 +497,11 @@ $result = $conn->query($sql);
                             <th id="tenant_ID">Tenants<br>ID</th>
                             <th id="tenant_name">Name</th>
                             <th id="contact_number">Contact<br>Number</th>
-                            <th id="lease_status">Start<br>Date</th>
+                            <th id="status">Start<br>Date</th>
                             <th id="occupant_count">Occupant<br>Count</th>
                             <th id="deposit">Current<br>Deposit</th>
                             <th id="balance">Current<br>Balance</th>
-                            <th id="lease_start_date">Status</th>
+                            <th id="start_date">Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -513,11 +513,11 @@ $result = $conn->query($sql);
                                 echo "<td>" . htmlspecialchars($row["tenant_ID"]) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["tenant_name"]) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["contact_number"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["lease_start_date"]) . "</td>";
+                                echo "<td>" . htmlspecialchars($row["start_date"]) . "</td>";
                                 echo "<td>". htmlspecialchars($row["occupant_count"]) . "</td>";
                                 echo "<td>". htmlspecialchars($row["deposit"]) . "</td>";
                                 echo "<td>". htmlspecialchars($row["balance"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["lease_status"]) . "</td>";
+                                echo "<td>" . htmlspecialchars($row["status"]) . "</td>";
                                 echo '<td><a href="TENANTINFORMATION.php?tenant_ID=' . urlencode($row["tenant_ID"]) . '" class="action-btn">View Details</a></td>';
                                 echo "</tr>";
                             }

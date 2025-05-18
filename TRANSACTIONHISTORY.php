@@ -7,7 +7,7 @@ $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : 
 
 // SQL query with optional search
 $sql = "SELECT payments.transaction_no, tenants.tenant_name, tenant_unit.unit_no, tenant_unit.deposit, 
-               payments.amount_paid, payments.payment_date, payments.billing_period, 
+               payments.amount_paid, payments.payment_date, tenant_unit.billing_period, 
                payments.payment_method, payments.payment_status
         FROM payments
         INNER JOIN tenants ON tenants.tenant_ID = payments.tenant_ID
@@ -78,7 +78,7 @@ $result = $conn->query($sql);
         }
         .card a {
             margin: auto 0px auto 0px;
-            font-size: 24px;
+            font-size: 20px;
             padding-left: 20px;
             font-weight: 500;
             display: flex;
@@ -113,6 +113,9 @@ $result = $conn->query($sql);
         }
         .card a:hover .CGsidebarIcon {
             content: url('sidebarIcons/CardregisterIcon.png');
+        }
+        .card a:hover .PIsidebarIcon {
+            content: url('sidebarIcons/PendingInquiryIcon.png');
         }
         .mainBody {
             width: 100vw;
@@ -183,12 +186,12 @@ $result = $conn->query($sql);
             width: 270px;
             margin-right: 55px;
             border-style: solid;
-            font-size: 16px;
+            font-size: 12px;
             position: relative;
             top: 14px;
         }
         ::placeholder {
-            color: #000000;
+            color: #B7B5B5;
             opacity: 1;
         }
         .table_container {
@@ -449,18 +452,18 @@ $result = $conn->query($sql);
         <div class="sidebarContent">
             <div class="card">
                 <a href="DASHBOARD.php" class="changeicon">
-                    <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 8px;">
                     Dashboard
                 </a>
             </div>
             <div class="card">
                 <a href="UNITSINFORMATION.php">
-                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 5px;">
                     Units Information</a>
             </div>
             <div class="card">
                 <a href="TENANTSLIST.php">
-                    <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 10px;">
+                    <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 3px;">
                     Tenants List</a>
             </div>
             <div class="card">
@@ -478,7 +481,11 @@ $result = $conn->query($sql);
                     <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="CGsidebarIcon" style="margin-right: 10px;">
                     Card Registration</a>
             </div>
-            
+            <div class="card">
+                <a href="PENDINGINQUIRY.php">
+                    <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
+                    Pending Inquiry</a>
+            </div>
         </div>
     </div>
         <div class="mainBody">

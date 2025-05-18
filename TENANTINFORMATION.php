@@ -14,11 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $contact_number = $_POST['contact_number'];
         $emergency_contact_name = $_POST['emergency_contact_name'];
         $emergency_contact_num = $_POST['emergency_contact_num'];
-        $lease_start_date = $_POST['lease_start_date'];
-        $lease_end_date = $_POST['lease_end_date'];
-        $lease_payment_due = $_POST['rent_payment_due'];
-        $lease_payment_amount = $_POST['monthly_rent_amount'];
-        $lease_status = $_POST['lease_status'];
+        $start_date = $_POST['start_date'];
+        $end_date = $_POST['end_date'];
+        $payment_due = $_POST['rent_payment_due'];
+        $payment_amount = $_POST['monthly_rent_amount'];
+        $status = $_POST['status'];
 
         $tenant_image = '';
         if (isset($_FILES['tenant_image']) && $_FILES['tenant_image']['error'] === UPLOAD_ERR_OK) {
@@ -41,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $stmt->close();
 
-        $stmt = $conn->prepare("UPDATE tenant_unit SET lease_start_date=?, lease_end_date=?, lease_payment_amount=?, lease_payment_due=?, lease_status=? WHERE tenant_ID=?");
-        $stmt->bind_param("ssssss", $lease_start_date, $lease_end_date, $lease_payment_amount, $lease_payment_due, $lease_status, $tenant_ID);
+        $stmt = $conn->prepare("UPDATE tenant_unit SET start_date=?, end_date=?, payment_amount=?, payment_due=?, status=? WHERE tenant_ID=?");
+        $stmt->bind_param("ssssss", $start_date, $end_date, $payment_amount, $payment_due, $status, $tenant_ID);
         $stmt->execute();
         $stmt->close();
 
@@ -78,11 +78,11 @@ if (isset($_GET['tenant_ID']) && !empty($_GET['tenant_ID'])) {
                 tenants.emergency_contact_name,
                 tenants.emergency_contact_num,
                 tenant_unit.occupant_count,
-                tenant_unit.lease_start_date,
-                tenant_unit.lease_end_date,
-                tenant_unit.lease_payment_due,
+                tenant_unit.start_date,
+                tenant_unit.end_date,
+                tenant_unit.payment_due,
                 units.monthly_rent_amount,
-                tenant_unit.lease_status,
+                tenant_unit.status,
                 tenants.tenant_image
             FROM tenants
             INNER JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID
@@ -173,7 +173,7 @@ $conn->close();
         }
         .card a {
             margin: auto 0px auto 0px;
-            font-size: 24px;
+            font-size: 20px;
             padding-left: 20px;
             font-weight: 500;
             display: flex;
@@ -208,6 +208,9 @@ $conn->close();
         }
         .card a:hover .CGsidebarIcon {
             content: url('sidebarIcons/CardregisterIcon.png');
+        }
+        .card a:hover .PIsidebarIcon {
+            content: url('sidebarIcons/PendingInquiryIcon.png');
         }
         .mainBody {
             width: 100vw;
@@ -757,7 +760,11 @@ $conn->close();
                     <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="CGsidebarIcon" style="margin-right: 10px;">
                     Card Registration</a>
             </div>
-            
+            <div class="card">
+                <a href="PENDINGINQUIRY.php">
+                    <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
+                    Pending Inquiry</a>
+            </div>
         </div>
     </div>
         <div class="mainBody">
@@ -836,27 +843,27 @@ $conn->close();
                                     <input type="text" name="occupant_count" id="occupant_count" value="<?php echo $tenant['occupant_count']; ?> Occupant" readonly>
                                 </div>
                                 <div>
-                                    <label for="lease_start_date">Lease Start Date</label>
-                                    <input type="date" name="lease_start_date" id="lease_start_date" value="<?php echo $tenant['lease_start_date']; ?>">
+                                    <label for="start_date">Lease Start Date</label>
+                                    <input type="date" name="start_date" id="start_date" value="<?php echo $tenant['start_date']; ?>">
                                 </div>
                                 <div>
-                                    <label for="lease_end_date">Lease End Date</label>
-                                    <input type="date" name="lease_end_date" id="lease_end_date" value="<?php echo $tenant['lease_end_date']; ?>">
+                                    <label for="end_date">Lease End Date</label>
+                                    <input type="date" name="end_date" id="end_date" value="<?php echo $tenant['end_date']; ?>">
                                 </div>
                                 <div>
                                     <label for="rent_payment_due">Payment Due Date</label>
-                                    <input type="text" readonly name="rent_payment_due" id="rent_payment_due" value="<?php echo $tenant['lease_payment_due']; ?>">
+                                    <input type="text" readonly name="rent_payment_due" id="rent_payment_due" value="<?php echo $tenant['payment_due']; ?>">
                                 </div>
                                 <div>
                                     <label for="monthly_rent_amount">Monthly Rent Amount</label>
                                     <input readonly  type="text" name="monthly_rent_amount" id="monthly_rent_amount" value="<?php echo $tenant['monthly_rent_amount']; ?>">
                                 </div>
                                 <div>
-                                    <label for="lease_status">Lease Status</label>
-                                    <select name="lease_status" id="lease_status">
-                                        <option value="Active" <?php echo ($tenant['lease_status'] == 'Active') ? 'selected' : ''; ?>>Active</option>
-                                        <option value="Expired" <?php echo ($tenant['lease_status'] == 'Expired') ? 'selected' : ''; ?>>Expired</option>
-                                        <option value="Pending" <?php echo ($tenant['lease_status'] == 'Pending') ? 'selected' : ''; ?>>Pending</option>
+                                    <label for="status">Lease Status</label>
+                                    <select name="status" id="status">
+                                        <option value="Active" <?php echo ($tenant['status'] == 'Active') ? 'selected' : ''; ?>>Active</option>
+                                        <option value="Expired" <?php echo ($tenant['status'] == 'Expired') ? 'selected' : ''; ?>>Expired</option>
+                                        <option value="Pending" <?php echo ($tenant['status'] == 'Pending') ? 'selected' : ''; ?>>Pending</option>
                                     </select>
                                 </div>
 
@@ -904,7 +911,7 @@ $conn->close();
         }
         }
 
-        document.getElementById('lease_start_date').addEventListener('change', function () {
+        document.getElementById('start_date').addEventListener('change', function () {
             const date = new Date(this.value);
             if (!isNaN(date)) {
                 const day = date.getDate();
