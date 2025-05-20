@@ -27,7 +27,7 @@ if (!empty($email)) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get and validate amount_paid
     $amount_paid = isset($_POST['amount_paid']) ? floatval($_POST['amount_paid']) : 0;
-    $payment_date = date("Y-m-d");
+    $payment_date_time = date("Y-m-d H:i:s");
     $payment_method = $_POST['payment_method'] ?? '';
 
     // Validate amount_paid
@@ -58,13 +58,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Determine payment status
     $payment_status = "Partially Paid";
-    if ($amount_paid >= $payment_due) {
+    if ($transaction_type === "Add to Deposit") {
+        $payment_status = "Added Deposit";
+    } elseif ($amount_paid >= $payment_due) {
         $payment_status = "Fully Paid";
-    } elseif ($amount_paid < $payment_due && strtotime($payment_date) > strtotime($billing_period)) {
+    } elseif ($amount_paid < $payment_due && strtotime($payment_date_time) > strtotime($billing_period)) {
         $payment_status = "Paid Overdue";
     }
-
-    // Note: We've removed the balance and deposit update code based on the requirement
 
     // Generate unique transaction number
     $datePrefix = date("Ymd");
@@ -98,32 +98,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("Error: Daily transaction limit reached.");
     }
 
-    // Insert the payment record
-    $insert = $conn->prepare("INSERT INTO payments(transaction_no, unit_no, tenant_ID, amount_paid, payment_date, payment_status, payment_method, transaction_type, confirmation_status) 
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
-    $insert->bind_param("sssissss", $transaction_no, $unit_no, $tenant_ID, $amount_paid, $payment_date, $payment_status, $payment_method, $transaction_type);
-    
-    if (!$insert->execute()) {
-        echo "<script>alert('Error saving payment: " . $conn->error . "'); window.history.back();</script>";
-        exit();
-    }
-    $insert->close();
-
-    // Store transaction info in session for Gcash payment
+    // For Gcash payments, only store the payment data in session
     if ($payment_method === "Gcash") {
         $_SESSION['payment_data'] = [
             'transaction_no' => $transaction_no,
+            'unit_no' => $unit_no,
+            'tenant_ID' => $tenant_ID,
             'amount_paid' => $amount_paid,
-            'tenant_name' => $tenant_name,
-            'transaction_type' => $transaction_type
+            'payment_date_time' => $payment_date_time,
+            'payment_status' => $payment_status,
+            'payment_method' => $payment_method,
+            'transaction_type' => $transaction_type,
+            'tenant_name' => $tenant_name
         ];
-        echo "<script>window.location.href='PAYMENTPAGE .php';</script>";
-    } else if ($payment_method === "Cash") {
-        echo "<script>alert('Pay to the landlord through Cash on Hand to confirm payment'); window.location.href='TRANSACTIONSPAGE.php';</script>";
+        echo "<script>window.location.href='PAYMENTPAGE.php';</script>";
+        exit();
     } else {
-        echo "<script>alert('Payment recorded successfully'); window.location.href='TRANSACTIONSPAGE.php';</script>";
+        // For Cash and Deposit payments, insert directly
+        $insert = $conn->prepare("INSERT INTO payments(transaction_no, unit_no, tenant_ID, amount_paid, payment_date_time, payment_status, payment_method, transaction_type, confirmation_status) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+        $insert->bind_param("sssissss", $transaction_no, $unit_no, $tenant_ID, $amount_paid, $payment_date_time, $payment_status, $payment_method, $transaction_type);
+        
+        if (!$insert->execute()) {
+            echo "<script>alert('Error saving payment: " . $conn->error . "'); window.history.back();</script>";
+            exit();
+        }
+        $insert->close();
+
+        if ($payment_method === "Cash") {
+            echo "<script>alert('Pay to the landlord through Cash on Hand to confirm payment'); window.location.href='TRANSACTIONSPAGE.php';</script>";
+        } else {
+            echo "<script>alert('Payment recorded successfully'); window.location.href='TRANSACTIONSPAGE.php';</script>";
+        }
+        exit();
     }
-    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -834,7 +842,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <h1>Transactions</h1>
         </div>
         <div class="transactionchoices">
-            <a href="TRANSACTIONPAGE.php" style="background-color: #2262B8; color: #fff;">Rent Payments</a>
+            <a href="TRANSACTIONSPAGE.php" style="background-color: #2262B8; color: #fff;">Rent Payments</a>
             <a href="TRANSACTIONHISTORYPAGE.php">Transaction History</a>
         </div>
         <div class="transactionformContainer">
@@ -855,7 +863,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               </div>
             </div>
 
-            <div><label><b>Payment Date</b></label><span name="payment_date"><b><?= date('Y-m-d') ?></b></span></div>
+            <div><label><b>Payment Date</b></label><span name="payment_date_time"><b><?= date('Y-m-d H:i:s') ?></b></span></div>
             <div><label>Tenant ID</label><input type="text" name="tenant_ID" value="<?= htmlspecialchars($tenant_ID) ?>" readonly></div>
             <div><label>Full Name</label><input type="text" name="tenant_name" value="<?= htmlspecialchars($tenant_name) ?>" readonly></div>
             <div><label>Payment Due</label><input type="text" name="lease_payment_due" value="<?= htmlspecialchars($payment_due) ?>" readonly></div>

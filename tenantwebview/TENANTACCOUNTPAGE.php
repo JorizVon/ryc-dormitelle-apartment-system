@@ -1,66 +1,124 @@
+
 <?php
 session_start();
+
+// Check if user is logged in, redirect if not
+if (!isset($_SESSION['email_account'])) {
+    header("Location: ../LOGIN.php");
+    exit();
+}
+
 require_once '../db_connect.php';
 
-$email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
-
-// Default values
+// Default values - Define ALL variables to prevent undefined variable warnings
 $tenant_image = "../staticImages/userIcon.png";
-$tenant_name = "none";
-$contact_number = "none";
-$tenant_ID = "none";
-$payment_due = "none";
-$billing_period = "none";
+$tenant_name = "Not Available";
+$contact_number = "Not Available";
+$tenant_ID = "Not Available";
+$payment_due = "Not Available";
+$billing_period = "Not Available";
 $deposit = "₱ 0.00";
 $balance = "₱ 0.00";
 $monthly_rent_amount = "₱ 0.00";
-$payment_status = "none";
-$card_status = "none";
+$payment_status = "Not Available";
+$card_status = "Not Available";
 $total_rent_paid = "₱ 0.00";
 
-// Fetch tenant details if email is present
-if ($email) {
+// Get the email from session
+$email = $_SESSION['email_account']; 
+
+// Debug information - uncomment if needed
+// echo "Email from session: " . $email . "<br>";
+
+try {
+    // Check if the connection is successful
+    if (!$conn) {
+        throw new Exception("Database connection failed");
+    }
+    
+    // SQL query with proper JOIN conditions
     $sql = "SELECT tenants.email, tenants.tenant_image, tenants.tenant_name, tenants.contact_number, 
                    tenants.tenant_ID, tenant_unit.payment_due, tenant_unit.billing_period, 
                    tenant_unit.deposit, tenant_unit.balance, units.monthly_rent_amount, 
                    payments.payment_status, card_registration.card_status
             FROM tenants
-            INNER JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID
-            INNER JOIN payments ON tenant_unit.tenant_ID = payments.tenant_ID
-            INNER JOIN units ON payments.unit_no = units.unit_no
-            INNER JOIN card_registration ON units.unit_no = card_registration.unit_no
-            WHERE tenants.email = '$email'
+            LEFT JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID
+            LEFT JOIN payments ON tenant_unit.tenant_ID = payments.tenant_ID
+            LEFT JOIN units ON payments.unit_no = units.unit_no
+            LEFT JOIN card_registration ON units.unit_no = card_registration.unit_no
+            WHERE tenants.email = ?
             LIMIT 1";
-
-    $result = mysqli_query($conn, $sql);
-
-    if ($result && mysqli_num_rows($result) > 0) {
-        $row = mysqli_fetch_assoc($result);
-
-        $tenant_image = $row['tenant_image'];
-        $tenant_name = $row['tenant_name'];
-        $contact_number = $row['contact_number'];
-        $tenant_ID = $row['tenant_ID'];
-        $payment_due = $row['payment_due'];
-        $billing_period = $row['billing_period'];
-        $deposit = '₱ ' . number_format($row['deposit'], 2);
-        $balance = '₱ ' . number_format($row['balance'], 2);
-        $monthly_rent_amount = '₱ ' . number_format($row['monthly_rent_amount'], 2);
-        $payment_status = $row['payment_status'];
-        $card_status = $row['card_status'];
-
-        // Fetch total rent paid
-        $tid = $row['tenant_ID'];
-        $sumQuery = "SELECT SUM(amount_paid) AS total FROM payments 
-                     WHERE transaction_type = 'Rent Payment' 
-                     AND confirmation_status = 'confirmed' 
-                     AND tenant_ID = '$tid'";
-        $sumResult = mysqli_query($conn, $sumQuery);
-        if ($sumResult && mysqli_num_rows($sumResult) > 0) {
-            $sumRow = mysqli_fetch_assoc($sumResult);
-            $total_rent_paid = '₱ ' . number_format($sumRow['total'], 2);
-        }
+    
+    // Prepare and execute statement
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        throw new Exception("Prepare failed: " . $conn->error);
     }
+    
+    $stmt->bind_param("s", $email);
+    if (!$stmt->execute()) {
+        throw new Exception("Execute failed: " . $stmt->error);
+    }
+    
+    $result = $stmt->get_result(); 
+    
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        
+        // Only assign values if they are not null
+        if (!empty($row['tenant_image'])) {
+            $tenant_image = $row['tenant_image'];
+        }
+        
+        $tenant_name = !empty($row['tenant_name']) ? htmlspecialchars($row['tenant_name']) : "Not Available";
+        $contact_number = !empty($row['contact_number']) ? htmlspecialchars($row['contact_number']) : "Not Available";
+        $tenant_ID = !empty($row['tenant_ID']) ? htmlspecialchars($row['tenant_ID']) : "Not Available";
+        $payment_due = !empty($row['payment_due']) ? htmlspecialchars($row['payment_due']) : "Not Available";
+        $billing_period = !empty($row['billing_period']) ? htmlspecialchars($row['billing_period']) : "Not Available";
+        $deposit = !empty($row['deposit']) ? '₱ ' . number_format($row['deposit'], 2) : "₱ 0.00";
+        $balance = !empty($row['balance']) ? '₱ ' . number_format($row['balance'], 2) : "₱ 0.00";
+        $monthly_rent_amount = !empty($row['monthly_rent_amount']) ? '₱ ' . number_format($row['monthly_rent_amount'], 2) : "₱ 0.00";
+        $payment_status = !empty($row['payment_status']) ? htmlspecialchars($row['payment_status']) : "Not Available";
+        $card_status = !empty($row['card_status']) ? htmlspecialchars($row['card_status']) : "Not Available";
+
+        // Get tenant ID for total rent paid calculation
+        if (!empty($row['tenant_ID'])) {
+            $tid = $row['tenant_ID'];
+            
+            // Calculate total rent paid
+            $sumQuery = "SELECT SUM(amount_paid) AS total FROM payments 
+                         WHERE transaction_type = 'Rent Payment' 
+                         AND confirmation_status = 'confirmed' 
+                         AND tenant_ID = ?";
+            
+            $sumStmt = $conn->prepare($sumQuery);
+            if ($sumStmt) {
+                $sumStmt->bind_param("s", $tid);
+                $sumStmt->execute();
+                $sumResult = $sumStmt->get_result();
+                
+                if ($sumResult && $sumResult->num_rows > 0) {
+                    $sumRow = $sumResult->fetch_assoc();
+                    $total = $sumRow['total'];
+                    $total_rent_paid = !is_null($total) ? '₱ ' . number_format($total, 2) : "₱ 0.00";
+                }
+                $sumStmt->close();
+            }
+        }
+    } else {
+        // No results found - default values will be used
+        // Debug information - uncomment if needed
+        // echo "No tenant found with email: " . $email;
+    }
+    
+    if (isset($stmt)) {
+        $stmt->close();
+    }
+} catch (Exception $e) {
+    // Log error - don't display to users in production
+    error_log("Error in TENANTACCOUNTPAGE.php: " . $e->getMessage());
+    // Uncomment for debugging
+    // echo "Error: " . $e->getMessage();
 }
 ?>
 <!DOCTYPE html>
@@ -68,7 +126,8 @@ if ($email) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Homepage</title>
+  <title>Account</title>
+</head>
   <style>
     body {
       margin: 0;
@@ -321,6 +380,7 @@ if ($email) {
     .profile img {
         height: 100%;
         width: 100%;
+        border-radius: 50%;
     }
     .accInfo {
         display: inline-block;
@@ -640,14 +700,13 @@ if ($email) {
       }
     }
   </style>
-</head>
 <body>
   <div class="header">
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
         <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
-        <a href="LOGIN.php">Log Out</a>
+        <a href="../LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -666,7 +725,7 @@ if ($email) {
         <div class="loginLogOut">
           <a href="ACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Log Out</a>
+          <a href="../LOGIN.php">Log Out</a>
         </div>
       </div>
     </div>
@@ -680,7 +739,7 @@ if ($email) {
         <div class="profileContent">
            <div class="profileHeader">
             <div class="profile">
-                <img src="<?php echo $tenant_image; ?>" alt="profile" id="tenant_image">
+                <img src="../tenants_images/<?php echo htmlspecialchars($tenant_image); ?>" alt="profile" id="tenant_image">
             </div>
             <div class="accInfo">
                 <h5 class="tenant_name"><?php echo $tenant_name; ?></h5>
@@ -742,7 +801,7 @@ if ($email) {
                     </div>
                     <div class="boxContainer">
                         <div class="box">
-                            <a href="CHANGEPASSPAGE.php"><p class="notif"><b>Change Password</b></p></a>
+                            <a href="TENANTCHANGEPASSPAGE.php"><p class="notif"><b>Change Password</b></p></a>
                         </div>
                     </div>
                     <div class="boxContainer">
@@ -751,7 +810,6 @@ if ($email) {
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>

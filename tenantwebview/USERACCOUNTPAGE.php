@@ -1,26 +1,26 @@
-<?php
-session_start();
-require_once '../db_connect.php';
+  <?php
+  session_start();
+  require_once '../db_connect.php';
 
-$email_account = 'none';
-$username = 'none';
+  $email_account = 'none';
+  $username = 'none';
 
-if (isset($_SESSION['email_account'])) {
-    $email_account = $_SESSION['email_account'];
+  if (isset($_SESSION['email_account'])) {
+      $email_account = $_SESSION['email_account'];
 
-    $stmt = $conn->prepare("SELECT username FROM accounts WHERE email_account = ?");
-    $stmt->bind_param("s", $email_account);
-    $stmt->execute();
-    $result = $stmt->get_result();
+      $stmt = $conn->prepare("SELECT username FROM accounts WHERE email_account = ?");
+      $stmt->bind_param("s", $email_account);
+      $stmt->execute();
+      $result = $stmt->get_result();
 
-    if ($result->num_rows === 1) {
-        $row = $result->fetch_assoc();
-        $username = $row['username'];
-    }
+      if ($result->num_rows === 1) {
+          $row = $result->fetch_assoc();
+          $username = $row['username'];
+      }
 
-    $stmt->close();
-}
-?>
+      $stmt->close();
+  }
+  ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

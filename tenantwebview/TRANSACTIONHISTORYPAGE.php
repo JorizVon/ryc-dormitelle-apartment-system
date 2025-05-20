@@ -1,9 +1,47 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['email_account'])) {
+    header("Location: ../LOGIN.php");
+    exit();
+}
+
+include '../db_connect.php';
+
+$email = $_SESSION['email_account'];
+
+// Get transaction history for the logged-in user
+$query = "SELECT `amount_paid`, `payment_date_time`, `transaction_type` FROM `payments` 
+          INNER JOIN `tenants`
+          ON payments.tenant_ID = tenants.tenant_ID
+          WHERE tenants.email = ?
+          ORDER BY payment_date_time DESC";
+
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Group transactions by date
+$transactions = [];
+while ($row = $result->fetch_assoc()) {
+    $date = date('F j, Y', strtotime($row['payment_date_time']));
+    if (!isset($transactions[$date])) {
+        $transactions[$date] = [];
+    }
+    $transactions[$date][] = $row;
+}
+
+// Format current date for display
+$current_date = date('M j, Y');
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Homepage</title>
+  <title>Transaction History</title>
   <style>
     body {
       margin: 0;
@@ -280,26 +318,27 @@
         justify-content: space-between;
         align-items: center;
         border: 1px solid #B7B5B5;
-        margin: 0 5px;
+        margin: 10px 5px;
         padding: 0 22px;
     }
     .box {
         width: 100%;
         height: 40px;
     }
-    .time {
+    .payment_date_time {
         font-size: 10px;
         margin: 0;
         margin-top: 5px;
     }
-    .transacType {
+    .transaction_type {
         font-size: 14px;
         margin: 0;
     }
-    .amountpaid {
+    .amount_paid {
         font-size: 14px;
         position: relative;
         top: 5px;
+        width: 20%;
     }
 
     /* MAIN BODY RESPONSIVE STYLES */
@@ -399,15 +438,15 @@
             padding: 0 15px;
         }
         
-        .time {
+        .payment_date_time {
             font-size: 9px;
         }
         
-        .transacType {
+        .transaction_type {
             font-size: 12px;
         }
         
-        .amountpaid {
+        .amount_paid {
             font-size: 12px;
         }
     }
@@ -581,44 +620,44 @@
         <div class="transactionformContainer">
             <div class="transactionform">
                 <div class="transactionTypecontainer">
-                    <p>As of Apr 24, 2025</p>
+                    <p id="current_date">As of <?php echo $current_date; ?></p>
                 </div>
-                <div class="todaystransactbox">
-                    <div class="transacdate">
-                        <p><b>Today</b></p>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="time">5:02 PM</p>
-                            <p class="transacType"><b>Pay rent</b></p>
-                         </div>
-                         <p class="amountpaid"><b>+10000</b></p>
-                     </div>
+                
+                <?php if (empty($transactions)): ?>
+                <div class="no-transactions">
+                    <p>No transaction history found.</p>
                 </div>
-                <div class="todaystransactbox">
-                    <div class="transacdate">
-                        <p><b>Mar 24, 2025</b></p>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="time">5:02 PM</p>
-                            <p class="transacType"><b>Pay rent</b></p>
-                         </div>
-                         <p class="amountpaid"><b>+10000</b></p>
-                     </div>
-                </div>
-                <div class="todaystransactbox">
-                    <div class="transacdate">
-                        <p><b>Feb 24, 2025</b></p>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <p class="time">5:32 AM</p>
-                            <p class="transacType"><b>Deposit</b></p>
-                         </div>
-                         <p class="amountpaid"><b>-10000</b></p>
-                     </div>
-                </div>
+                <?php else: ?>
+                    <?php foreach ($transactions as $date => $dayTransactions): ?>
+                        <div class="todaystransactbox">
+                            <div class="transacdate">
+                                <p>
+                                    <b><?php echo ($date == date('F j, Y')) ? 'Today' : $date; ?></b>
+                                </p>
+                            </div>
+                            
+                            <?php foreach ($dayTransactions as $transaction): ?>
+                                <div class="boxContainer <?php echo ($date == date('F j, Y')) ? 'today' : ''; ?>">
+                                    <div class="box">
+                                        <p class="payment_date_time">
+                                            <?php echo date('g:i A', strtotime($transaction['payment_date_time'])); ?>
+                                        </p>
+                                        <p class="transaction_type">
+                                            <b><?php echo htmlspecialchars($transaction['transaction_type']); ?></b>
+                                        </p>
+                                    </div>
+                                    <p class="amount_paid">
+                                        <b><?php 
+                                        // Format amount with a plus or minus sign
+                                        $amount = $transaction['amount_paid'];
+                                        echo ($amount >= 0 ? '&#8369; ' : '') . number_format($amount, 2); 
+                                        ?></b>
+                                    </p>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -642,6 +681,13 @@
       document.getElementById('containerSystemName').classList.toggle('show');
       document.getElementById('navbar').classList.toggle('show');
     }
+    
+    // Format current date and time
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date();
+      const options = { month: 'short', day: 'numeric', year: 'numeric' };
+      document.getElementById('current_date').innerText = 'As of ' + today.toLocaleDateString('en-US', options);
+    });
   </script>
 </body>
 </html>
