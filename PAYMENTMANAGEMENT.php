@@ -254,36 +254,32 @@ if (isset($_SESSION['email_account'])) {
             color: #004AAD;
         }
         .mainContent {
-            height: calc(100% - 13vh);
+            height: 100%;
             width: 100%;
             margin: 0px auto;
             background-color: #FFFF;
-            padding: 20px 0;
-            overflow-y: auto; 
         }
         .tenantHistoryHead {
             display: flex;
-            width: calc(94% - 40px); 
+            justify-content: space-between;
+            width: 67%;
             align-items: center;
-            flex-wrap: wrap; 
-            margin: 0 auto 10px auto; 
-            justify-content: space-between; 
         }
         .tenantHistoryHead h4 {
             color: #01214B;
-            font-size: 30px; 
-            margin-right: 20px; 
-            margin-top: 0;
-            margin-bottom: 10px; 
+            font-size: 32px;
+            margin-left: 60px;
+            height: 20px;
+            align-items: center;
         }
         .searbar {
-            height: 30px; 
+            height: 20px;
             width: 270px;
-            border: 1px solid #ccc; 
-            border-radius: 4px;
-            font-size: 14px; 
-            padding: 0 10px;
-            box-sizing: border-box;
+            margin-right: 55px;
+            border-style: solid;
+            font-size: 12px;
+            position: relative;
+            top: 14px;
         }
         ::placeholder {
             color: #B7B5B5;
@@ -357,12 +353,13 @@ if (isset($_SESSION['email_account'])) {
             background-color: #1976d2;
         }
         .footbtnContainer {
-            width: 94%; 
-            margin: 20px auto 0; 
             display: flex;
             justify-content: space-between;
+            width: 70%;
             align-items: center;
-            margin-top: 35px;
+            position: fixed;
+            top: 685px;
+            right: 58px;
         }
         .graphsplacement {
             flex-basis: 34%; 
@@ -421,11 +418,6 @@ if (isset($_SESSION['email_account'])) {
         .pieChart {
             width: 100%;
         }
-        .footbtnContainer a.backbtn:hover, .footbtnContainer a.viewtransactionhistory:hover { 
-            background-color: #FFFFFF;
-            color: #004AAD;
-            border: 2px solid #004AAD;
-        }
         .viewtransactionhistory {
             height: 36px;
             min-width: 200px;
@@ -442,14 +434,33 @@ if (isset($_SESSION['email_account'])) {
         .backbtn {
             height: 36px;
             width: 110px;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
+            bottom: 4px;
+            margin-left: 5px;
             background-color: #004AAD;
             color: #FFFFFF;
             text-decoration: none;
             border-radius: 5px;
-            font-size: 14px;
+        }
+        .backbtn a {
+            color: #FFFF;
+            font-size: 16px;
+            text-decoration: none;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #004AAD;
+            border-radius: 5px;
+        }
+        .footbtnContainer a.backbtn:hover, .footbtnContainer a.viewtransactionhistory:hover { 
+            background-color: #FFFFFF;
+            color: #004AAD;
+            border: 2px solid #004AAD;
         }
         .hamburger {
             display: none; 

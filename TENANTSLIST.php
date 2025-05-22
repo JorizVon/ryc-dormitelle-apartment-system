@@ -185,11 +185,10 @@ if (isset($_SESSION['email_account'])) {
             color: #004AAD;
         }
         .mainContent {
-            height: calc(100% - 13vh); /* Adjusted for header */
+            height: 100%;
             width: 100%;
             margin: 0px auto;
             background-color: #FFFF;
-            padding-top: 20px;
         }
         .tenantHistoryHead {
             display: flex;
@@ -201,20 +200,17 @@ if (isset($_SESSION['email_account'])) {
             color: #01214B;
             font-size: 32px;
             margin-left: 60px;
-            /* height: 20px; */ /* Removed */
-            /* align-items: center; */ /* Not applicable */
+            height: 20px;
+            align-items: center;
         }
         .searbar {
-            height: 30px; /* Increased height for better clickability */
+            height: 20px;
             width: 270px;
             margin-right: 55px;
-            border: 1px solid #ccc; /* Standard border */
-            border-radius: 4px; /* Rounded corners */
-            font-size: 14px; /* Increased font size */
-            padding: 0 10px; /* Padding inside input */
-            /* position: relative; */ /* Removed if not needed */
-            /* top: 14px; */ /* Removed */
-            box-sizing: border-box;
+            border-style: solid;
+            font-size: 12px;
+            position: relative;
+            top: 14px;
         }
         ::placeholder {
             color: #B7B5B5;
@@ -279,28 +275,39 @@ if (isset($_SESSION['email_account'])) {
             background-color: #1976d2;
         }
         .footbtnContainer {
-            width: 90%;
-            /* height: 20px; */ /* Let content define height */
-            margin: 20px auto; /* Adjusted margin */
             display: flex;
-            /* position: relative; */ /* Removed */
-            /* top: 38px; */ /* Controlled by margin */
             justify-content: space-between;
+            width: 70%;
             align-items: center;
+            position: fixed;
+            top: 685px;
+            right: 58px;
         }
         .backbtn {
             height: 36px;
             width: 110px;
-            /* position: relative; */ /* Removed */
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            /* bottom: 22px; */ /* Removed */
+            bottom: 4px;
+            margin-left: 5px;
             background-color: #004AAD;
             color: #FFFFFF;
             text-decoration: none;
             border-radius: 5px;
-            font-size: 14px; /* Added for consistency */
+        }
+        .backbtn a {
+            color: #FFFF;
+            font-size: 16px;
+            text-decoration: none;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #004AAD;
+            border-radius: 5px;
         }
         .footbtnContainer a.backbtn:hover, .footbtnContainer a.addtenantbtn:hover { /* Target specific links */
             background-color: #FFFFFF;
@@ -436,10 +443,7 @@ if (isset($_SESSION['email_account'])) {
                 /* padding: 5px 10px; */ /* Already has padding */
             }
             .backbtn {
-                visibility: visible; /* Make back button visible or hide based on design */
-                /* display: none; */ /* If you want to hide it completely */
-                 width: 80%;
-                 max-width: 280px;
+                visibility: hidden;
             }
         }
 

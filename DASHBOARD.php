@@ -233,7 +233,7 @@ if (isset($_SESSION['email_account'])) {
         }
         .mainContent {
             height: 100%;
-            width: 90%;
+            width: 93%;
             margin: 0px auto;
             background-color: #FFFF;
             padding: 20px;
@@ -242,8 +242,9 @@ if (isset($_SESSION['email_account'])) {
             color: #01214B;
             font-size: 32px;
             margin-left: 20px;
+            position: relative;
+            bottom: 20px;
             height: 20px;
-            align-items: center;
         }
         .grid-container {
             display: grid;

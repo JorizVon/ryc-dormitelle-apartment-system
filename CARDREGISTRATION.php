@@ -180,36 +180,32 @@ if (isset($_SESSION['email_account'])) {
             color: #004AAD;
         }
         .mainContent {
-            height: calc(100% - 13vh); /* Adjusted for header */
+            height: 100%;
             width: 100%;
             margin: 0px auto;
             background-color: #FFFF;
-            padding-top: 20px;
         }
-        .tenantHistoryHead { /* Reusing class, ensure CSS targets it or use a new one */
+        .tenantHistoryHead {
             display: flex;
             justify-content: space-between;
-            width: calc(90% - 40px); /* Align with table */
+            width: 100%;
             align-items: center;
-            margin: 0 auto 15px auto; /* Center and margin */
         }
         .tenantHistoryHead h4 {
             color: #01214B;
             font-size: 32px;
-            /* margin-left: 60px; */ /* Handled by container margin */
-            /* height: 20px; */
-            /* align-items: center; */
-            margin-top:0; margin-bottom:0;
+            margin-left: 60px;
+            height: 20px;
+            align-items: center;
         }
         .searbar {
-            height: 20px; /* Original */
-            width: 270px; /* Original */
-            border-style: solid; /* Original */
-            font-size: 12px; /* Original */
-            padding: 5px 8px;
-            box-sizing: border-box;
-            /* position: relative; */
-            /* top: 14px; */
+            height: 20px;
+            width: 270px;
+            margin-right: 55px;
+            border-style: solid;
+            font-size: 12px;
+            position: relative;
+            top: 14px;
         }
         ::placeholder {
             color: #B7B5B5;
@@ -270,36 +266,45 @@ if (isset($_SESSION['email_account'])) {
             background-color: #1976d2;
         }
         .footbtnContainer {
-            width: 90%; /* Original */
-            /* height: 20px; */ /* Let content define */
-            /* margin-left: 60px; */ /* Use auto margin for centering */
-            margin: 20px auto 0 auto; /* Consistent margin */
             display: flex;
-            /* position: relative; */
-            /* top: 38px; */
             justify-content: space-between;
+            width: 70%;
             align-items: center;
+            position: fixed;
+            top: 685px;
+            right: 58px;
         }
         .backbtn {
             height: 36px;
             width: 110px;
-            /* position: relative; */
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            /* bottom: 22px; */
+            bottom: 4px;
+            margin-left: 5px;
             background-color: #004AAD;
             color: #FFFFFF;
             text-decoration: none;
             border-radius: 5px;
-            font-size: 14px; /* Added */
         }
-        /* button { } */ /* General button style, target specific if needed */
-        /* button:hover { } */
+        .backbtn a {
+            color: #FFFF;
+            font-size: 16px;
+            text-decoration: none;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #004AAD;
+            border-radius: 5px;
+        }
         .footbtnContainer a.backbtn:hover, .footbtnContainer a.addtenantbtn:hover { /* Specificity for links */
-            background-color: #FFFFFF;
+            background-color: #FFFF;
             color: #004AAD;
-            border: 2px solid #004AAD;
+            border-style: solid;
+            border-color: #004AAD;
         }
         .addtenantbtn {
             height: 36px;
@@ -323,6 +328,13 @@ if (isset($_SESSION['email_account'])) {
         }
         .footbtnContainer a.addtenantbtn:hover .addtenantbtnIcon { /* Specificity */
             content: url('UnitsInfoIcons/plusblue.png');
+            display: flex;
+            justify-content: space-between;
+            width: 70%;
+            align-items: center;
+            position: fixed;
+            top: 685px;
+            right: 58px;
         }
         .hamburger {
             display: none; /* Original: visibility: hidden; width: 0px; */

@@ -177,35 +177,33 @@ if (isset($_SESSION['email_account'])) {
             color: #004AAD;
         }
         .mainContent {
-            height: calc(100% - 13vh);
+            height: 100%;
             width: 100%;
             margin: 0px auto;
             background-color: #FFFF;
-            padding-top: 20px;
-            overflow-y: auto;
         }
         /* Using .pageHeader instead of .pendingInquiryHead or .tenantHistoryHead for general use */
         .pageHeader {
             display: flex;
             justify-content: space-between;
-            width: calc(90% - 40px); /* Should match table_container's effective width */
+            width: 100%;
             align-items: center;
-            margin: 30px auto 20px auto; /* Centered */
         }
         .pageHeader h4 {
             color: #01214B;
             font-size: 32px;
-            margin-top: 0;
-            margin-bottom: 0;
+            margin-left: 60px;
+            height: 20px;
+            align-items: center;
         }
         .searbar {
-            height: 20px; /* Original from TENANTSLIST */
-            width: 270px; /* Original from TENANTSLIST */
-            border-style: solid; /* Original from TENANTSLIST */
-            font-size: 12px; /* Original from TENANTSLIST */
-            padding: 5px 8px; 
-            box-sizing: border-box;
-            /* position: relative; top: 14px; */ /* Removed these as flexbox in .pageHeader handles alignment */
+            height: 20px;
+            width: 270px;
+            margin-right: 55px;
+            border-style: solid;
+            font-size: 12px;
+            position: relative;
+            top: 14px;
         }
         ::placeholder {
             color: #B7B5B5;
@@ -263,23 +261,39 @@ if (isset($_SESSION['email_account'])) {
             background-color: #1976d2;
         }
         .footbtnContainer {
-            width: 90%;
-            margin: 10px auto 0 auto; /* Adjusted from TENANTSLIST for simplicity */
             display: flex;
-            justify-content: flex-start; /* Only back button here */
+            justify-content: space-between;
+            width: 70%;
             align-items: center;
+            position: fixed;
+            top: 685px;
+            right: 58px;
         }
         .backbtn {
             height: 36px;
             width: 110px;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
+            bottom: 4px;
+            margin-left: 5px;
             background-color: #004AAD;
             color: #FFFFFF;
             text-decoration: none;
             border-radius: 5px;
-            font-size: 14px;
+        }
+        .backbtn a {
+            color: #FFFF;
+            font-size: 16px;
+            text-decoration: none;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #004AAD;
+            border-radius: 5px;
         }
         .footbtnContainer a.backbtn:hover {
             background-color: #FFFFFF;

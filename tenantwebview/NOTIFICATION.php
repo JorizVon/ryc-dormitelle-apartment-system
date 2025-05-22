@@ -114,7 +114,7 @@ while ($row = $result->fetch_assoc()) {
     if ($todayStr === $payment_due_minus_one->format('Y-m-d')) {
         $notifications[] = [
             'title' => 'Payment Due Tomorrow',
-            'message' => "This is a friendly reminder that your rent and utilities for $unit_display at RYC Dormitelle are due tomorrow, " . $formatDate($payment_due_date) . ".<br>Amount Due: ₱$balance<br><br>You may settle your payment through the following methods:<br>• GCash Transfer:<br>&nbsp;&nbsp;&nbsp;- GCash Number: 0917-123-4567<br>&nbsp;&nbsp;&nbsp;- Account Name: Kyle Catiis<br>• In-person payment at the leasing office (9 AM – 5 PM, Mon–Fri)<br>• Settle with Deposit: Let us know if you'd like to use your deposit for this payment.<br><br>Thank you."
+            'message' => "This is a friendly reminder that your rent and utilities for $unit_display at RYC Dormitelle are due tomorrow, " . $formatDate($payment_due_date) . ".<br>Amount Due: ₱$balance<br><br>You may settle your payment through the following methods:<br>• GCash Transfer:<br>   - GCash Number: 0917-123-4567<br>   - Account Name: Kyle Catiis<br>• In-person payment at the leasing office (9 AM – 5 PM, Mon–Fri)<br>• Settle with Deposit: Let us know if you'd like to use your deposit for this payment.<br><br>Thank you."
         ];
     } elseif ($todayStr === $payment_due_date->format('Y-m-d')) {
         $notifications[] = [
@@ -147,7 +147,7 @@ while ($row = $result->fetch_assoc()) {
         ];
     }
 
-    // Save notifications to inbox and send email
+    // Save notifications to inbox
     foreach ($notifications as $notif) {
         $notif_title = $notif['title'];
         $notif_desc = $notif['message'];
@@ -172,20 +172,12 @@ while ($row = $result->fetch_assoc()) {
             
             $insert->bind_param("ssss", $now, $tenant_ID, $notif_title, $notif_desc); // FIXED: Changed "siss" to "ssss"
             $insert->execute();
-
-            // Send email with proper headers for HTML
-            $subject = "Notification: $notif_title";
-            $headers = "MIME-Version: 1.0" . "\r\n";
-            $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-            mail($email, $subject, $notif_desc, $headers);
         }
     }
 }
 
-// Instead of outputting HTML directly, we'll set a session variable that the main page will check
-// Only set for non-empty notifications and unshown today
 if (!empty($notifications) && !$_SESSION['notif_shown']) {
-    $_SESSION['current_notification'] = $notifications[0];
+    $_SESSION['current_notification'] = $notifications[0]; // Show the first generated notification
     $_SESSION['notif_shown'] = true;
 }
 ?>

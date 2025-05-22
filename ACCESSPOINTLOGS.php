@@ -252,14 +252,13 @@ $result = $conn->query($sql);
             background-color: #1976d2;
         }
         .footbtnContainer {
-            width: 90%;
-            height: 20px;
-            margin-left: 60px;
             display: flex;
-            position: relative;
-            top: 38px;
             justify-content: space-between;
+            width: 70%;
             align-items: center;
+            position: fixed;
+            top: 685px;
+            right: 58px;
         }
         .backbtn {
             height: 36px;
@@ -268,10 +267,23 @@ $result = $conn->query($sql);
             display: flex;
             align-items: center;
             justify-content: center;
-            bottom: 22px;
+            bottom: 4px;
+            margin-left: 5px;
             background-color: #004AAD;
             color: #FFFFFF;
             text-decoration: none;
+            border-radius: 5px;
+        }
+        .backbtn a {
+            color: #FFFF;
+            font-size: 16px;
+            text-decoration: none;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #004AAD;
             border-radius: 5px;
         }
         button {
