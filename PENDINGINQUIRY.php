@@ -1,21 +1,53 @@
 <?php
+session_start(); // Start session at the very beginning
 
+// Redirect to login if not logged in using 'email_account'
+if (!isset($_SESSION['email_account'])) {
+    // Assuming LOGIN.php is in the same directory or adjust path if it's in parent (../LOGIN.php)
+    header("Location: LOGIN.php");
+    exit();
+}
+
+// Assuming db_connect.php is in the same directory or adjust path if it's in parent (../db_connect.php)
 require_once 'db_connect.php';
 
-$sql = "SELECT tenants.tenant_ID, tenant_name, contact_number, tenant_unit.start_date, tenant_unit.occupant_count,
-        tenant_unit.deposit, tenant_unit.balance, tenant_unit.status
-        FROM tenants
-        INNER JOIN tenant_unit
-        ON tenants.tenant_ID = tenant_unit.tenant_ID";
-$result = $conn->query($sql);
+date_default_timezone_set('Asia/Manila'); // Set timezone for date formatting
+
+// Initialize $result to null and $query_error
+$result = null;
+$query_error = "";
+
+// SQL query for PENDING INQUIRIES
+$sql = "SELECT `inquiry_date_time`, `unit_no`, `full_name`, `contact_no`, 
+               `email`, `pref_move_date`, `start_date`, `end_date`, `payment_due_date` 
+        FROM `pending_inquiry`
+        ORDER BY `inquiry_date_time` DESC"; // Show newest inquiries first
+
+$query_exec_result = $conn->query($sql);
+
+if ($query_exec_result === false) {
+    $query_error = "Error fetching pending inquiries: " . $conn->error;
+    error_log($query_error); // Log the error for debugging
+} else {
+    $result = $query_exec_result; // Assign the mysqli_result object
+}
+
+// Get admin's display name (optional, for header)
+$adminDisplayIdentifier = "ADMIN"; // Default
+if (isset($_SESSION['email_account'])) {
+    // Example: $adminDisplayIdentifier = htmlspecialchars(strtok($_SESSION['email_account'], '@'));
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenants List</title>
+    <title>Pending Inquiry</title> <!-- Changed Title -->
     <style>
+        /* PASTE THE EXACT CSS FROM YOUR TENANTSLIST.PHP HERE */
+        /* I will use the CSS from the previous TENANTSLIST.php example you provided */
         body {
             display: flex;
             margin: 0;
@@ -68,14 +100,12 @@ $result = $conn->query($sql);
             display: flex;
             text-decoration: none;
             align-items: center;
-            color: #01214B;
             height: 100%;
             width: 100%;
             background-color: #004AAD;
             color: white;
         }
         .card a:hover {
-            background-color: 004AAD;
             color: #FFFF;
             background-color: #FFFF;
             color: #004AAD;
@@ -143,289 +173,159 @@ $result = $conn->query($sql);
             margin-left: 2px;
             text-decoration: none;
         }
-        .headerContent a:hover {
+        .headerContent a.logOutbtn:hover {
             color: #004AAD;
         }
         .mainContent {
-            height: 100%;
+            height: calc(100% - 13vh);
             width: 100%;
             margin: 0px auto;
             background-color: #FFFF;
+            padding-top: 20px;
+            overflow-y: auto;
         }
-        .pendingInquiryHead {
+        /* Using .pageHeader instead of .pendingInquiryHead or .tenantHistoryHead for general use */
+        .pageHeader {
             display: flex;
             justify-content: space-between;
-            width: 100%;
+            width: calc(90% - 40px); /* Should match table_container's effective width */
             align-items: center;
+            margin: 30px auto 20px auto; /* Centered */
         }
-        .pendingInquiryHead h4 {
+        .pageHeader h4 {
             color: #01214B;
             font-size: 32px;
-            margin-left: 60px;
-            height: 20px;
-            align-items: center;
+            margin-top: 0;
+            margin-bottom: 0;
         }
         .searbar {
-            height: 20px;
-            width: 270px;
-            margin-right: 55px;
-            border-style: solid;
-            font-size: 12px;
-            position: relative;
-            top: 14px;
+            height: 20px; /* Original from TENANTSLIST */
+            width: 270px; /* Original from TENANTSLIST */
+            border-style: solid; /* Original from TENANTSLIST */
+            font-size: 12px; /* Original from TENANTSLIST */
+            padding: 5px 8px; 
+            box-sizing: border-box;
+            /* position: relative; top: 14px; */ /* Removed these as flexbox in .pageHeader handles alignment */
         }
         ::placeholder {
             color: #B7B5B5;
             opacity: 1;
         }
-        .table-container {
+        .table-container { /* This style is from TENANTSLIST.PHP */
             max-width: 90%;
             margin: 0 auto;
             border: 3px solid #A6DDFF;
             border-radius: 8px;
-            height: 470px;
+            height: 470px; /* Fixed height for scrolling */
+            overflow: hidden; /* To make inner scroll work */
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-
         .table-scroll {
-            max-height: 500px;
+            height: 100%; /* Fill the container */
             overflow-y: auto;
-            overflow-x: auto;
-            scrollbar-width: none;
+            overflow-x: auto; 
+            scrollbar-width: none; 
         }
-
         .table-scroll::-webkit-scrollbar {
-            display: none;
+            display: none; 
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            border-color: #A6DDFF;
             background-color: white;
-            
         }
         th, td {
-            padding: 12px 15px;
+            padding: 12px 15px; /* Original from TENANTSLIST */
             text-align: left;
-            font-size: 14px;
+            font-size: 14px; /* Original from TENANTSLIST */
             border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap;
         }
         th {
             background-color: #e3f2fd;
             font-weight: bold;
-            position: sticky;
+            position: sticky; 
             top: 0;
             z-index: 1;
-            font-size: 12px;
+            font-size: 12px; /* Original from TENANTSLIST */
         }
-        .action-btn {
+        .action-btn { /* Style for View Details button */
             background-color: #2196f3;
             color: white;
             border: none;
-            padding: 8px 14px;
+            padding: 8px 14px; /* Original from TENANTSLIST */
             border-radius: 4px;
             cursor: pointer;
             text-decoration: none;
-            font-size: 12px;
+            font-size: 12px; /* Original from TENANTSLIST */
         }
-
         .action-btn:hover {
             background-color: #1976d2;
         }
         .footbtnContainer {
             width: 90%;
-            height: 20px;
-            margin-left: 60px;
+            margin: 10px auto 0 auto; /* Adjusted from TENANTSLIST for simplicity */
             display: flex;
-            position: relative;
-            top: 38px;
-            justify-content: space-between;
+            justify-content: flex-start; /* Only back button here */
             align-items: center;
         }
         .backbtn {
             height: 36px;
             width: 110px;
-            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            bottom: 22px;
             background-color: #004AAD;
             color: #FFFFFF;
             text-decoration: none;
             border-radius: 5px;
+            font-size: 14px;
         }
-        button {
-            background-color: #004AAD;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        button:hover {
+        .footbtnContainer a.backbtn:hover {
             background-color: #FFFFFF;
             color: #004AAD;
             border: 2px solid #004AAD;
-        }
-        .footbtnContainer a:hover {
-            background-color: #FFFFFF;
-            color: #004AAD;
-            border: 2px solid #004AAD;
-        }
-        .addtenantbtn {
-            height: 36px;
-            width: 255px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            bottom: 20px;
-            background-color: #004AAD;
-            color: #FFFFFF;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .addtenantbtnIcon {
-            height: 20px;
-            width: 20px;
-            margin-right: 5px;
-        }
-        .footbtnContainer a:hover .addtenantbtnIcon {
-            content: url('UnitsInfoIcons/plusblue.png');
         }
         .hamburger {
-            visibility: hidden;
-            width: 0px;
+            display: none; /* Original: visibility: hidden; width: 0px; */
         }
-        /* Mobile and Tablet Responsive */
+        /* Mobile and Tablet Responsive - Copied from TENANTSLIST */
         @media (max-width: 1024px) {
-            body {
-            display: flex;
-            margin: 0;
-            background-color: #FFFF;
-            justify-content: center;
-            }
             .sideBar {
-                position: fixed;
-                left: -100%;
-                top: 0;
-                height: 100vh;
-                z-index: 1000;
-                transition: 0.3s ease;
+                position: fixed; left: -100%; top: 0; height: 100vh;
+                z-index: 1000; transition: 0.3s ease;
             }
-
-            .sideBar.active {
-                left: 0;
-            }
-
+            .sideBar.active { left: 0; }
             .hamburger {
-                display: block;
-                position: absolute;
-                top: 25px;
-                left: 20px;
-                z-index: 1100;
-                font-size: 30px;
-                cursor: pointer;
-                color: #004AAD;
-                visibility: visible;
-                width: 10px;
+                display: block; position: fixed; top: 25px; left: 20px; z-index: 1100;
+                font-size: 30px; cursor: pointer; color: #004AAD; width: auto;
+                background-color: white; padding: 5px 10px; border-radius: 3px;
             }
-
-            .mainBody {
-                width: 100%;
-                margin-left: 0 !important;
-            }
-
-            .header {
-                justify-content: right;
-            }
-
-            .mainContent {
-                width: 100%;
-                margin: 0 auto;
-            }
-
-            .pendingInquiryHead {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-
-            .pendingInquiryHead h4 {
-                margin: 20px 0 0 15px;
-                font-size: 30px;
-            }
-
-            .searbar {
-                width: 90%;
-                margin: 20px auto;
-            }
-
-            .table-container {
-                width: 100%;
-                overflow-x: auto;
-            }
-
-            table th, table td {
-                font-size: 10px;
-                padding: 15px 5px;
-            }
-            .action-btn {
-                font-size: 10px;
-                padding: 7px;
-            }
-
-            .footbtnContainer {
-                flex-direction: column;
-                align-items: center;
-                gap: 15px;
-                top: 10px;
-                margin: 0 auto;
-            }
-            .addtenantbtn {
-                font-size: 18px;
-                padding: 5px 10px;
-            }
-            .backbtn {
-                visibility: hidden;
-            }
+            .mainBody { width: 100%; margin-left: 0 !important; }
+            .header { justify-content: flex-end; }
+            .mainContent { width: 100%; margin: 0 auto; padding: 15px; box-sizing: border-box; }
+            .pageHeader { flex-direction: column; align-items: stretch; text-align: center; width: 100%; }
+            .pageHeader h4 { margin: 15px 0 10px 0; font-size: 28px; margin-left: 0; }
+            .searbar { width: 100%; margin: 10px auto; }
+            .table-container { width: 100%; max-width: 100%; border-left: none; border-right: none; border-radius: 0; max-height: calc(100vh - 250px); } /* Adjusted max-height */
+            table th, table td { font-size: 11px; padding: 8px 5px; }
+            .action-btn { font-size: 10px; padding: 6px 8px; }
+            .footbtnContainer { flex-direction: column; align-items: center; gap: 15px; margin: 20px auto; width: 100%; }
+            .backbtn { width: 80%; max-width: 250px; }
         }
 
         @media (max-width: 480px) {
-            .headerContent a, .adminLogoutspace {
-                font-size: 14px;
-            }
-            .hamburger {
-                font-size: 28px;
-            }
-            .sideBar{
-                width: 53vw;
-            }
-            .systemTitle {
-                position: relative;
-                top: 15px;
-                padding: 11px;
-            }
-            .systemTitle h1 {
-                font-size: 14px;
-                position: relative;
-                margin-bottom: 18px;
-
-            }
-            .systemTitle p {
-                font-size: 10px;
-            }
-            .card a {
-                font-size: 14px;
-            }
-            .card img {
-                height: 25px;
-            }
-            .table-scroll {
-                width: 600px;
-            }
-            table th, table td {
-                font-size: 10px;
-            }
+            .headerContent { margin-right: 20px; }
+            .headerContent a, .adminLogoutspace { font-size: 14px; }
+            .hamburger { font-size: 28px; }
+            .sideBar{ width: 220px; }
+            .systemTitle { position: relative; top: 15px; padding: 11px; }
+            .systemTitle h1 { font-size: 14px; position: relative; margin-bottom: 18px; }
+            .systemTitle p { font-size: 10px; }
+            .card a { font-size: 14px; padding-left: 15px; }
+            .card img { height: 18px; width: 18px; margin-right: 8px; }
+            table th, table td { font-size: 10px; }
+            .pageHeader h4 { font-size: 24px; }
         }
     </style>
 </head>
@@ -449,7 +349,7 @@ $result = $conn->query($sql);
                     Units Information</a>
             </div>
             <div class="card">
-                <a href="TENANTSLIST.php">
+                <a href="TENANTSLIST.php"> <!-- Kept original link for Tenants List -->
                     <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 3px;">
                     Tenants List</a>
             </div>
@@ -469,85 +369,157 @@ $result = $conn->query($sql);
                     Card Registration</a>
             </div>
             <div class="card">
-                <a href="PENDINGINQUIRY.php" style="background-color: #FFFF; color: #004AAD;">
+                <a href="PENDINGINQUIRY.php" style="background-color: #FFFF; color: #004AAD;"> <!-- Active style for this page -->
                     <img src="sidebarIcons/PendingInquiryIcon.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
                     Pending Inquiry</a>
             </div>
-            
         </div>
     </div>
         <div class="mainBody">
             <div class="header">
                 <div class="headerContent">
-                    <a href="ADMINPROFILE.php" class="adminTitle">ADMIN</a>
-                    <p class="adminLogoutspace">&nbsp;|&nbsp;</p>
-                    <a href="LOGIN.php" class="logOutbtn">Log Out</a>
+                    <a href="ADMINPROFILE.php" class="adminTitle"><?php echo htmlspecialchars($adminDisplayIdentifier); ?></a>
+                    <p class="adminLogoutspace"> | </p>
+                    <a href="LOGIN.php" class="logOutbtn">Log Out</a> <!-- Or your LOGOUT.php -->
                 </div>
             </div>
             <div class="mainContent">
-        <div class="pendingInquiryHead">
-            <h4>Pending Inquiry</h4>
-            <input type="text" placeholder="Search" class="searbar">
+        <div class="pageHeader"> <!-- Using a more generic class name for the header div -->
+            <h4>Pending Inquiry</h4> <!-- Changed Title -->
+            <input type="text" id="searchInput" placeholder="Search Name, Unit, Date..." class="searbar" oninput="searchTable()"> <!-- Re-linked client search -->
         </div>
         <div class="table-container">
             <div class="table-scroll">
-                <table>
+                <table id="pendingInquiryTable"> <!-- Unique ID for this table -->
                     <thead>
                         <tr>
-                            <th id="inquiry_date">Inquiry Date</th>
-                            <th id="unit_no">Unit No</th>
-                            <th id="tenant_name">Tenant Name</th>
-                            <th id="contact_number">Contact Number</th>
-                            <th id="pref_move_date">Preferred Move-In Date</th>
-                            <th id="start_date">Start Date</th>
-                            <th id="end_date">End Date</th>
+                            <th>Inquiry Date & Time</th>
+                            <th>Unit No</th>
+                            <th>Full Name</th>
+                            <th>Contact No</th>
+                            <th>Email</th>
+                            <th>Pref. Move-In</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <!-- <th>Payment Due</th> Omitting to save space, can be re-added -->
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        if ($result->num_rows > 0) {
+                        if (!empty($query_error)) {
+                            echo "<tr><td colspan='9' style='color:red; text-align:center;'>" . htmlspecialchars($query_error) . "</td></tr>"; // Colspan matches headers
+                        } elseif ($result && $result->num_rows > 0) {
                             while ($row = $result->fetch_assoc()) {
-                                echo "<tr>";
-                                echo "<td>" . htmlspecialchars($row["tenant_ID"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["tenant_name"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["contact_number"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["start_date"]) . "</td>";
-                                echo "<td>". htmlspecialchars($row["occupant_count"]) . "</td>";
-                                echo "<td>". htmlspecialchars($row["deposit"]) . "</td>";
-                                echo "<td>". htmlspecialchars($row["balance"]) . "</td>";
-                                echo '<td><a href="TENANTINFORMATION.php?tenant_ID=' . urlencode($row["tenant_ID"]) . '" class="action-btn">View Details</a></td>';
-                                echo "</tr>";
-                            }
-                        } else {
-                            echo "<tr><td colspan='6'>No tenants found.</td></tr>";
-                        }
+                            ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars(date("M d, Y h:i A", strtotime($row['inquiry_date_time']))); ?></td>
+                                    <td><?php echo htmlspecialchars($row['unit_no']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['full_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['contact_no']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['email']); ?></td>
+                                    <td><?php echo htmlspecialchars(date("M d, Y", strtotime($row['pref_move_date']))); ?></td>
+                                    <td><?php echo htmlspecialchars(date("M d, Y", strtotime($row['start_date']))); ?></td>
+                                    <td><?php echo htmlspecialchars(date("M d, Y", strtotime($row['end_date']))); ?></td>
+                                    <!-- <td><?php // echo htmlspecialchars($row['payment_due_date']); ?></td> -->
+                                    <td>
+                                        <?php
+                                            $details_params = "email=" . urlencode($row["email"]) . "&inquiry_datetime=" . urlencode($row["inquiry_date_time"]);
+                                            // If you add a unique inquiry_id like 'pending_inquiry_id' to the table, use that:
+                                            // if (isset($row['pending_inquiry_id'])) {
+                                            //     $details_params = "inquiry_id=" . urlencode($row["pending_inquiry_id"]);
+                                            // }
+                                        ?>
+                                        <a href="TENANTPROFILECREATION.php?<?php echo $details_params; ?>" class="action-btn">View Details</a>
+                                    </td>
+                                </tr>
+                        <?php
+                            } // End while
+                        } else { // End if $result->num_rows > 0
+                            echo "<tr><td colspan='9' style='text-align:center;'>No pending inquiries found.</td></tr>"; // Colspan matches headers
+                        } // End else
                         ?>
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
+    </div> <!-- This was an extra closing div in TENANTSLIST that is removed here -->
             <div class="footbtnContainer">
-                <a href="DASHBOARD.php" class="backbtn">&#10558; Back</a>
+                <a href="DASHBOARD.php" class="backbtn">⤾ Back</a>
+                <!-- Removed "Add New Tenant" button as it's not for inquiries page -->
             </div>
-        </div>
-    </div>
-    <script>
-    document.querySelector('.searbar').addEventListener('keyup', function () {
-        const filter = this.value.toLowerCase();
-        const rows = document.querySelectorAll('tbody tr');
+        </div> <!-- .mainContent closing div -->
+    </div> <!-- .mainBody closing div -->
 
-        rows.forEach(row => {
-            const rowText = row.textContent.toLowerCase();
-            row.style.display = rowText.includes(filter) ? '' : 'none';
-        });
+    <script>
+    function searchTable() { // Renamed generic search function
+        const input = document.getElementById("searchInput").value.toLowerCase().trim();
+        const table = document.getElementById("pendingInquiryTable"); // Using specific table ID
+        const tr = table.getElementsByTagName("tr");
+        let found = false;
+
+        for (let i = 1; i < tr.length; i++) { // Start from 1 to skip header
+            const row = tr[i];
+            if (row.cells.length > 1 && row.cells[0].colSpan !== 9) { 
+                const inquiryDate = row.cells[0].textContent.toLowerCase();
+                const unitNo = row.cells[1].textContent.toLowerCase();
+                const fullName = row.cells[2].textContent.toLowerCase();
+                const contactNo = row.cells[3].textContent.toLowerCase();
+                const email = row.cells[4].textContent.toLowerCase();
+                const prefMoveIn = row.cells[5].textContent.toLowerCase();
+                // Add other cells to search if needed
+                let rowVisible = false;
+
+                if (inquiryDate.includes(input)) rowVisible = true;
+                if (unitNo.includes(input)) rowVisible = true;
+                if (fullName.includes(input)) rowVisible = true;
+                if (contactNo.includes(input)) rowVisible = true;
+                if (email.includes(input)) rowVisible = true;
+                if (prefMoveIn.includes(input)) rowVisible = true;
+                
+                row.style.display = rowVisible ? "" : "none";
+                if (rowVisible) found = true;
+            }
+        }
+        
+        const noRecordsRow = table.querySelector('td[colspan="9"]');
+        if (noRecordsRow) {
+            const dataRowsPresent = Array.from(tr).slice(1).some(r => r.cells.length > 1 && r.cells[0].colSpan !== 9);
+            if (!found && input !== "" && dataRowsPresent) {
+                noRecordsRow.textContent = "No matching inquiries found for your search.";
+                noRecordsRow.parentNode.style.display = ""; 
+            } else if (input === "" && !dataRowsPresent) {
+                noRecordsRow.textContent = "No pending inquiries found.";
+                noRecordsRow.parentNode.style.display = "";
+            } else if (input === "" && dataRowsPresent) {
+                noRecordsRow.parentNode.style.display = "none";
+            } else if (!dataRowsPresent && input === ""){
+                noRecordsRow.textContent = "No pending inquiries found.";
+                noRecordsRow.parentNode.style.display = "";
+            } else if (!found && !dataRowsPresent && input !== ""){
+                noRecordsRow.textContent = "No matching inquiries found for your search.";
+                noRecordsRow.parentNode.style.display = "";
+            } else {
+                noRecordsRow.parentNode.style.display = "none";
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if(document.getElementById("pendingInquiryTable")) { // Check for specific table ID
+            searchTable(); // Call with empty input to correctly show/hide "No records"
+        }
     });
+
     function toggleSidebar() {
         const sidebar = document.querySelector('.sideBar');
         sidebar.classList.toggle('active');
     }
-</script>
+    </script>
 </body>
 </html>
-
+<?php
+if (isset($conn)) { // Close connection if it was opened
+    $conn->close();
+}
+?>

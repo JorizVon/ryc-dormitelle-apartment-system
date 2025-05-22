@@ -822,9 +822,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.php">Home</a>
-        <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
-        <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
+        <a href="TENANTHOMEPAGE.php">Home</a>
+        <a href="TENANTHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
+        <a href="TENANTHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
         <a href="TRANSACTIONSPAGE.php">Transactions</a>
         <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">

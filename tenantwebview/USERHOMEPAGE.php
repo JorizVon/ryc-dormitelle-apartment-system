@@ -757,7 +757,7 @@ if (!$result) {
                   <p class="occupant_capacity">Studio unit accommodating up to <?php echo htmlspecialchars($row['occupant_capacity']); ?> persons</p>
                   <p class="unitDetails"><?php echo htmlspecialchars($row['unit_address']); ?></p>
                   <p class="monthly_rent_amount">₱<?php echo number_format($row['monthly_rent_amount']); ?> monthly</p>
-                  <a href="inquire.php?unit_no=<?php echo htmlspecialchars($row['unit_no']); ?>" class="inquireButton">Inquire Now</a>
+                  <a href="INQUIRYPAGE.php?unit_no=<?php echo htmlspecialchars($row['unit_no']); ?>" class="inquireButton">Inquire Now</a>
                 </div>
               </div>
               <?php

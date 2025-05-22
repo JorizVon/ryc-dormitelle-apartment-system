@@ -93,7 +93,7 @@ if (isset($_SESSION['payment_data'])) {
             'tenant_ID' => $transaction_details['tenant_ID'] ?? '',
             'amount_paid' => $transaction_details['amount'] ?? 0,
             'payment_date_time' => date('Y-m-d H:i:s'), // Ensure this uses the Philippine timezone
-            'payment_status' => $transaction_details['payment_status'] ?? 'Pending',
+            'payment_status' => $transaction_details['payment_status'] ?? 'pending',
             'payment_method' => 'Gcash',
             'transaction_type' => $transaction_details['transaction_type'] ?? 'Rent Payment',
         ];
@@ -158,7 +158,7 @@ if (!$err) {
                 $payment_data['payment_date_time'] = $current_timestamp;
                 
                 // Set confirmation status to pending
-                $confirmation_status = "Pending";
+                $confirmation_status = "pending";
                 
                 // Insert new record using the payment data
                 $insert = $conn->prepare("INSERT INTO payments(transaction_no, unit_no, tenant_ID, amount_paid, payment_date_time, payment_status, payment_method, transaction_type, confirmation_status, source_id) 
@@ -315,7 +315,7 @@ unset($_SESSION['payment_data']);
                 <p><strong>Amount:</strong> ₱<?php echo number_format($payment_data['amount_paid'], 2); ?></p>
                 <p><strong>Payment Method:</strong> <?php echo htmlspecialchars($payment_data['payment_method']); ?></p>
                 <p><strong>Date:</strong> <?php echo date('F j, Y, g:i a', strtotime($payment_data['payment_date_time'])); ?></p>
-                <p><strong>Confirmation Status:</strong> Pending</p>
+                <p><strong>Confirmation Status:</strong> pending</p>
                 <p class="note">Please wait for the landlord's approval of your payment. You will be notified once the payment is confirmed.</p>
             </div>
         <?php else: ?>

@@ -1,11 +1,4 @@
 <?php
-session_start(); // Always start the session to access session variables
-
-// Redirect to login if not logged in
-if (!isset($_SESSION['email_account'])) {
-    header("Location: ../login.php"); // Change path as needed
-    exit();
-}
 
 // Connect to the database
 require_once '../db_connect.php';
@@ -694,8 +687,8 @@ if (!$result) {
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
-        <a href="SIGNIN.php">Sign Up</a> |
-        <a href="LOGIN.php">Log In</a>
+        <a href="../SIGNIN.php">Sign Up</a> |
+        <a href="../LOGIN.php">Log In</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -757,7 +750,7 @@ if (!$result) {
                   <p class="occupant_capacity">Studio unit accommodating up to <?php echo htmlspecialchars($row['occupant_capacity']); ?> persons</p>
                   <p class="unitDetails"><?php echo htmlspecialchars($row['unit_address']); ?></p>
                   <p class="monthly_rent_amount">₱<?php echo number_format($row['monthly_rent_amount']); ?> monthly</p>
-                  <a href="inquire.php?unit_no=<?php echo htmlspecialchars($row['unit_no']); ?>" class="inquireButton">Inquire Now</a>
+                  <a href="INQUIREPAGE.php?unit_no=<?php echo htmlspecialchars($row['unit_no']); ?>" class="inquireButton">Inquire Now</a>
                 </div>
               </div>
               <?php

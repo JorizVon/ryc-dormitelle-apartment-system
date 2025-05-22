@@ -92,7 +92,7 @@
       display: flex;
       align-items: center;
       width: 100%;
-      margin-left: 300px;
+      margin-left: 500px;
       margin-right: 90px;
     }
 
@@ -607,7 +607,7 @@
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
         <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
-        <a href="LOGIN.php">Log Out</a>
+        <a href="../LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -621,8 +621,6 @@
         <a href="USERHOMEPAGE.php">Home</a>
         <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
         <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
-        <a href="TRANSACTIONSPAGE.php">Transactions</a>
-        <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
           <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>

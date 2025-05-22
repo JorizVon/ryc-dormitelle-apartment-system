@@ -1,13 +1,51 @@
 <?php
+session_start();
 
+// Redirect to login if not logged in using 'email_account'
+if (!isset($_SESSION['email_account'])) {
+    // Assuming LOGIN.php is in the same directory or adjust path as needed
+    header("Location: LOGIN.php");
+    exit();
+}
+
+// Assuming db_connect.php is in the same directory or adjust path
 require_once 'db_connect.php';
 
-$sql = "SELECT tenants.tenant_ID, tenant_name, contact_number, tenant_unit.start_date, tenant_unit.occupant_count,
-        tenant_unit.deposit, tenant_unit.balance, tenant_unit.status
+// Initialize $result to null or an empty array to avoid issues if query fails
+$result = null;
+$query_error = ""; // To store any potential query error message
+
+$sql = "SELECT tenants.tenant_ID, tenants.tenant_name, tenants.contact_number, 
+               tenant_unit.start_date, tenant_unit.occupant_count,
+               tenant_unit.deposit, tenant_unit.balance, tenant_unit.status
         FROM tenants
-        INNER JOIN tenant_unit
-        ON tenants.tenant_ID = tenant_unit.tenant_ID";
-$result = $conn->query($sql);
+        INNER JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID";
+
+// Execute the query
+$query_result = $conn->query($sql);
+
+// Check if the query was successful
+if ($query_result === false) {
+    // Query failed, store the error message
+    $query_error = "Error executing query: " . $conn->error;
+    error_log($query_error); // Log the error for debugging
+    $result_data = []; // Ensure $result_data is an empty array so the HTML doesn't break
+} else {
+    // Query was successful, fetch all results into an array
+    // This is generally better than fetching row by row inside the HTML loop for larger datasets
+    // but for simplicity and to match your original structure, we'll keep $result as the mysqli_result object.
+    $result = $query_result; // Assign the mysqli_result object to $result
+}
+
+// Get admin's display name (optional, for header)
+$adminDisplayIdentifier = "ADMIN"; // Default
+if (isset($_SESSION['email_account'])) {
+    // You could fetch a name from 'accounts' table based on 'email_account'
+    // For now, let's assume a default or you handle it as in other pages
+    // Example: $adminDisplayIdentifier = htmlspecialchars(strtok($_SESSION['email_account'], '@'));
+}
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -68,14 +106,14 @@ $result = $conn->query($sql);
             display: flex;
             text-decoration: none;
             align-items: center;
-            color: #01214B;
+            /* color: #01214B; */ /* Covered by color: white */
             height: 100%;
             width: 100%;
             background-color: #004AAD;
             color: white;
         }
         .card a:hover {
-            background-color: 004AAD;
+            /* background-color: 004AAD; */ /* Invalid */
             color: #FFFF;
             background-color: #FFFF;
             color: #004AAD;
@@ -143,14 +181,15 @@ $result = $conn->query($sql);
             margin-left: 2px;
             text-decoration: none;
         }
-        .headerContent a:hover {
+        .headerContent a.logOutbtn:hover { /* Specific selector */
             color: #004AAD;
         }
         .mainContent {
-            height: 100%;
+            height: calc(100% - 13vh); /* Adjusted for header */
             width: 100%;
             margin: 0px auto;
             background-color: #FFFF;
+            padding-top: 20px;
         }
         .tenantHistoryHead {
             display: flex;
@@ -162,17 +201,20 @@ $result = $conn->query($sql);
             color: #01214B;
             font-size: 32px;
             margin-left: 60px;
-            height: 20px;
-            align-items: center;
+            /* height: 20px; */ /* Removed */
+            /* align-items: center; */ /* Not applicable */
         }
         .searbar {
-            height: 20px;
+            height: 30px; /* Increased height for better clickability */
             width: 270px;
             margin-right: 55px;
-            border-style: solid;
-            font-size: 12px;
-            position: relative;
-            top: 14px;
+            border: 1px solid #ccc; /* Standard border */
+            border-radius: 4px; /* Rounded corners */
+            font-size: 14px; /* Increased font size */
+            padding: 0 10px; /* Padding inside input */
+            /* position: relative; */ /* Removed if not needed */
+            /* top: 14px; */ /* Removed */
+            box-sizing: border-box;
         }
         ::placeholder {
             color: #B7B5B5;
@@ -183,32 +225,36 @@ $result = $conn->query($sql);
             margin: 0 auto;
             border: 3px solid #A6DDFF;
             border-radius: 8px;
-            height: 470px;
+            height: 415px;
+            max-height: 470px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
         .table-scroll {
-            max-height: 500px;
+            /* max-height: 500px; */ /* This was redundant with table-container max-height */
+            height: 100%; /* Fill the container */
             overflow-y: auto;
-            overflow-x: auto;
-            scrollbar-width: none;
+            overflow-x: auto; /* Keep for wide tables */
+            scrollbar-width: none; /* For Firefox */
         }
 
         .table-scroll::-webkit-scrollbar {
-            display: none;
+            display: none; /* For Chrome, Safari, Opera */
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            border-color: #A6DDFF;
+            /* border-color: #A6DDFF; */ /* Border on container is enough */
             background-color: white;
             
         }
         th, td {
-            padding: 12px 15px;
+            padding: 10px 12px; /* Adjusted padding */
             text-align: left;
-            font-size: 14px;
+            font-size: 13px; /* Adjusted font size */
             border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap; /* Prevent text wrapping that might make rows too tall */
         }
         th {
             background-color: #e3f2fd;
@@ -222,7 +268,7 @@ $result = $conn->query($sql);
             background-color: #2196f3;
             color: white;
             border: none;
-            padding: 8px 14px;
+            padding: 7px 12px; /* Adjusted padding */
             border-radius: 4px;
             cursor: pointer;
             text-decoration: none;
@@ -234,75 +280,66 @@ $result = $conn->query($sql);
         }
         .footbtnContainer {
             width: 90%;
-            height: 20px;
-            margin-left: 60px;
+            /* height: 20px; */ /* Let content define height */
+            margin: 20px auto; /* Adjusted margin */
             display: flex;
-            position: relative;
-            top: 38px;
+            /* position: relative; */ /* Removed */
+            /* top: 38px; */ /* Controlled by margin */
             justify-content: space-between;
             align-items: center;
         }
         .backbtn {
             height: 36px;
             width: 110px;
-            position: relative;
+            /* position: relative; */ /* Removed */
             display: flex;
             align-items: center;
             justify-content: center;
-            bottom: 22px;
+            /* bottom: 22px; */ /* Removed */
             background-color: #004AAD;
             color: #FFFFFF;
             text-decoration: none;
             border-radius: 5px;
+            font-size: 14px; /* Added for consistency */
         }
-        button {
-            background-color: #004AAD;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #FFFFFF;
-            color: #004AAD;
-            border: 2px solid #004AAD;
-        }
-        .footbtnContainer a:hover {
+        .footbtnContainer a.backbtn:hover, .footbtnContainer a.addtenantbtn:hover { /* Target specific links */
             background-color: #FFFFFF;
             color: #004AAD;
             border: 2px solid #004AAD;
         }
         .addtenantbtn {
             height: 36px;
-            width: 255px;
-            position: relative;
+            width: auto; /* Auto width based on content */
+            padding: 0 15px; /* Padding for text */
+            /* position: relative; */ /* Removed */
             display: flex;
             align-items: center;
             justify-content: center;
-            bottom: 20px;
+            /* bottom: 20px; */ /* Removed */
             background-color: #004AAD;
             color: #FFFFFF;
             text-decoration: none;
             border-radius: 5px;
+            font-size: 14px; /* Added for consistency */
         }
         .addtenantbtnIcon {
-            height: 20px;
-            width: 20px;
-            margin-right: 5px;
+            height: 18px; /* Adjusted size */
+            width: 18px; /* Adjusted size */
+            margin-right: 8px; /* Increased margin */
         }
         .footbtnContainer a:hover .addtenantbtnIcon {
             content: url('UnitsInfoIcons/plusblue.png');
         }
         .hamburger {
-            visibility: hidden;
-            width: 0px;
+            display: none; /* Original: visibility: hidden; width: 0px; */
         }
         /* Mobile and Tablet Responsive */
         @media (max-width: 1024px) {
             body {
-            display: flex;
-            margin: 0;
-            background-color: #FFFF;
-            justify-content: center;
+            /* display: flex; */ /* Removed, default is block */
+            /* margin: 0; */
+            /* background-color: #FFFF; */
+            /* justify-content: center; */ /* Removed, not ideal for this layout */
             }
             .sideBar {
                 position: fixed;
@@ -319,86 +356,105 @@ $result = $conn->query($sql);
 
             .hamburger {
                 display: block;
-                position: absolute;
+                position: fixed; /* Changed */
                 top: 25px;
                 left: 20px;
                 z-index: 1100;
                 font-size: 30px;
                 cursor: pointer;
                 color: #004AAD;
-                visibility: visible;
-                width: 10px;
+                /* visibility: visible; */
+                width: auto; /* Changed */
+                background-color: white;
+                padding: 5px 10px;
+                border-radius: 3px;
             }
 
             .mainBody {
                 width: 100%;
-                margin-left: 0 !important;
+                margin-left: 0 !important; /* Ensure full width when sidebar is hidden/overlay */
             }
 
             .header {
-                justify-content: right;
+                justify-content: flex-end; /* Changed */
             }
 
             .mainContent {
                 width: 100%;
                 margin: 0 auto;
+                padding: 15px; /* Added padding */
+                box-sizing: border-box; /* Include padding in width */
             }
 
             .tenantHistoryHead {
                 flex-direction: column;
-                align-items: center;
+                align-items: stretch; /* Stretch items */
                 text-align: center;
             }
 
             .tenantHistoryHead h4 {
-                margin: 20px 0 0 15px;
-                font-size: 30px;
+                margin: 15px 0 10px 0; /* Adjusted margin */
+                font-size: 28px; /* Adjusted */
+                margin-left: 0; /* Center title */
             }
 
             .searbar {
                 width: 90%;
-                margin: 20px auto;
+                margin: 10px auto; /* Centered search bar */
             }
 
             .table-container {
-                width: 100%;
-                overflow-x: auto;
+                width: 100%; /* Full width on mobile */
+                max-width: 100%; /* Override desktop max-width */
+                border-left: none; /* Remove side borders for full bleed */
+                border-right: none;
+                border-radius: 0; /* No radius for full bleed */
+                max-height: calc(100vh - 250px); /* Example dynamic height */
             }
 
             table th, table td {
-                font-size: 10px;
-                padding: 15px 5px;
+                font-size: 11px; /* Adjusted */
+                padding: 8px 5px; /* Adjusted */
             }
             .action-btn {
                 font-size: 10px;
-                padding: 7px;
+                padding: 6px 8px; /* Adjusted */
             }
 
             .footbtnContainer {
                 flex-direction: column;
                 align-items: center;
                 gap: 15px;
-                top: 10px;
-                margin: 0 auto;
+                /* top: 10px; */ /* Position with margin */
+                margin: 20px auto; /* Adjusted */
+                width: 100%;
             }
             .addtenantbtn {
-                font-size: 18px;
-                padding: 5px 10px;
+                font-size: 14px; /* Adjusted */
+                width: 80%;
+                max-width: 280px;
+                /* padding: 5px 10px; */ /* Already has padding */
             }
             .backbtn {
-                visibility: hidden;
+                visibility: visible; /* Make back button visible or hide based on design */
+                /* display: none; */ /* If you want to hide it completely */
+                 width: 80%;
+                 max-width: 280px;
             }
         }
 
         @media (max-width: 480px) {
+            .headerContent { margin-right: 20px; }
             .headerContent a, .adminLogoutspace {
                 font-size: 14px;
             }
             .hamburger {
                 font-size: 28px;
+                top: 15px;
+                left: 15px;
             }
             .sideBar{
-                width: 53vw;
+                width: 220px; /* Adjusted */
             }
             .systemTitle {
                 position: relative;
@@ -416,16 +472,20 @@ $result = $conn->query($sql);
             }
             .card a {
                 font-size: 14px;
+                padding-left: 15px;
             }
             .card img {
-                height: 25px;
+                height: 18px;
+                width: 18px;
+                margin-right: 8px;
             }
-            .table-scroll {
-                width: 600px;
-            }
+            /* .table-scroll { */
+                /* width: 600px; */ /* This will force horizontal scroll if screen is smaller */
+            /* } */
             table th, table td {
-                font-size: 10px;
+                font-size: 10px; /* Further adjust for very small screens */
             }
+            .tenantHistoryHead h4 { font-size: 24px; }
         }
     </style>
 </head>
@@ -479,50 +539,54 @@ $result = $conn->query($sql);
         <div class="mainBody">
             <div class="header">
                 <div class="headerContent">
-                    <a href="ADMINPROFILE.php" class="adminTitle">ADMIN</a>
-                    <p class="adminLogoutspace">&nbsp;|&nbsp;</p>
-                    <a href="LOGIN.php" class="logOutbtn">Log Out</a>
+                    <a href="ADMINPROFILE.php" class="adminTitle"><?php echo $adminDisplayIdentifier; ?></a>
+                    <p class="adminLogoutspace"> | </p>
+                    <a href="LOGIN.php" class="logOutbtn">Log Out</a> <!-- Or to LOGOUT.php -->
                 </div>
             </div>
             <div class="mainContent">
         <div class="tenantHistoryHead">
             <h4>Tenants List</h4>
-            <input type="text" placeholder="Search" class="searbar">
+            <input type="text" placeholder="Search by Name, ID, Contact..." class="searbar"> <!-- Updated placeholder -->
         </div>
         <div class="table-container">
             <div class="table-scroll">
                 <table>
                     <thead>
                         <tr>
-                            <th id="tenant_ID">Tenants<br>ID</th>
-                            <th id="tenant_name">Name</th>
-                            <th id="contact_number">Contact<br>Number</th>
-                            <th id="status">Start<br>Date</th>
-                            <th id="occupant_count">Occupant<br>Count</th>
-                            <th id="deposit">Current<br>Deposit</th>
-                            <th id="balance">Current<br>Balance</th>
-                            <th id="start_date">Status</th>
+                            <th>Tenant ID</th>
+                            <th>Name</th>
+                            <th>Contact Number</th>
+                            <th>Start Date</th>
+                            <th>Occupant Count</th>
+                            <th>Current Deposit (₱)</th> <!-- Added Currency -->
+                            <th>Current Balance (₱)</th> <!-- Added Currency -->
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        if ($result->num_rows > 0) {
+                        // Check if there was a query error before trying to use $result
+                        if (!empty($query_error)) {
+                            echo "<tr><td colspan='9' style='color: red; text-align: center;'>Error loading tenants: " . htmlspecialchars($query_error) . "</td></tr>";
+                        } elseif ($result && $result->num_rows > 0) { // Check if $result is a valid mysqli_result object
                             while ($row = $result->fetch_assoc()) {
                                 echo "<tr>";
                                 echo "<td>" . htmlspecialchars($row["tenant_ID"]) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["tenant_name"]) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["contact_number"]) . "</td>";
+                                // Format date if needed: echo "<td>" . htmlspecialchars(date("M d, Y", strtotime($row["start_date"]))) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["start_date"]) . "</td>";
                                 echo "<td>". htmlspecialchars($row["occupant_count"]) . "</td>";
-                                echo "<td>". htmlspecialchars($row["deposit"]) . "</td>";
-                                echo "<td>". htmlspecialchars($row["balance"]) . "</td>";
+                                echo "<td>". number_format((float)$row["deposit"], 2) . "</td>"; // Format as currency
+                                echo "<td>". number_format((float)$row["balance"], 2) . "</td>"; // Format as currency
                                 echo "<td>" . htmlspecialchars($row["status"]) . "</td>";
                                 echo '<td><a href="TENANTINFORMATION.php?tenant_ID=' . urlencode($row["tenant_ID"]) . '" class="action-btn">View Details</a></td>';
                                 echo "</tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='6'>No tenants found.</td></tr>";
+                            echo "<tr><td colspan='9' style='text-align: center;'>No tenants found.</td></tr>";
                         }
                         ?>
                     </tbody>
@@ -531,21 +595,36 @@ $result = $conn->query($sql);
         </div>
     </div>
             <div class="footbtnContainer">
-                <a href="DASHBOARD.php" class="backbtn">&#10558; Back</a>
-                <a href="TENANTPROFILECREATION.php" class="addtenantbtn">
-                    <img src="UnitsInfoIcons/pluswht.png" alt="Plus Sign" class="addtenantbtnIcon">
-                    Add New Tenant</a>
+                <a href="DASHBOARD.php" class="backbtn">⤾ Back</a>
             </div>
         </div>
     </div>
     <script>
     document.querySelector('.searbar').addEventListener('keyup', function () {
-        const filter = this.value.toLowerCase();
+        const filter = this.value.toLowerCase().trim(); // Added trim
         const rows = document.querySelectorAll('tbody tr');
 
         rows.forEach(row => {
-            const rowText = row.textContent.toLowerCase();
-            row.style.display = rowText.includes(filter) ? '' : 'none';
+            // Check if the row is a 'no results' or 'error' row before hiding
+            if (row.querySelector('td[colspan="9"]')) {
+                // For the "No tenants found" or error message row, always show if filter is empty,
+                // or hide if filter is not empty (as it's not a data row to be filtered)
+                // This part might need more complex logic depending on exact behavior desired for these rows.
+                // For now, we'll assume these rows are not part of the active filtering data.
+                return;
+            }
+
+            let rowVisible = false;
+            // Loop through all cells (td) in the current row
+            row.querySelectorAll('td').forEach(cell => {
+                // Exclude the action button cell from search text
+                if (cell.querySelector('.action-btn')) return;
+
+                if (cell.textContent.toLowerCase().includes(filter)) {
+                    rowVisible = true;
+                }
+            });
+            row.style.display = rowVisible ? '' : 'none';
         });
     });
     function toggleSidebar() {
@@ -555,4 +634,8 @@ $result = $conn->query($sql);
 </script>
 </body>
 </html>
-
+<?php
+if (isset($conn)) { // Close connection if it was opened
+    $conn->close();
+}
+?>

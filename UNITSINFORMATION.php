@@ -1,4 +1,12 @@
 <?php
+session_start();
+
+// Redirect to login if not logged in using 'email_account'
+if (!isset($_SESSION['email_account'])) {
+    // Assuming LOGIN.php is in the same directory or adjust path as needed
+    header("Location: LOGIN.php");
+    exit();
+}
 
 require_once 'db_connect.php';
 
@@ -593,7 +601,7 @@ $conn->close();
                             </div>
                             <a href='OCCUPIEDUNITOVERVIEW.php?unit_no=" . urlencode($unit['unit_no']) . "' class='viewandInfo'>View</a>
                         </div>";
-                    } else if ($unit['unit_status'] === 'Available') {
+                    } else if ($unit['unit_status'] === 'Available' or $unit['unit_status'] === 'Pending') {
                         echo "
                         <div class='statcardAvailableUnit'>
                             <div class='statsInfoAvailableUnit'>

@@ -307,6 +307,7 @@ $conn->close();
             text-align: center;
             margin-top: 5px;
             width: 100%;
+            height: 10px;
 
         }
         .customUploadBtn {
@@ -324,18 +325,18 @@ $conn->close();
         .tenantsInformation {
             display: flex;
             justify-content: space-between;
-            height: 200px;
+            height: auto;
             width: 95%;
             margin-left: 10px;
             position: relative;
-            bottom: 50px;
+            top: 35px;
+            align-items: center;
         }
         .tenantInfoInput1 {
             width: 50%;
             height: 90%;
             margin: auto 0px;
             position: relative;
-            bottom: 25px;
         }
         .tenantInfoInput2 {
             width: 50%;
@@ -343,12 +344,10 @@ $conn->close();
             margin: auto 0px;
             margin-left: 10px;
             position: relative;
-            bottom: 25px;
         }
         .formContainer {
             width: 100%;
             height: 200px;
-            margin-top: 50px;
             margin-left: 15px;
         }
         label {

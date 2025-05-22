@@ -229,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php elseif ($_SESSION['user_type'] === 'tenant'): ?>
           window.location.href = "./tenantwebview/TENANTHOMEPAGE.php";
         <?php else: ?>
-          window.location.href = "USERHOMEPAGE.php";
+          window.location.href = "./tenantwebview/USERHOMEPAGE.php";
         <?php endif; ?>
       }, 2000);
     </script>

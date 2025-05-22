@@ -1,4 +1,13 @@
 <?php
+session_start();
+
+// Redirect to login if not logged in using 'email_account'
+if (!isset($_SESSION['email_account'])) {
+    // Assuming LOGIN.php is in the same directory or adjust path as needed
+    header("Location: LOGIN.php");
+    exit();
+}
+
 // Include the MySQLi database connection
 require_once 'db_connect.php';
 

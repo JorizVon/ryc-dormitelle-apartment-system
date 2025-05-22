@@ -1,14 +1,24 @@
 <?php
-session_start(); // Always start the session to access session variables
+session_start(); // Start session ONCE, at the very beginning
 
 // Redirect to login if not logged in
 if (!isset($_SESSION['email_account'])) {
-    header("Location: ../login.php"); // Change path as needed
+    header("Location: ../LOGIN.php"); // Change path as needed
     exit();
+}
+
+// Reset notification flag once per day
+if (!isset($_SESSION['notif_last_shown']) || $_SESSION['notif_last_shown'] !== date('Y-m-d')) {
+    $_SESSION['notif_shown'] = false;
+    $_SESSION['notif_last_shown'] = date('Y-m-d');
 }
 
 // Connect to the database
 require_once '../db_connect.php';
+
+// Load notifications first before any HTML output
+// Important: we use require_once here to prevent double-loading
+require_once 'NOTIFICATION.php'; // Make sure the filename is correct here
 
 // Query to get available units
 $sql = "SELECT 
@@ -33,7 +43,8 @@ $result = mysqli_query($conn, $sql);
 
 // Check if query executed successfully
 if (!$result) {
-    die("Query failed: " . mysqli_error($conn));
+    error_log("Query failed in TENANTHOMEPAGE.php: " . mysqli_error($conn));
+    $error_message = "Something went wrong loading available units. Please try again later.";
 }
 ?>
 <!DOCTYPE html>
@@ -42,6 +53,10 @@ if (!$result) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Homepage</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Include Bootstrap JS in the head to ensure it's loaded before any modal scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
   <style>
     html {
       scroll-behavior: smooth; /* enables smooth scrolling */
@@ -564,12 +579,14 @@ if (!$result) {
       }
     }
     
+ /*FOOTER*/
     .footer {
-      margin-top: 50px;
+      margin-top: 32vh;
       display: flex;
       justify-content: space-between;
+      align-items: center;
       width: 100%;
-      height: 140px;
+      height: 150px;
     }
     
     .footerContainer {
@@ -583,7 +600,7 @@ if (!$result) {
     
     .contactleftside {
       position: relative;
-      bottom: 13px;
+      top: 10px;
       margin-left: 30px;
     }
     
@@ -688,14 +705,13 @@ if (!$result) {
       }
     }
   </style>
-</head>
 <body>
   <div class="header">
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
         <a href="ACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
-        <a href="LOGIN.php">Log Out</a>
+        <a href="../LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -714,11 +730,83 @@ if (!$result) {
         <div class="loginLogOut">
           <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Login</a>
+          <a href="../LOGIN.php">Log Out</a>
         </div>
       </div>
     </div>
   </div>
+
+  <?php if (isset($_SESSION['current_notification'])): ?>
+<div class="modal fade" id="notifModal" tabindex="-1" aria-labelledby="notifModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow border-0">
+      <!-- Removed header and integrated into body -->
+      <div class="modal-body p-4 text-center">
+        <!-- Email icon -->
+        <div class="mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="#3174D6" class="bi bi-envelope" viewBox="0 0 16 16">
+            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+          </svg>
+        </div>
+        
+        <!-- Date -->
+        <div class="text-muted mb-2">
+          <?php
+            // Format the current date as Apr 24, 2025
+            echo date('M d, Y');
+          ?>
+        </div>
+        
+        <!-- Title -->
+        <h4 class="text-primary fw-bold mb-4">
+          <?= htmlspecialchars($_SESSION['current_notification']['title']); ?>
+        </h4>
+        
+        <!-- Divider line -->
+        <hr class="my-4">
+        
+        <!-- Message content -->
+        <div class="text-start mb-4">
+          <?php
+            // If the notification is about payment, use the simplified format
+            $title = strtolower($_SESSION['current_notification']['title']);
+            if (strpos($title, 'payment') !== false) {
+              echo 'This is a friendly reminder that your rent for ' . date('F Y') . ' is now due.<br>';
+              
+              // Extract the balance from the notification message if available
+              if (preg_match('/Amount Due: ₱([0-9,.]+)/', $_SESSION['current_notification']['message'], $matches)) {
+                $amount = $matches[1];
+              } else if (preg_match('/Amount Outstanding: ₱([0-9,.]+)/', $_SESSION['current_notification']['message'], $matches)) {
+                $amount = $matches[1];
+              } else {
+                $amount = "5,000"; // Default amount if not found
+              }
+              
+              echo "Please settle the amount of ₱{$amount} on or before " . date('F d, Y', strtotime('+6 days')) . ", to avoid any late fees. Thank you for your prompt attention!";
+            } else {
+              // Use the original message for non-payment notifications
+              echo $_SESSION['current_notification']['message'];
+            }
+          ?>
+        </div>
+      </div>
+      
+      <!-- Footer with OK button -->
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-primary px-5 py-2" data-bs-dismiss="modal" style="background-color: #3174D6; border: none;">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initialize and show the notification modal after the page is fully loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    var notifModal = new bootstrap.Modal(document.getElementById('notifModal'));
+    notifModal.show();
+  });
+</script>
+<?php endif; ?>
 
   <div class="mainBody">
     <div class="mainBodyName">
@@ -746,8 +834,9 @@ if (!$result) {
   <div class="availUnits">
     <div class="availUnitsContainer" id="availUnitsContainer">
       <?php
-      // Check if there are any available units
-      if (mysqli_num_rows($result) > 0) {
+      if (isset($error_message)) {
+          echo "<p>$error_message</p>";
+      } elseif (mysqli_num_rows($result) > 0) {
           // Loop through all available units
           while ($row = mysqli_fetch_assoc($result)) {
               ?>
@@ -759,7 +848,7 @@ if (!$result) {
                   <p class="occupant_capacity">Studio unit accommodating up to <?php echo htmlspecialchars($row['occupant_capacity']); ?> persons</p>
                   <p class="unitDetails"><?php echo htmlspecialchars($row['unit_address']); ?></p>
                   <p class="monthly_rent_amount">₱<?php echo number_format($row['monthly_rent_amount']); ?> monthly</p>
-                  <a href="inquire.php?unit_no=<?php echo htmlspecialchars($row['unit_no']); ?>" class="inquireButton">Inquire Now</a>
+                  <a href="INQUIRYPAGE.php?unit_no=<?php echo htmlspecialchars($row['unit_no']); ?>" class="inquireButton">Inquire Now</a>
                 </div>
               </div>
               <?php
@@ -774,8 +863,8 @@ if (!$result) {
   <div class="footer">
     <div class="footerContainer">
       <div class="contactleftside">
-        <h6>Contact Information & Inquiry Form</h6>
-        <p><img src="../tenantviewIcons/profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="../tenantviewIcons/addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br>
+        <h6><b>Contact Information & Inquiry Form</b></h6>
+          <p><img src="../tenantviewIcons/profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="../tenantviewIcons/addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br>
           <img src="../tenantviewIcons/IconMail.png" alt="Mail Icon">Email: kyleangelacatiis@gmail.com<br><img src="../tenantviewIcons/phoneIcon.png" alt="Phone Icon">Phone: 0912-345-6789</p>
       </div>
       <div class="contactrightside">
@@ -805,6 +894,11 @@ if (!$result) {
 </body>
 </html>
 <?php 
+// Clean up the notification session variable after displaying
+if (isset($_SESSION['current_notification'])) {
+    unset($_SESSION['current_notification']);
+}
+
 // Close database connection
 mysqli_close($conn);
 ?>

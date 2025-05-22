@@ -1,39 +1,71 @@
 <?php
+session_start();
+
+// Redirect to login if not logged in using 'email_account'
+if (!isset($_SESSION['email_account'])) {
+    header("Location: LOGIN.php"); // Adjust path if LOGIN.php is not in the same directory
+    exit();
+}
 
 date_default_timezone_set('Asia/Manila');
 
-require_once 'db_connect.php';
+require_once 'db_connect.php'; // Adjust path if db_connect.php is not in the same directory
 
+// Initialize $table_result to null and $query_error
+$table_result = null;
+$query_error_table = ""; 
 
-$table_query = "SELECT payments.transaction_no, tenants.tenant_name, payments.payment_date, 
-                tenant_unit.deposit, payments.amount_paid, tenant_unit.balance, payments.confirmation_status 
+// Main table query - Changed payment_date to payment_date_time
+$table_query = "SELECT payments.transaction_no, tenants.tenant_name, payments.payment_date_time, 
+                tenant_unit.deposit, payments.amount_paid, tenant_unit.balance, payments.payment_method, payments.confirmation_status 
                 FROM payments 
                 INNER JOIN tenants ON payments.tenant_ID = tenants.tenant_ID 
                 INNER JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID 
                 WHERE payments.confirmation_status = 'Pending'";
-$table_result = $conn->query($table_query);
+
+$query_exec_result = $conn->query($table_query);
+
+if ($query_exec_result === false) {
+    $query_error_table = "Error fetching pending payments: " . $conn->error;
+    error_log($query_error_table);
+} else {
+    $table_result = $query_exec_result;
+}
 
 // Query to count payment status occurrences
 $status_query = "SELECT payment_status, COUNT(*) as count FROM payments GROUP BY payment_status";
-$status_result = $conn->query($status_query);
+$status_result_exec = $conn->query($status_query);
 $status_data = [
     'Fully Paid' => 0,
     'Paid Overdue' => 0,
     'Partially Paid' => 0
 ];
-while ($row = $status_result->fetch_assoc()) {
-    $status_data[$row['payment_status']] = $row['count'];
+if ($status_result_exec === false) {
+    error_log("Error fetching payment status counts: " . $conn->error);
+} elseif ($status_result_exec) {
+    while ($row = $status_result_exec->fetch_assoc()) {
+        if (array_key_exists($row['payment_status'], $status_data)) {
+            $status_data[$row['payment_status']] = (int)$row['count'];
+        }
+    }
 }
 
 // Query to count payment method occurrences
 $method_query = "SELECT payment_method, COUNT(*) as count FROM payments GROUP BY payment_method";
-$method_result = $conn->query($method_query);
+$method_result_exec = $conn->query($method_query);
 $method_data = [
     'Gcash' => 0,
-    'Cash' => 0
+    'Cash' => 0,
+    'settle with deposit' => 0
 ];
-while ($row = $method_result->fetch_assoc()) {
-    $method_data[$row['payment_method']] = $row['count'];
+if ($method_result_exec === false) {
+    error_log("Error fetching payment method counts: " . $conn->error);
+} elseif ($method_result_exec) {
+    while ($row = $method_result_exec->fetch_assoc()) {
+        if (array_key_exists($row['payment_method'], $method_data)) {
+            $method_data[$row['payment_method']] = (int)$row['count'];
+        }
+    }
 }
 
 // Prepare the data for Google Charts
@@ -43,28 +75,48 @@ $partially_paid_count = $status_data['Partially Paid'];
 
 $gcash_count = $method_data['Gcash'];
 $cash_count = $method_data['Cash'];
+$settle_deposit_count = $method_data['settle with deposit'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $redirect_needed = false;
+
     if (isset($_POST['confirm_transaction'])) {
         $transaction_no = $_POST['confirm_transaction'];
-        $stmt = $conn->prepare("UPDATE payments SET confirmation_status = 'Confirmed' WHERE transaction_no = ?");
-        $stmt->bind_param("s", $transaction_no);
-        $stmt->execute();
-        $stmt->close();
+        $stmt = $conn->prepare("UPDATE payments SET confirmation_status = 'Confirmed' WHERE transaction_no = ? AND confirmation_status = 'Pending'");
+        if ($stmt) {
+            $stmt->bind_param("s", $transaction_no);
+            $stmt->execute();
+            $stmt->close();
+            $redirect_needed = true;
+        } else {
+            error_log("Error preparing confirm transaction statement: " . $conn->error);
+        }
     }
 
     if (isset($_POST['delete_transaction'])) {
         $transaction_no = $_POST['delete_transaction'];
-        $stmt = $conn->prepare("DELETE FROM payments WHERE transaction_no = ?");
-        $stmt->bind_param("s", $transaction_no);
-        $stmt->execute();
-        $stmt->close();
+        $stmt = $conn->prepare("DELETE FROM payments WHERE transaction_no = ? AND confirmation_status = 'Pending'");
+        if ($stmt) {
+            $stmt->bind_param("s", $transaction_no);
+            $stmt->execute();
+            $stmt->close();
+            $redirect_needed = true;
+        } else {
+            error_log("Error preparing delete transaction statement: " . $conn->error);
+        }
     }
 
-    // Redirect to avoid resubmission
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit;
+    if ($redirect_needed) {
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    }
 }
+
+$adminDisplayIdentifier = "ADMIN";
+if (isset($_SESSION['email_account'])) {
+    // Example: $adminDisplayIdentifier = htmlspecialchars(strtok($_SESSION['email_account'], '@'));
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -72,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <title>Payment Management</title>
     <style>
         body {
@@ -123,18 +174,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: auto 0px auto 0px;
             font-size: 20px;
             padding-left: 20px;
-            font-weight: 200;
+            font-weight: 200; 
             display: flex;
             text-decoration: none;
             align-items: center;
-            color: #01214B;
             height: 100%;
             width: 100%;
             background-color: #004AAD;
             color: white;
         }
         .card a:hover {
-            background-color: 004AAD;
             color: #FFFF;
             background-color: #FFFF;
             color: #004AAD;
@@ -201,43 +250,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-left: 2px;
             text-decoration: none;
         }
-        .headerContent a:hover {
+        .headerContent a.logOutbtn:hover {
             color: #004AAD;
         }
         .mainContent {
-            height: 100%;
+            height: calc(100% - 13vh);
             width: 100%;
             margin: 0px auto;
             background-color: #FFFF;
             padding: 20px 0;
+            overflow-y: auto; 
         }
         .tenantHistoryHead {
             display: flex;
-            width: 100%;
+            width: calc(94% - 40px); 
             align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            height: 10px;
-            position: relative;
-            bottom: 10px;
+            flex-wrap: wrap; 
+            margin: 0 auto 10px auto; 
+            justify-content: space-between; 
         }
         .tenantHistoryHead h4 {
             color: #01214B;
-            font-size: 32px;
-            margin-left: 60px;
-            height: 20px;
-            align-items: center;
-            margin-right: 20px;
+            font-size: 30px; 
+            margin-right: 20px; 
+            margin-top: 0;
+            margin-bottom: 10px; 
         }
         .searbar {
-            height: 20px;
+            height: 30px; 
             width: 270px;
-            margin-left: 95px;
-            border-style: solid;
-            font-size: 12px;
-            position: relative;
-            top: 14px;
-            
+            border: 1px solid #ccc; 
+            border-radius: 4px;
+            font-size: 14px; 
+            padding: 0 10px;
+            box-sizing: border-box;
         }
         ::placeholder {
             color: #B7B5B5;
@@ -245,26 +291,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .tenantInfoandGraphs {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: wrap; 
             justify-content: space-between;
             width: 94%;
-            margin: 0 auto;
-            position: relative;
-            height: 400px;
-            top: 70px;
+            margin: 0 auto; 
+            gap: 20px; 
         }
         .table_container {
-            width: 65%;
+            flex-basis: 63%; 
+            min-width: 300px; 
+            flex-grow: 1;
             border: 3px solid #A6DDFF;
             border-radius: 8px;
-            height: auto;
-            max-height: 400px;
-            overflow: hidden;
+            max-height: 400px; 
+            overflow: hidden; 
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
         }
         .table_scroll {
-            max-height: 470px;
+            height: 100%; 
             overflow-y: auto;
             scrollbar-width: thin;
         }
@@ -278,15 +322,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         table {
             width: 100%;
             border-collapse: collapse;
-            border-color: #A6DDFF;
             background-color: white;
-            table-layout: fixed;
+            table-layout: fixed; 
         }
         th, td {
-            padding: 12px 8px;
+            padding: 10px 8px; 
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
-            font-size: 14px;
+            font-size: 13px; 
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -294,7 +337,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         th {
             background-color: #e3f2fd;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 12px; 
             position: sticky;
             top: 0;
             z-index: 1;
@@ -303,48 +346,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #2196f3;
             color: white;
             border: none;
-            padding: 7px 10px;
+            padding: 6px 9px; 
             border-radius: 4px;
             cursor: pointer;
             text-decoration: none;
-            font-size: 14px;
+            font-size: 12px; 
             white-space: nowrap;
         }
         .action_btn:hover {
             background-color: #1976d2;
         }
         .footbtnContainer {
-            width: 90%;
-            margin: 30px auto 0;
+            width: 94%; 
+            margin: 20px auto 0; 
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 100px;
-            position: relative;
-            top: 40px;
-        }
-
-        button {
-            background-color: #004AAD;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #FFFFFF;
-            color: #004AAD;
-            border: 2px solid #004AAD;
-            font-size: 12px;
+            margin-top: 35px;
         }
         .graphsplacement {
-            width: 33%;
-            height: 400px;
+            flex-basis: 34%; 
+            min-width: 280px; 
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            position: relative;
-            bottom: 50px;
         }
         .monthlyRevenueTitle {
             display: flex;
@@ -354,51 +379,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex-wrap: wrap;
         }
         .monthlyRevenueTitle h3 {
-            margin: 5px;
-            font-size: 16px;
+            margin: 5px 3px; 
+            font-size: 15px; 
         }
-        .graphsplacement h4 {
+        .graphsplacement h4 { 
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 10px 0;
-            font-size: 16px;
+            margin: 8px 0; 
+            font-size: 15px; 
             text-align: center;
         }
         .bargraphContainer {
             width: 100%;
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px; 
+            flex-grow: 1; 
+            min-height: 180px; 
         }
         .bargraph {
             width: 100%;
-            height: 200px;
         }
         .pieChartTitle {
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 10px 0;
-            font-size: 16px;
+            margin: 8px 0; 
+            font-size: 15px; 
             text-align: center;
         }
         .piechartContainer {
             width: 100%;
             display: flex;
             justify-content: center;
+            flex-grow: 1; 
+            min-height: 180px; 
         }
         .pieChart {
             width: 100%;
-            height: 200px;
         }
-        .footbtnContainer a:hover {
+        .footbtnContainer a.backbtn:hover, .footbtnContainer a.viewtransactionhistory:hover { 
             background-color: #FFFFFF;
             color: #004AAD;
             border: 2px solid #004AAD;
-            height: 33px;
         }
         .viewtransactionhistory {
             height: 36px;
@@ -425,49 +451,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 5px;
             font-size: 14px;
         }
-        .viewtransactionHistory {
-            height: 20px;
-            width: 20px;
-            margin-right: 5px;
-        }
         .hamburger {
-            visibility: hidden;
-            width: 0px;
+            display: none; 
         }
         
         /* Mobile and Tablet Responsive */
-        @media (max-width: 1199px) {
+        @media (max-width: 1199px) { 
             .tenantInfoandGraphs {
-                flex-direction: block;
-                top:60px;
-                height: 500px;
-            }
-            .tenantHistoryHead {
-                display: block;
+                flex-direction: column; 
             }
             .table_container {
-                bottom: 30px;
-            }
-            .table_container, .graphsplacement {
-                width: 100%;
-                margin-bottom: 40px;
-                bottom: 20px;
+                flex-basis: auto; 
+                width: 100%; 
             }
             .graphsplacement {
-                order: 1; /* Show graphs first on smaller screens */
+                flex-basis: auto; 
+                width: 100%; 
             }
-            .bargraph, .pieChart {
-                height: 250px;
+            .bargraphContainer, .piechartContainer {
+                min-height: 220px; 
             }
             .footbtnContainer {
-                top: 220px;
+                margin-top: 20px;
             }
         }
         
         @media (max-width: 1024px) {
-            body {
-                justify-content: center;
-            }
             .sideBar {
                 position: fixed;
                 left: -100%;
@@ -476,29 +485,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 z-index: 1000;
                 transition: 0.3s ease;
             }
-
             .sideBar.active {
                 left: 0;
             }
-
             .hamburger {
                 display: block;
-                position: absolute;
+                position: fixed; 
                 top: 25px;
                 left: 20px;
                 z-index: 1100;
                 font-size: 30px;
                 cursor: pointer;
                 color: #004AAD;
-                visibility: visible;
-                width: 10px;
+                width: auto; 
+                background-color: white;
+                padding: 5px 10px;
+                border-radius: 3px;
             }
             .mainBody {
                 width: 100%;
-                margin-left: 0 !important;
+                margin-left: 0 !important; 
             }
             .header {
-                justify-content: flex-end;
+                justify-content: flex-end; 
                 padding-right: 15px;
             }
             .headerContent {
@@ -506,17 +515,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             .tenantHistoryHead {
                 flex-direction: column;
-                align-items: flex-start;
-                margin-top: 10px;
+                align-items: stretch; 
+                width: calc(100% - 30px); 
             }
             .tenantHistoryHead h4 {
-                margin-bottom: 15px;
-                margin-left: 20px;
+                margin-bottom: 10px; 
+                margin-left: 0; 
+                text-align: center;
             }
             .searbar {
-                margin-left: 20px;
-                width: calc(100% - 50px);
-                margin-bottom: 20px;
+                margin-left: 0; 
+                width: 100%; 
+                margin-bottom: 15px; 
             }
             .footbtnContainer {
                 flex-direction: column;
@@ -534,17 +544,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 width: 80%;
                 max-width: 250px;
             }
-            
-            /* Make table responsive */
-            table {
-                table-layout: auto;
-            }
-            
-            /* Adjust columns for smaller screens */
-            th:nth-child(3), td:nth-child(3),  /* Payment Date */
-            th:nth-child(4), td:nth-child(4),  /* Deposit */
-            th:nth-child(6), td:nth-child(6) { /* Balance */
-                display: none;
+            .table_container {
+                max-width: 100%;
+                border-left: none;
+                border-right: none;
+                border-radius: 0;
             }
         }
 
@@ -556,7 +560,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 font-size: 28px;
             }
             .sideBar{
-                width: 53vw;
+                width: 220px; 
             }
             .systemTitle {
                 position: relative;
@@ -573,35 +577,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             .card a {
                 font-size: 14px;
+                padding-left: 15px;
             }
             .card img {
-                height: 25px;
+                height: 18px;
+                width: 18px;
+                margin-right: 8px;
             }
             .tenantHistoryHead h4 {
                 font-size: 24px;
             }
-            
-            /* Further simplify table on mobile */
-            th:nth-child(5), td:nth-child(5) { /* Amount */
-                display: none;
-            }
-            
             th, td {
                 padding: 8px 5px;
-                font-size: 12px;
+                font-size: 11px; 
             }
-            
             .action_btn {
-                padding: 5px;
-                font-size: 12px;
+                padding: 5px 7px; 
+                font-size: 11px; 
             }
-            
-            /* Improve graphs for mobile */
             .monthlyRevenueTitle h3 {
-                font-size: 16px;
+                font-size: 14px; 
             }
-            .graphsplacement h4 {
-                font-size: 14px;
+            .graphsplacement h4 { 
+                font-size: 13px; 
             }
         }
     </style>
@@ -655,15 +653,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="mainBody">
         <div class="header">
             <div class="headerContent">
-                <a href="ADMINPROFILE.php" class="adminTitle">ADMIN</a>
-                <p class="adminLogoutspace">&nbsp;|&nbsp;</p>
+                <a href="ADMINPROFILE.php" class="adminTitle"><?php echo htmlspecialchars($adminDisplayIdentifier); ?></a>
+                <p class="adminLogoutspace"> | </p>
                 <a href="LOGIN.php" class="logOutbtn">Log Out</a>
             </div>
         </div>
         <div class="mainContent">
             <div class="tenantHistoryHead">
                 <h4>Payment Management</h4>
-                <input type="text" placeholder="Search by name or date..." class="searbar" id="searchInput" onkeyup="searchTable()">
+                <input type="text" placeholder="Search by Tx No, Name, Date..." class="searbar" id="searchInput" onkeyup="searchTable()">
             </div>
             <div class="tenantInfoandGraphs">
                 <div class="table_container">
@@ -673,70 +671,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                           <tr>
                             <th>Tx no.</th>
                             <th>Tenant</th>
-                            <th>Date</th>
-                            <th>Deposit</th>
-                            <th>Amount</th>
-                            <th>Balance</th>
+                            <th>Date & Time</th>
+                            <th>Deposit (₱)</th>
+                            <th>Amount (₱)</th>
+                            <th>Balance (₱)</th>
+                            <th>Payment Method</th>
                             <th>Status</th>
                             <th>Confirm</th>
                             <th>Cancel</th>
                           </tr>
                         </thead>
                         <tbody>
-                            <?php if ($table_result->num_rows > 0): ?>
-                                <?php while ($row = $table_result->fetch_assoc()): ?>
+                            <?php
+                            if (!empty($query_error_table)) {
+                                echo "<tr><td colspan='9' style='color:red; text-align:center;'>" . htmlspecialchars($query_error_table) . "</td></tr>";
+                            } elseif ($table_result && $table_result->num_rows > 0) {
+                                while ($row = $table_result->fetch_assoc()) { ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($row['transaction_no']); ?></td>
                                         <td><?php echo htmlspecialchars($row['tenant_name']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['payment_date']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['deposit']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['amount_paid']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['balance']); ?></td>
+                                        <td><?php echo htmlspecialchars(date("M d, Y h:i A", strtotime($row['payment_date_time']))); ?></td> <!-- Changed and Formatted -->
+                                        <td><?php echo number_format((float)$row['deposit'], 2); ?></td>
+                                        <td><?php echo number_format((float)$row['amount_paid'], 2); ?></td>
+                                        <td><?php echo number_format((float)$row['balance'], 2); ?></td>
+                                        <td><?php echo htmlspecialchars($row['payment_method']); ?></td>
                                         <td><?php echo htmlspecialchars($row['confirmation_status']); ?></td>
                                         <td>
+                                            <?php if (strtolower($row['confirmation_status']) === 'pending'): ?>
                                             <form method="POST" style="display:inline;">
                                                 <input type="hidden" name="confirm_transaction" value="<?php echo htmlspecialchars($row['transaction_no']); ?>">
                                                 <button type="submit" class="action_btn">Confirm</button>
                                             </form>
+                                            <?php else: echo htmlspecialchars($row['confirmation_status']); endif; ?>
                                         </td>
                                         <td>
+                                            <?php if (strtolower($row['confirmation_status']) === 'pending'): ?>
                                             <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to cancel this transaction?');">
                                                 <input type="hidden" name="delete_transaction" value="<?php echo htmlspecialchars($row['transaction_no']); ?>">
-                                                <button type="submit" class="action_btn">Cancel</button>
+                                                <button type="submit" class="action_btn" style="background-color: #f44336;">Cancel</button>
                                             </form>
+                                            <?php else: echo "N/A"; endif; ?>
                                         </td>
                                     </tr>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="9">No payment records found.</td>
-                                </tr>
-                            <?php endif; ?>
+                                <?php } // End while loop
+                            } else { // End if $table_result->num_rows > 0
+                                echo "<tr><td colspan='9' style='text-align:center;'>No pending payment records found.</td></tr>";
+                            } // End else
+                            ?>
                             </tbody>
                       </table>
                     </div>
                 </div>
                 <div class="graphsplacement">
                     <div class="monthlyRevenueTitle">
-                        <h3>Monthly Revenue Summary</h3>
-                        <h3>(</h3>
-                        <h3 id="RevenuecurrentMonth">March 2025</h3>
-                        <h3>)</h3>
+                        <h3>Payment Summary</h3>
+                        <h3 id="RevenuecurrentMonth"></h3>
                     </div>
-                    <h4>Units Paid vs. Overdue Payments vs. Pending</h4>
+                    <h4>Payment Status Distribution</h4>
                     <div class="bargraphContainer">
                         <div id="chart_div" class="bargraph"></div>
                     </div>
-                    <h3 class="pieChartTitle">Payment Methods Breakdown</h3>
+                    <h4 class="pieChartTitle">Payment Methods Breakdown</h4>
                     <div class="piechartContainer">
                         <div id="piechart" class="pieChart"></div>
                     </div>
                 </div>
             </div>
             <div class="footbtnContainer">
-                <a href="DASHBOARD.php" class="backbtn">&#10558; Back</a>
+                <a href="DASHBOARD.php" class="backbtn">⤾ Back</a>
                 <a href="TRANSACTIONHISTORY.php" class="viewtransactionhistory">
-                    Transaction History</a>
+                    View All Transaction History</a>
             </div>
         </div>
     </div>
@@ -748,86 +752,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             drawBarChart();
             drawPieChart();
             
-            // Redraw charts when window is resized
             window.addEventListener('resize', function() {
-                drawBarChart();
-                drawPieChart();
+                setTimeout(function() {
+                    drawBarChart();
+                    drawPieChart();
+                }, 250);
             });
+        }
+
+        function getResponsiveFontSize() {
+            if (window.innerWidth < 480) return 8;
+            if (window.innerWidth < 768) return 9;
+            if (window.innerWidth < 1024) return 10;
+            return 11;
         }
 
         function drawBarChart() {
             var data = google.visualization.arrayToDataTable([
-                ['Payment Status', 'Number of Tenants', { role: 'style' }],
-                ['Fully Paid', <?php echo $fully_paid_count ?? 8; ?>, 'color: green'],
-                ['Paid Overdue', <?php echo $paid_overdue_count ?? 3; ?>, 'color: red'],
-                ['Partially Paid', <?php echo $partially_paid_count ?? 5; ?>, 'color: orange']
+                ['Payment Status', 'Count', { role: 'style' }],
+                ['Fully Paid', <?php echo $fully_paid_count; ?>, 'color: #4CAF50'],
+                ['Paid Overdue', <?php echo $paid_overdue_count; ?>, 'color: #F44336'],
+                ['Partially Paid', <?php echo $partially_paid_count; ?>, 'color: #FF9800']
             ]);
 
             var options = {
                 title: '',
-                hAxis: {
-                    title: 'Payment Status',
-                    textStyle: {
-                        fontSize: getResponsiveFontSize()
-                    }
-                },
-                vAxis: {
-                    title: 'Number of Tenants',
-                    textStyle: {
-                        fontSize: getResponsiveFontSize()
-                    }
-                },
+                hAxis: { title: 'Payment Status', textStyle: { fontSize: getResponsiveFontSize() } },
+                vAxis: { title: 'Number of Payments', minValue: 0, textStyle: { fontSize: getResponsiveFontSize() } },
                 legend: { position: 'none' },
-                chartArea: {
-                    width: '80%',
-                    height: '70%'
-                },
-                animation: {
-                    startup: true,
-                    duration: 1000,
-                    easing: 'out'
-                }
+                chartArea: { width: '80%', height: '70%' },
+                animation: { startup: true, duration: 1000, easing: 'out' },
+                bar: { groupWidth: "60%" }
             };
 
             var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
             chart.draw(data, options);
         }
         
-        function getResponsiveFontSize() {
-            return window.innerWidth < 600 ? 8 : 
-                   window.innerWidth < 900 ? 10 : 12;
-        }
-
         function drawPieChart() {
             var data = google.visualization.arrayToDataTable([
-                ['Mode of Payment', 'Percentage'],
-                ['Gcash', <?php echo $gcash_count ?? 12; ?>],
-                ['Cash', <?php echo $cash_count ?? 4; ?>]
+                ['Mode of Payment', 'Count'],
+                ['Gcash', <?php echo $gcash_count; ?>],
+                ['Cash', <?php echo $cash_count; ?>],
+                ['settle with deposit', <?php echo $settle_deposit_count; ?>]
             ]);
 
             var options = {
                 title: '',
-                pieHole: 0,
+                pieHole: 0.3,
                 pieSliceText: 'percentage',
                 slices: {
-                    0: { color: '#2196f3' },  // GCash - Blue
-                    1: { color: '#ffa500', offset: 0.1 }  // Cash - Orange and pulled out
+                    0: { color: '#2196f3' },
+                    1: { color: '#FFC107' },
+                    2: { color: '#9C27B0' } 
                 },
-                legend: {
-                    position: 'labeled',
-                    textStyle: {
-                        fontSize: getResponsiveFontSize()
-                    }
-                },
-                chartArea: {
-                    width: '90%',
-                    height: '80%'
-                },
-                animation: {
-                    startup: true,
-                    duration: 1000,
-                    easing: 'out'
-                }
+                legend: { position: 'bottom', alignment: 'center', textStyle: { fontSize: getResponsiveFontSize() } },
+                chartArea: { width: '90%', height: '75%' },
+                animation: { startup: true, duration: 1000, easing: 'out' }
             };
 
             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
@@ -835,23 +816,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         function searchTable() {
-            const input = document.getElementById("searchInput").value.toLowerCase();
+            const input = document.getElementById("searchInput").value.toLowerCase().trim();
             const table = document.getElementById("paymentTable");
             const tr = table.getElementsByTagName("tr");
+            let found = false; 
 
-            for (let i = 1; i < tr.length; i++) {
-                const tdName = tr[i].getElementsByTagName("td")[1]; // Tenant Name
-                const tdDate = tr[i].getElementsByTagName("td")[2]; // Payment Date
+            for (let i = 1; i < tr.length; i++) { 
+                const row = tr[i];
+                if (row.getElementsByTagName("td").length === 1 && row.getElementsByTagName("td")[0].colSpan === 9) {
+                    continue; 
+                }
 
-                if (tdName && tdDate) {
-                    const nameText = tdName.textContent.toLowerCase();
-                    const dateText = tdDate.textContent.toLowerCase();
+                const tdTxNo = row.getElementsByTagName("td")[0];
+                const tdName = row.getElementsByTagName("td")[1];
+                const tdDate = row.getElementsByTagName("td")[2]; // This now contains date and time
+                let rowVisible = false;
 
-                    if (nameText.includes(input) || dateText.includes(input)) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
+                if (tdTxNo && tdTxNo.textContent.toLowerCase().includes(input)) rowVisible = true;
+                if (tdName && tdName.textContent.toLowerCase().includes(input)) rowVisible = true;
+                if (tdDate && tdDate.textContent.toLowerCase().includes(input)) rowVisible = true; 
+                
+                row.style.display = rowVisible ? "" : "none";
+                if (rowVisible) found = true;
+            }
+            const noRecordsRow = table.querySelector('td[colspan="9"]');
+            if (noRecordsRow) {
+                if (!found && input !== "" && tr.length > 1 && !(tr.length === 2 && tr[1].style.display === 'none' && noRecordsRow.parentNode === tr[1])) { 
+                    noRecordsRow.textContent = "No matching records found for your search.";
+                    noRecordsRow.parentNode.style.display = ""; 
+                } else if (input === "" && tr.length > 1 && noRecordsRow.textContent.includes("No pending payment records found.")) { 
+                     noRecordsRow.parentNode.style.display = "";
+                } else if (tr.length <=1) { 
+                     noRecordsRow.parentNode.style.display = "";
+                }
+                else { 
+                    noRecordsRow.parentNode.style.display = "none";
                 }
             }
         }
@@ -861,7 +860,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             sidebar.classList.toggle('active');
         }
         
-        // Set current month name
         window.onload = function() {
             const months = [
                 'January', 'February', 'March', 'April', 'May', 'June', 
@@ -870,8 +868,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const currentDate = new Date();
             const monthName = months[currentDate.getMonth()];
             const year = currentDate.getFullYear();
-            document.getElementById('RevenuecurrentMonth').textContent = `${monthName} ${year}`;
+            const revenueMonthElement = document.getElementById('RevenuecurrentMonth');
+            if(revenueMonthElement) { 
+                 revenueMonthElement.textContent = `(${monthName} ${year})`;
+            }
+            if(document.getElementById("paymentTable")){
+                 searchTable();
+            }
         };
     </script>
 </body>
 </html>
+<?php
+if (isset($conn)) { 
+    $conn->close();
+}
+?>

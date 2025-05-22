@@ -14,10 +14,20 @@ $email = $_SESSION['email_account'];
 $query = "SELECT `amount_paid`, `payment_date_time`, `transaction_type` FROM `payments` 
           INNER JOIN `tenants`
           ON payments.tenant_ID = tenants.tenant_ID
-          WHERE tenants.email = ?
+          WHERE tenants.email = ? AND payments.confirmation_status = 'confirmed'
           ORDER BY payment_date_time DESC";
 
+// Check if the connection is valid
+if (!$conn) {
+    die("Connection failed: Unable to connect to database");
+}
+
+// Prepare statement with error handling
 $stmt = $conn->prepare($query);
+if (!$stmt) {
+    die("Preparation failed: " . $conn->error);
+}
+
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -42,6 +52,8 @@ $current_date = date('M j, Y');
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Transaction History</title>
+
+</head>
   <style>
     body {
       margin: 0;
@@ -576,14 +588,13 @@ $current_date = date('M j, Y');
       }
     }
   </style>
-</head>
 <body>
   <div class="header">
     <div class="hanburgerandaccContainer">
       <button class="hamburger" onclick="toggleMenu()">☰</button>
       <div class="adminSection">
         <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
-        <a href="LOGIN.php">Log Out</a>
+        <a href="../LOGIN.php">Log Out</a>
       </div>
     </div>
     <div class="containerSystemName" id="containerSystemName">
@@ -594,15 +605,15 @@ $current_date = date('M j, Y');
     </div>
     <div class="navbar" id="navbar">
       <div class="navbarContent">
-        <a href="USERHOMEPAGE.php">Home</a>
-        <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
-        <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
+        <a href="TENANTHOMEPAGE.php">Home</a>
+        <a href="TENANTHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
+        <a href="TENANTHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
         <a href="TRANSACTIONSPAGE.php">Transactions</a>
         <a href="INBOXPAGE.php">Inbox</a>
         <div class="loginLogOut">
           <a href="ACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
           <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="LOGIN.php">Login</a>
+          <a href="../LOGIN.php">Log Out</a>
         </div>
       </div>
     </div>

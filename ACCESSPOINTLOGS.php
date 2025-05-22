@@ -1,4 +1,12 @@
 <?php
+session_start(); // Start session at the very beginning
+
+// Redirect to login if not logged in using 'email_account'
+if (!isset($_SESSION['email_account'])) {
+    // Assuming LOGIN.php is in the same directory or adjust path if it's in parent (../LOGIN.php)
+    header("Location: LOGIN.php");
+    exit();
+}
 
 require_once 'db_connect.php';
 

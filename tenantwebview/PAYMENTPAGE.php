@@ -38,8 +38,8 @@ $source_data = array(
             'currency' => 'PHP',
             'type' => 'gcash',
             'redirect' => array(
-                'success' => 'http://127.0.0.1/RYC-DORMITELLE-APT-SYSTEM/tenantwebview/PAYMENTSUCCESS.php',
-                'failed' => 'http://127.0.0.1/RYC-DORMITELLE-APT-SYSTEM/tenantwebview/PAYMENTFAILED.php'
+                'success' => 'http://127.0.0.1/ryc-dormitelle-apartment-system/tenantwebview/PAYMENTSUCCESS.php',
+                'failed' => 'http://127.0.0.1/ryc-dormitelle-apartment-system/tenantwebview/PAYMENTFAILED.php'
             ),
             'billing' => array(
                 'name' => $tenant_name,
@@ -67,7 +67,7 @@ curl_close($ch);
 
 if ($err) {
     $_SESSION['payment_error'] = "cURL Error: " . $err;
-    header("Location: http://127.0.0.1/RYC-DORMITELLE-APT-SYSTEM/tenantwebview/PAYMENTFAILED.php");
+    header("Location: http://127.0.0.1/ryc-dormitelle-apartment-system/tenantwebview/PAYMENTFAILED.php");
     exit();
 }
 
@@ -96,7 +96,7 @@ if (isset($result['data']) && isset($result['data']['id']) && isset($result['dat
     if (isset($result['errors'])) {
         $_SESSION['payment_error'] .= " Error: " . json_encode($result['errors']);
     }
-    header("Location: http://127.0.0.1/RYC-DORMITELLE-APT-SYSTEM/tenantwebview/PAYMENTFAILED.php");
+    header("Location: http://127.0.0.1/ryc-dormitelle-apartment-system/tenantwebview/PAYMENTFAILED.php");
     exit();
 }
 ?>
