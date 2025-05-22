@@ -402,14 +402,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     .pageTitle {
-        height: 100px;
+        height: 105px;
         display: flex;
         align-items: center;
         border-bottom: solid 1px #2262B8;
     }
     .pageTitle h1 {
         margin-left: 60px;
-        margin-top: 40px;
+        margin-top: 45px;
         font-size: 33px;
         color: #2262B8;
     }
