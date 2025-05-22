@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 18, 2025 at 01:59 PM
+-- Generation Time: May 22, 2025 at 10:41 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `ryc_dormitelle`
+-- Database: `ryc_dormitelle_dbs`
 --
 
 -- --------------------------------------------------------
@@ -139,28 +139,9 @@ CREATE TABLE `accounts` (
 --
 
 INSERT INTO `accounts` (`account_ID`, `username`, `email_account`, `password`, `user_type`) VALUES
-(1, 'Admin123', 'gjorizvon@gmail.com', '$2y$10$7ZibYsklvEX2FFkkHcu5/OuwmifG9b5GJBOsCKb2ROuy5ieCYUcD2', 'admin'),
+(1, 'joriz123', 'gjorizvon@gmail.com', '$2y$10$JTZ2uFFjAO4NLABR9QzFAe9AOBKZ0/WIX56W66jFOJNMQBEogsjYq', 'admin'),
 (2, 'abel123', 'abel@gmail.com', '$2y$10$LtNStjSWtbJfPUx2lX/t5.rro7VsJYGKXMdytbeCjyVp7u97sgUt2', 'tenant'),
 (3, 'kyle0123', 'kyle@gmail.com', '$2y$10$CeAEMCakg7cXAEKFlDG/4eiXOI9flTcatWC1Rp5GlTlAo.DsVaDKS', 'user');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `admin_account`
---
-
-CREATE TABLE `admin_account` (
-  `admin_ID` smallint(4) NOT NULL,
-  `username` varchar(30) NOT NULL,
-  `password` varchar(70) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `admin_account`
---
-
-INSERT INTO `admin_account` (`admin_ID`, `username`, `password`) VALUES
-(1, 'Admin1234', '$2y$10$4MXBrqHzK6Zp2GCq0suqu.qx7fkrR11bR.wZoiIGjX6gKEPZP6Ieu');
 
 -- --------------------------------------------------------
 
@@ -187,6 +168,30 @@ INSERT INTO `card_registration` (`card_no`, `unit_no`, `tenant_ID`, `registratio
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `notification_inbox`
+--
+
+CREATE TABLE `notification_inbox` (
+  `notif_date_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `tenant_ID` varchar(12) NOT NULL,
+  `notif_title` varchar(100) NOT NULL,
+  `notif_description` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notification_inbox`
+--
+
+INSERT INTO `notification_inbox` (`notif_date_time`, `tenant_ID`, `notif_title`, `notif_description`) VALUES
+('2025-05-21 08:48:41', '20250423A003', 'Billing Period Begins Today', 'Your billing period for A-003 starts today, May 21, 2025, and ends May 26, 2025.<br>You can view your rent amount anytime in the resident portal.<br><br>Thanks for staying on top of it!'),
+('2025-05-21 03:10:14', '20250423A003', 'DEBUG: Test Notification', 'This is a test notification to verify tenant_ID insertion. Your tenant ID is: 20250423A003'),
+('2025-05-21 03:10:18', '20250423A003', 'DEBUG: Test Notification', 'This is a test notification to verify tenant_ID insertion. Your tenant ID is: 20250423A003'),
+('2025-05-21 03:53:18', '20250423A003', 'DEBUG: Test Notification', 'This is a test notification to verify tenant_ID insertion. Your tenant ID is: 20250423A003'),
+('2025-05-21 03:53:40', '20250423A003', 'DEBUG: Test Notification', 'This is a test notification to verify tenant_ID insertion. Your tenant ID is: 20250423A003');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `payments`
 --
 
@@ -195,26 +200,24 @@ CREATE TABLE `payments` (
   `unit_no` varchar(10) NOT NULL,
   `tenant_ID` varchar(12) NOT NULL,
   `amount_paid` int(6) NOT NULL,
-  `payment_date` date NOT NULL,
+  `payment_date_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `payment_status` varchar(15) NOT NULL,
   `payment_method` varchar(30) NOT NULL,
   `transaction_type` varchar(15) NOT NULL,
-  `confirmation_status` varchar(15) NOT NULL
+  `confirmation_status` varchar(15) NOT NULL,
+  `source_id` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `payments`
 --
 
-INSERT INTO `payments` (`transaction_no`, `unit_no`, `tenant_ID`, `amount_paid`, `payment_date`, `payment_status`, `payment_method`, `transaction_type`, `confirmation_status`) VALUES
-('202504210001', 'A-001', '20250421A001', 10000, '2025-04-16', 'Fully Paid', 'Gcash', 'Rent Payment', 'Confirmed'),
-('202504210002', 'A-003', '20250423A003', 10000, '2025-04-29', 'Paid Overdue', 'Cash', 'Deposit', 'Pending'),
-('20250518', 'A-003', '20250423', 5000, '2025-05-18', 'Partially Paid', 'settle with deposit', 'Use Deposit', 'pending'),
-('202505180002', 'A-003', '20250423', 5000, '2025-05-18', 'Partially Paid', 'settle with deposit', 'Use Deposit', 'pending'),
-('202505180003', 'A-003', '20250423A003', 5000, '2025-05-18', 'Paid Overdue', 'settle with deposit', 'Use Deposit', 'pending'),
-('202505180004', 'A-003', '20250423A003', 5000, '2025-05-18', 'Paid Overdue', 'settle with deposit', 'Use Deposit', 'pending'),
-('202505180005', 'A-003', '20250423A003', 5000, '2025-05-18', 'Paid Overdue', 'settle with deposit', 'Use Deposit', 'pending'),
-('202505180006', 'A-003', '20250423A003', 5000, '2025-05-18', 'Paid Overdue', 'settle with deposit', 'Use Deposit', 'pending');
+INSERT INTO `payments` (`transaction_no`, `unit_no`, `tenant_ID`, `amount_paid`, `payment_date_time`, `payment_status`, `payment_method`, `transaction_type`, `confirmation_status`, `source_id`) VALUES
+('202505210001', 'A-003', '20250423A003', 1000, '2025-05-21 09:44:04', 'Added Deposit', 'Cash', 'Add to Deposit', 'confirmed', ''),
+('202505210002', 'A-003', '20250423A003', 10000, '2025-05-21 09:39:25', 'Paid Overdue', 'Gcash', 'Rent Payment', 'Pending', 'src_MjsYMwGyLiaabjLAUkJrkr75'),
+('202505210003', 'A-003', '20250423A003', 500, '2025-05-21 03:41:22', 'Added Deposit', 'Cash', 'Add to Deposit', 'pending', ''),
+('202505210004', 'A-003', '20250423A003', 10000, '2025-05-21 09:41:56', 'Paid Overdue', 'Gcash', 'Rent Payment', 'pending', 'src_qvdQrYbZexuqmV5ozNQtGoLS'),
+('202505210005', 'A-003', '20250423A003', 25000, '2025-05-21 03:42:24', 'Paid Overdue', 'settle with deposit', 'Use Deposit', 'pending', '');
 
 -- --------------------------------------------------------
 
@@ -233,6 +236,13 @@ CREATE TABLE `pending_inquiry` (
   `end_date` date NOT NULL,
   `payment_due_date` varchar(30) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `pending_inquiry`
+--
+
+INSERT INTO `pending_inquiry` (`inquiry_date_time`, `unit_no`, `full_name`, `contact_no`, `email`, `pref_move_date`, `start_date`, `end_date`, `payment_due_date`) VALUES
+('2025-05-21 15:33:17', 'A-004', 'kyle angela catiis', '+639123456789', 'kyle@gmail.com', '2025-05-21', '2025-05-20', '2026-06-24', 'Every 20th day of the month');
 
 -- --------------------------------------------------------
 
@@ -258,7 +268,8 @@ INSERT INTO `tenants` (`tenant_ID`, `tenant_name`, `contact_number`, `email`, `e
 ('20250421A001', 'Kyle Catiis', '+639987654320', 'KyleCatiis@gmail.com', 'Abegail Rullan', '+639123456781', 'allen.jpg'),
 ('20250422A002', 'Adrian Abriol', '+639123456789', 'Abrioladrian@gmail.com', 'Luis Micheal Lapak', '+639123456786', '20231024_132008.jpg'),
 ('20250423A003', 'Abel Reyes', '+639987654321', 'abel@gmail.com', 'Joriz Pogi Gutierrez', '+639123456788', '20240215_112215.jpg'),
-('20250424A004', 'karl pogings', '+639192871231', 'karl@gmail.com', 'Karl Pangit', '+639123456789', '93f1cba8-b9e2-49a9-a9da-dc61859fd4ddphoto.jpeg');
+('20250424A004', 'karl pogings', '+639192871231', 'karl@gmail.com', 'Karl Pangit', '+639123456789', '93f1cba8-b9e2-49a9-a9da-dc61859fd4ddphoto.jpeg'),
+('20250522A004', 'kyle angela cat', '+639123456789', 'kyle@gmail.com', 'ugings', '+639123456781', '1747901991_oging.jpg');
 
 -- --------------------------------------------------------
 
@@ -276,18 +287,19 @@ CREATE TABLE `tenant_unit` (
   `balance` mediumint(6) NOT NULL,
   `payment_due` varchar(30) NOT NULL,
   `billing_period` varchar(31) NOT NULL,
-  `lease_status` varchar(10) NOT NULL
+  `status` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tenant_unit`
 --
 
-INSERT INTO `tenant_unit` (`tenant_ID`, `unit_no`, `start_date`, `end_date`, `occupant_count`, `deposit`, `balance`, `payment_due`, `billing_period`, `lease_status`) VALUES
+INSERT INTO `tenant_unit` (`tenant_ID`, `unit_no`, `start_date`, `end_date`, `occupant_count`, `deposit`, `balance`, `payment_due`, `billing_period`, `status`) VALUES
 ('20250421A001', 'A-001', '2025-04-01', '2032-04-01', 3, 20000, 10000, 'Every 1st day of the month', 'Until the 9th day of the month', 'Active'),
 ('20250422A002', 'A-002', '2025-04-02', '2032-04-02', 3, 10000, 10000, 'Every 2nd day of the month', 'Until the 9th day of the month', 'Pending'),
-('20250423A003', 'A-003', '2025-02-01', '2032-02-01', 3, 25000, 5000, 'Every 3rd day of the month', 'Until the 9th day of the month', 'Active'),
-('20250424A004', 'A-004', '2025-04-23', '2025-05-23', 3, 10000, 10000, 'Every 23th day of the month', 'Until the 9th day of the month', 'Active');
+('20250423A003', 'A-003', '2025-05-21', '2032-02-01', 3, 25000, 5000, 'Every 3rd day of the month', 'Until the 9th day of the month', 'Active'),
+('20250424A004', 'A-004', '2025-04-23', '2025-05-23', 3, 10000, 10000, 'Every 23th day of the month', 'Until the 9th day of the month', 'Active'),
+('20250522A004', 'A-004', '2025-05-21', '2026-02-22', 1, 0, 10000, 'Every 21st day of the month', 'Monthly', 'Active');
 
 -- --------------------------------------------------------
 
@@ -315,7 +327,7 @@ INSERT INTO `units` (`unit_no`, `apartment_no`, `unit_address`, `unit_size`, `oc
 ('A-001', 'APT-001', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied'),
 ('A-002', 'APT-002', 'Daet, Camarines Norte', '70', 1, '2', '1BR', '10000', 'Occupied'),
 ('A-003', 'APT-003', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied'),
-('A-004', 'APT-001', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Available');
+('A-004', 'APT-001', 'Daet, Camarines Norte', '70', 2, '1', '2BR', '10000', 'Occupied');
 
 -- --------------------------------------------------------
 
@@ -358,12 +370,6 @@ ALTER TABLE `access_logs`
 --
 ALTER TABLE `accounts`
   ADD PRIMARY KEY (`account_ID`);
-
---
--- Indexes for table `admin_account`
---
-ALTER TABLE `admin_account`
-  ADD PRIMARY KEY (`admin_ID`);
 
 --
 -- Indexes for table `card_registration`
@@ -410,12 +416,6 @@ ALTER TABLE `access_logs`
 --
 ALTER TABLE `accounts`
   MODIFY `account_ID` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `admin_account`
---
-ALTER TABLE `admin_account`
-  MODIFY `admin_ID` smallint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `unit_images`
