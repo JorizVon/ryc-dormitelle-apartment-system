@@ -1,8 +1,6 @@
-
 <?php
 session_start();
 
-// Check if user is logged in, redirect if not
 if (!isset($_SESSION['email_account'])) {
     header("Location: ../LOGIN.php");
     exit();
@@ -10,829 +8,513 @@ if (!isset($_SESSION['email_account'])) {
 
 require_once '../db_connect.php';
 
-// Default values - Define ALL variables to prevent undefined variable warnings
-$tenant_image = "../staticImages/userIcon.png";
-$tenant_name = "Not Available";
-$contact_number = "Not Available";
-$tenant_ID = "Not Available";
-$payment_due = "Not Available";
-$billing_period = "Not Available";
-$deposit = "₱ 0.00";
-$balance = "₱ 0.00";
-$monthly_rent_amount = "₱ 0.00";
-$payment_status = "Not Available";
-$card_status = "Not Available";
-$total_rent_paid = "₱ 0.00";
-
-// Get the email from session
 $email = $_SESSION['email_account']; 
+$user_image_filename = null;
 
-// Debug information - uncomment if needed
-// echo "Email from session: " . $email . "<br>";
-
-try {
-    // Check if the connection is successful
-    if (!$conn) {
-        throw new Exception("Database connection failed");
-    }
-    
-    // SQL query with proper JOIN conditions
-    $sql = "SELECT tenants.email, tenants.tenant_image, tenants.tenant_name, tenants.contact_number, 
-                   tenants.tenant_ID, tenant_unit.payment_due, tenant_unit.billing_period, 
-                   tenant_unit.deposit, tenant_unit.balance, units.monthly_rent_amount, 
-                   payments.payment_status, card_registration.card_status
-            FROM tenants
-            LEFT JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID
-            LEFT JOIN payments ON tenant_unit.tenant_ID = payments.tenant_ID
-            LEFT JOIN units ON payments.unit_no = units.unit_no
-            LEFT JOIN card_registration ON units.unit_no = card_registration.unit_no
-            WHERE tenants.email = ?
-            LIMIT 1";
-    
-    // Prepare and execute statement
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        throw new Exception("Prepare failed: " . $conn->error);
-    }
-    
-    $stmt->bind_param("s", $email);
-    if (!$stmt->execute()) {
-        throw new Exception("Execute failed: " . $stmt->error);
-    }
-    
-    $result = $stmt->get_result(); 
-    
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        
-        // Only assign values if they are not null
-        if (!empty($row['tenant_image'])) {
-            $tenant_image = $row['tenant_image'];
-        }
-        
-        $tenant_name = !empty($row['tenant_name']) ? htmlspecialchars($row['tenant_name']) : "Not Available";
-        $contact_number = !empty($row['contact_number']) ? htmlspecialchars($row['contact_number']) : "Not Available";
-        $tenant_ID = !empty($row['tenant_ID']) ? htmlspecialchars($row['tenant_ID']) : "Not Available";
-        $payment_due = !empty($row['payment_due']) ? htmlspecialchars($row['payment_due']) : "Not Available";
-        $billing_period = !empty($row['billing_period']) ? htmlspecialchars($row['billing_period']) : "Not Available";
-        $deposit = !empty($row['deposit']) ? '₱ ' . number_format($row['deposit'], 2) : "₱ 0.00";
-        $balance = !empty($row['balance']) ? '₱ ' . number_format($row['balance'], 2) : "₱ 0.00";
-        $monthly_rent_amount = !empty($row['monthly_rent_amount']) ? '₱ ' . number_format($row['monthly_rent_amount'], 2) : "₱ 0.00";
-        $payment_status = !empty($row['payment_status']) ? htmlspecialchars($row['payment_status']) : "Not Available";
-        $card_status = !empty($row['card_status']) ? htmlspecialchars($row['card_status']) : "Not Available";
-
-        // Get tenant ID for total rent paid calculation
-        if (!empty($row['tenant_ID'])) {
-            $tid = $row['tenant_ID'];
-            
-            // Calculate total rent paid
-            $sumQuery = "SELECT SUM(amount_paid) AS total FROM payments 
-                         WHERE transaction_type = 'Rent Payment' 
-                         AND confirmation_status = 'confirmed' 
-                         AND tenant_ID = ?";
-            
-            $sumStmt = $conn->prepare($sumQuery);
-            if ($sumStmt) {
-                $sumStmt->bind_param("s", $tid);
-                $sumStmt->execute();
-                $sumResult = $sumStmt->get_result();
-                
-                if ($sumResult && $sumResult->num_rows > 0) {
-                    $sumRow = $sumResult->fetch_assoc();
-                    $total = $sumRow['total'];
-                    $total_rent_paid = !is_null($total) ? '₱ ' . number_format($total, 2) : "₱ 0.00";
+// --- HANDLE IMAGE UPLOAD ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['new_profile_image'])) {
+    if ($_FILES['new_profile_image']['error'] === UPLOAD_ERR_OK) {
+        $image = $_FILES['new_profile_image'];
+        if ($image['size'] > 2097152) { // 2MB
+            echo "<script>alert('Error: Image is too large. Max size is 2MB.');</script>";
+        } else {
+            $img_ext = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION));
+            if (in_array($img_ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                $old_img_stmt = $conn->prepare("SELECT user_image FROM accounts WHERE email_account = ?");
+                $old_img_stmt->bind_param("s", $email);
+                $old_img_stmt->execute();
+                $old_img_result = $old_img_stmt->get_result()->fetch_assoc();
+                if (!empty($old_img_result['user_image']) && file_exists('../user_images/' . $old_img_result['user_image'])) {
+                    unlink('../user_images/' . $old_img_result['user_image']);
                 }
-                $sumStmt->close();
+                $old_img_stmt->close();
+
+                $new_img_name = uniqid('user_', true) . '.' . $img_ext;
+                $destination = '../user_images/' . $new_img_name;
+                if (move_uploaded_file($image['tmp_name'], $destination)) {
+                    $update_stmt = $conn->prepare("UPDATE accounts SET user_image = ? WHERE email_account = ?");
+                    $update_stmt->bind_param("ss", $new_img_name, $email);
+                    $update_stmt->execute();
+                    $update_stmt->close();
+                    header("Location: " . $_SERVER['PHP_SELF']);
+                    exit();
+                }
+            } else {
+                 echo "<script>alert('Error: Invalid image format.');</script>";
             }
         }
-    } else {
-        // No results found - default values will be used
-        // Debug information - uncomment if needed
-        // echo "No tenant found with email: " . $email;
     }
-    
-    if (isset($stmt)) {
-        $stmt->close();
-    }
-} catch (Exception $e) {
-    // Log error - don't display to users in production
-    error_log("Error in TENANTACCOUNTPAGE.php: " . $e->getMessage());
-    // Uncomment for debugging
-    // echo "Error: " . $e->getMessage();
 }
+
+
+// --- FETCH ALL DATA ---
+// Default values
+$tenant_name = "Not Available"; $contact_no = "Not Available"; $tenant_ID = "Not Available";
+$payment_due = "Not Available"; $unit_no = "Not Available"; $security_deposit = "₱ 0.00";
+$balance = "₱ 0.00"; $monthly_rent_amount = "₱ 0.00"; $card_status = "Not Available";
+$total_rent_paid = "₱ 0.00";
+
+try {
+    // 1. Get user_image from ACCOUNTS table
+    $imageStmt = $conn->prepare("SELECT user_image FROM accounts WHERE email_account = ?");
+    $imageStmt->bind_param("s", $email);
+    $imageStmt->execute();
+    $imageResult = $imageStmt->get_result();
+    if($imageRow = $imageResult->fetch_assoc()) {
+        $user_image_filename = $imageRow['user_image'];
+    }
+    $imageStmt->close();
+    
+    // 2. Get tenant-specific data (Basic Info)
+    $tenantSql = "SELECT t.tenant_name, t.contact_no, tu.tenant_ID, tu.unit_no, 
+                         tu.total_rent_paid, tu.security_deposit,
+                         tu.balance, cr.card_status, u.monthly_rent_amount
+                  FROM tenants t 
+                  JOIN tenant_unit tu ON t.tenant_ID = tu.tenant_ID
+                  LEFT JOIN units u ON tu.unit_no = u.unit_no
+                  LEFT JOIN card_registration cr ON tu.unit_no = cr.unit_no
+                  WHERE t.email = ? AND t.role = 'representative'";
+    
+    $tenantStmt = $conn->prepare($tenantSql);
+    $tenantStmt->bind_param("s", $email);
+    $tenantStmt->execute();
+    $tenantResult = $tenantStmt->get_result();
+    
+    if ($tenantRow = $tenantResult->fetch_assoc()) {
+        $tenant_ID = !empty($tenantRow['tenant_ID']) ? htmlspecialchars($tenantRow['tenant_ID']) : "Not Available";
+        $tenant_name = !empty($tenantRow['tenant_name']) ? htmlspecialchars($tenantRow['tenant_name']) : "Not Available";
+        $contact_no = !empty($tenantRow['contact_no']) ? htmlspecialchars($tenantRow['contact_no']) : "Not Available";
+        $unit_no = !empty($tenantRow['unit_no']) ? htmlspecialchars($tenantRow['unit_no']) : "Not Available";
+        // NOTE: We no longer fetch payment_due from tenant_unit here, it will be handled by the checklist query below
+        
+        $security_deposit = '₱ ' . number_format($tenantRow['security_deposit'] ?? 0, 2);
+        $balance = '₱ ' . number_format($tenantRow['balance'] ?? 0, 2);
+        $monthly_rent_amount = '₱ ' . number_format($tenantRow['monthly_rent_amount'] ?? 0, 2);
+        $card_status = !empty($tenantRow['card_status']) ? htmlspecialchars($tenantRow['card_status']) : "Not Available";
+        $total_rent_paid = '₱ ' . number_format($tenantRow['total_rent_paid'] ?? 0, 2);
+    }
+    $tenantStmt->close();
+
+    // 3. Get Payment Due from Payment Checklist (New Logic)
+    // This query gets the unpaid months, loops, and takes the first one found.
+    $checklistSql = "SELECT `checklist_ID`, `unit_no`, `email_account`, `monthly_due_dates`, `pay_status` 
+                     FROM `payment_checklist` 
+                     WHERE pay_status = 0 and email_account = ?";
+    
+    $checklistStmt = $conn->prepare($checklistSql);
+    $checklistStmt->bind_param("s", $email);
+    $checklistStmt->execute();
+    $checklistResult = $checklistStmt->get_result();
+    
+    $found_unpaid = false;
+    
+    // Loop through the results as requested
+    while ($chkRow = $checklistResult->fetch_assoc()) {
+        // Display the first payment due unpaid
+        $payment_due = htmlspecialchars($chkRow['monthly_due_dates']);
+        $found_unpaid = true;
+        
+        // Break the loop immediately after finding the first one
+        break; 
+    }
+    
+    // Optional: If no unpaid rows found, set to specific text (or keep "Not Available")
+    if (!$found_unpaid) {
+        $payment_due = "Up to Date";
+    }
+
+    $checklistStmt->close();
+    
+} catch (Exception $e) {
+    error_log("Error in TENANTACCOUNTPAGE.php: " . $e->getMessage());
+}
+
+$profile_image_path = !empty($user_image_filename) ? '../user_images/' . $user_image_filename : '../otherIcons/adminIcon.png';
+
+$page_title = "Account - RYC Dormitelle";
+include 'tenant_header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Account</title>
-</head>
-  <style>
-    body {
-      margin: 0;
-      background-color: #fff;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      height: 80px;
-      position: fixed;
-      z-index: 1;
-    }
+<style>
 
-    .hanburgerandaccContainer {
-      background-color: #01214B;
-      width: 22%;
-      height: 100%;
-      display: none;
-      justify-content: center;
-      align-items: center;
-    }
+  /* Main Body Styles */
+  .mainBody {
+    position: relative;
+    top: 92px;
+    width: 100%;
+    min-height: calc(100vh - 92px);
+    background: #f8fafc;
+  }
 
-    .containerSystemName {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      width: 25%;
-      background-color: #01214B;
-    }
+  .mainBodyContiner {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
 
-    .systemName {
-      width: 100%;
-      text-align: center;
-      color: #fff;
-    }
+  .pageTitle {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    border-bottom: solid 1px #2262B8;
+    margin-bottom: 2rem;
+  }
 
-    .systemName h2 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 500;
-    }
+  .pageTitle h1 {
+    margin-left: 0;
+    margin-top: 0;
+    font-size: 2.5rem;
+    color: #1e3c72;
+    font-weight: 700;
+  }
 
-    .systemName h4 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 500;
-    }
+  /* Profile Header Section */
+  .profileContent {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
 
-    .navbar {
-      background-color: #79B1FC;
-      width: 80%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      position: relative;
-    }
+  .profileHeader {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    min-height: 120px;
+  }
 
-    .navbarContent {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      margin-left: 300px;
-      margin-right: 90px;
-    }
+  .profile {
+    height: 80px;
+    width: 80px;
+    margin-right: 1.5rem;
+    flex-shrink: 0;
+  }
 
-    .navbarContent a {
-      text-decoration: none;
-      margin: 0 10px;
-      color: white;
-      font-size: 20px;
-    }
+  .profile img {
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+  }
 
-    .navbarContent a:hover {
-      color: #01214B;
-    }
+  .accInfo h5 {
+    font-size: 1.3rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+  }
 
-    .loginLogOut {
-      display: flex;
-      align-items: center;
-      justify-content: right;
-      margin-left: 50px;
-    }
+  .accInfo h6 {
+    font-size: 1rem;
+    margin: 0 0 0.3rem 0;
+    opacity: 0.9;
+    font-weight: 500;
+  }
 
-    .hamburger {
-      display: none;
-      font-size: 28px;
-      color: white;
-      background: none;
-      border: none;
-      cursor: pointer;
-      margin-left: 12px;
-      margin-bottom: 5px;
-    }
+  .accInfo p {
+    font-size: 0.9rem;
+    margin: 0.2rem 0;
+    opacity: 0.8;
+  }
 
-    /* Tablet view */
-    @media screen and (max-width: 768px) {
-      .header {
-        height: 60px;
-        position: relative;
-      }
+  /* Account Information Section */
+  .profileFormContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 4rem;
+  }
 
-      .hanburgerandaccContainer {
-        width: 100%;
-        height: 60px;
-        display: flex;
-        justify-content: space-between;
-        background-color: #79B1FC;
-      }
+  .profileForm {
+    width: 100%;
+    max-width: 600px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
 
-      .containerSystemName {
-        display: none;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        background-color: #01214B;
-        width: 100%;
-        padding: 10px 0;
-        z-index: 10;
-        height: 40px;
-        flex-direction: column;
-      }
+  .boxContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    margin: 0;
+    padding: 1rem 2rem;
+    line-height: 15px;
+    transition: background-color 0.3s;
+  }
 
-      .containerSystemName.show {
-        display: flex;
-        width: 50vw;
-      }
+  .boxContainer:hover {
+    background-color: #f8fafc;
+  }
 
-      .systemName h2 {
-        font-size: 18px;
-      }
+  .boxContainer:last-child {
+    border-bottom: none;
+  }
 
-      .systemName h4 {
-        font-size: 14px;
-      }
+  .box {
+    width: 100%;
+    min-height: 40px;
+  }
 
-      .navbar {
-        display: none;
-        position: absolute;
-        top: 122px;
-        left: 0;
-        background-color: #01214B;
-      }
+  .box a {
+    text-decoration: none;
+  }
 
-      .navbar.show {
-        display: block;
-        width: 50vw;
-        height: 85vh;
-      }
+  .notif {
+    font-size: 17px;
+    margin: 0 0 8px 0;
+    color: #1e3c72;
+    font-weight: 400;
+  }
 
-      .navbarContent {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px 20px;
-        margin: 0;
-      }
+  .notiftext {
+    font-size: 14px;
+    margin: 0;
+    color: #64748b;
+    line-height: 1.5;
+  }
 
-      .navbarContent a {
-        margin: 8px 0;
-        font-size: 18px;
-        color: white;
-      }
+  /* Link styling for special items */
+  .box a .notif {
+    color: #1e3c72;
+    transition: color 0.3s;
+  }
 
-      .loginLogOut {
-        display: none;
-      }
+  .box a:hover .notif {
+    color: #2a5298;
+  }
 
-      .adminSection {
-        position: absolute;
-        right: 15px;
-        top: 20px;
-        color: white;
-        font-size: 16px;
-        display: flex;
-        width: 120px;
-        align-items: center;
-      }
-
-      .adminSection a {
-        color: white;
-        text-decoration: none;
-        margin-left: 5px;
-        margin-right: 5px;
-      }
-
-      .hamburger {
-        display: block;
-        font-size: 35px;
-      }
-    }
-
-    @media screen and (max-width: 480px) {
-      .systemName h2 {
-        font-size: 14px;
-      }
-
-      .systemName h4 {
-        font-size: 9px;
-      }
-
-      .navbarContent a {
-        font-size: 16px;
-      }
-    }
-
-    /* MAIN BODY STYLES */
-    .mainBody {
-      position: relative;
-      top: 75px;
-    }
-    .pageTitle {
-        height: 100px;
-        display: flex;
-        align-items: center;
-        border-bottom: solid 1px #2262B8;
-    }
+  /* Responsive styles */
+  @media screen and (max-width: 992px) {
     .pageTitle h1 {
-        margin-left: 60px;
-        margin-top: 40px;
-        font-size: 33px;
-        color: #2262B8;
+      font-size: 2rem;
     }
-    .profileContent {
-        width: 100%;
-        height: 100px;
-        align-items: center;
-        display: flex;
-        justify-content: center;
-    }
+
     .profileHeader {
-        margin: 0 10px;
-        margin-top: 50px;
-        color: #FFFF;
-        background-color: #2262B8;
-        display: flex;
-        align-items: center;
-        justify-content: left;
-        width: 47.3%;
-        height: 110px;
+      padding: 1.5rem;
     }
+
     .profile {
-        height: 80px;
-        width: 80px;
-        margin-left: 30px;
-        margin-right: 10px;
+      height: 70px;
+      width: 70px;
     }
-    .profile img {
-        height: 100%;
-        width: 100%;
-        border-radius: 50%;
-    }
-    .accInfo {
-        display: inline-block;
-    }
-    .accInfo h5 {
-        font-size: 16px;
-        margin: 0;
-    }
-    .accInfo h6 {
-        font-size: 15px;
-        margin: 0;
-    }
-    .accInfo p {
-        font-size: 14px;
-        margin: 2px 0;
-    }
-    .profileFormContainer {
-        width: 100%;
-        height: 600px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-top: 30px;
-    }
-    .profileForm {
-        width: 48%;
-        height: 100%;
-        border-bottom-left-radius: 45px;
-    }
-    .boxContainer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid #B7B5B5;
-        margin: 0 5px;
-        padding: 0 22px;
-    }
-    .box {
-        width: 100%;
-        height: 60px;
-    }
-    .box a {
-      text-decoration: none;
-    }
-    .notif {
-        font-size: 14px;
-        margin: 0;
-        position: relative;
-        top: 5px;
-        margin-top: 10px;
-        color: #2262B8;
-    }
-    .notiftext {
-        font-size: 12px;
-        margin: 0;
-        margin-top: 5px;
-        color: #B7B5B5;
-    }
-    .amountpaid {
-        font-size: 14px;
-        position: relative;
-        top: 5px;
+  }
+
+  @media screen and (max-width: 768px) {
+    .mainBody {
+      top: 60px;
     }
 
-    /* RESPONSIVE STYLES FOR MAIN BODY */
-    @media screen and (max-width: 992px) {
-        .mainBody {
-          top: 0;
-        }
-        .pageTitle {
-            height: 80px;
-        }
-        .pageTitle h1 {
-            margin-left: 40px;
-            margin-top: 30px;
-            font-size: 28px;
-        }
-        .profileHeader {
-            width: 60%;
-            height: 100px;
-        }
-        .profileForm {
-            width: 60%;
-        }
+    .mainBodyContiner {
+      padding: 0 1rem;
     }
 
-    @media screen and (max-width: 768px) {
-        .mainBody {
-          top: 0;
-        }
-        .pageTitle {
-            height: 70px;
-            justify-content: center;
-        }
-        .pageTitle h1 {
-            margin-left: 0;
-            margin-top: 20px;
-            font-size: 24px;
-            text-align: center;
-        }
-        .profileContent {
-            height: auto;
-        }
-        .profileHeader {
-            width: 80%;
-            margin-top: 30px;
-            height: 90px;
-        }
-        .profile {
-            height: 40px;
-            width: 40px;
-            margin-left: 20px;
-        }
-        .accInfo h5 {
-            font-size: 14px;
-        }
-        .accInfo h6 {
-            font-size: 13px;
-        }
-        .accInfo p {
-            font-size: 12px;
-        }
-        .profileFormContainer {
-            height: auto;
-            margin-top: 20px;
-        }
-        .profileForm {
-            width: 80%;
-            height: auto;
-        }
-        .boxContainer {
-            padding: 0 15px;
-        }
-        .box {
-            height: 50px;
-        }
-        .notif {
-            font-size: 13px;
-            margin-top: 8px;
-        }
-        .notiftext {
-            font-size: 11px;
-        }
+    .pageTitle {
+      height: 80px;
+      margin-bottom: 1rem;
     }
 
-    @media screen and (max-width: 480px) {
-       .mainBody {
-          top: 0;
-        }
-        .pageTitle {
-            height: 60px;
-        }
-        .pageTitle h1 {
-            font-size: 20px;
-            margin-top: 15px;
-        }
-        .profileHeader {
-            width: 90%;
-            height: 80px;
-            margin-top: 20px;
-        }
-        .profile {
-            height: 35px;
-            width: 35px;
-            margin-left: 15px;
-            margin-right: 10px;
-        }
-        .accInfo h5 {
-            font-size: 12px;
-        }
-        .accInfo h6 {
-            font-size: 11px;
-        }
-        .accInfo p {
-            font-size: 10px;
-        }
-        .profileForm {
-            width: 90%;
-        }
-        .boxContainer {
-            padding: 0 10px;
-        }
-        .box {
-            height: 45px;
-        }
-        .notif {
-            font-size: 12px;
-            margin-top: 7px;
-        }
-        .notiftext {
-            font-size: 10px;
-        }
+    .pageTitle h1 {
+      font-size: 1.8rem;
     }
 
-    /*FOOTER*/
-    .footer {
-      margin-top: 120px;
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      height: 140px;
-    }
-    
-    .footerContainer {
-      background-color: #2262B8;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .contactleftside {
-      position: relative;
-      bottom: 13px;
-      margin-left: 30px;
-    }
-    
-    .contactleftside h6 {
-      font-size: 15px;
-      margin-bottom: 0;
-      color: #fff;
-    }
-    
-    .contactleftside p {
-      font-size: 13px;
-      margin-top: 0;
-      color: #fff;
-    }
-    
-    .contactleftside img {
-      margin-right: 5px;    
-      height: 8px;
-      width: 8px;
-    }
-    
-    .contactrightside {
-      margin-right: 30px;
+    .profileHeader {
+      padding: 1.2rem;
+      flex-direction: column;
       text-align: center;
+      min-height: auto;
     }
-    
-    .contactrightside p {
+
+    .profile {
+      height: 60px;
+      width: 60px;
+      margin-right: 0;
+      margin-bottom: 1rem;
+    }
+
+    .accInfo h5 {
+      font-size: 1.1rem;
+    }
+
+    .accInfo h6 {
+      font-size: 0.9rem;
+    }
+
+    .accInfo p {
+      font-size: 0.8rem;
+    }
+
+    .boxContainer {
+      padding: 1.2rem 1.5rem;
+    }
+
+    .notif {
+      font-size: 15px;
+    }
+
+    .notiftext {
+      font-size: 13px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .pageTitle h1 {
+      font-size: 1.5rem;
+    }
+
+    .profileHeader {
+      padding: 1rem;
+    }
+
+    .profile {
+      height: 50px;
+      width: 50px;
+    }
+
+    .accInfo h5 {
+      font-size: 1rem;
+    }
+
+    .accInfo h6 {
+      font-size: 0.8rem;
+    }
+
+    .accInfo p {
+      font-size: 0.7rem;
+    }
+
+    .boxContainer {
+      padding: 1rem;
+    }
+
+    .notif {
       font-size: 14px;
-      color: #fff;
     }
 
-    /* Responsive styles for footer */
-    @media screen and (max-width: 992px) {
-      .footer {
-        height: auto;
-      }
-      
-      .footerContainer {
-        padding: 20px 0;
-      }
-      
-      .contactleftside {
-        margin-left: 20px;
-        bottom: 0;
-      }
-      
-      .contactrightside {
-        margin-right: 20px;
-      }
+    .notiftext {
+      font-size: 12px;
     }
+  }
+    .profile img {
+        cursor: pointer;
+    }
+</style>
 
-    @media screen and (max-width: 768px) {
-      .footerContainer {
-        flex-direction: column;
-        padding: 15px 0;
-      }
-      
-      .contactleftside {
-        margin: 0 0 15px 0;
-        text-align: center;
-        width: 90%;
-      }
-      
-      .contactleftside h6 {
-        font-size: 14px;
-      }
-      
-      .contactleftside p {
-        font-size: 12px;
-      }
-      
-      .contactrightside {
-        margin: 0;
-        width: 90%;
-      }
-      
-      .contactrightside p {
-        font-size: 12px;
-      }
-    }
-
-    @media screen and (max-width: 480px) {
-      .footerContainer {
-        padding: 10px 0;
-      }
-      
-      .contactleftside h6 {
-        font-size: 12px;
-      }
-      
-      .contactleftside p {
-        font-size: 10px;
-      }
-      
-      .contactrightside p {
-        font-size: 10px;
-      }
-      
-      .contactleftside img {
-        width: 12px;
-        height: auto;
-      }
-    }
-  </style>
-<body>
-  <div class="header">
-    <div class="hanburgerandaccContainer">
-      <button class="hamburger" onclick="toggleMenu()">☰</button>
-      <div class="adminSection">
-        <a href="TENANTACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
-        <a href="../LOGIN.php">Log Out</a>
-      </div>
+<div class="mainBody">
+  <div class="mainBodyContiner">
+    <div class="pageTitle">
+      <h1>Account</h1>
     </div>
-    <div class="containerSystemName" id="containerSystemName">
-      <div class="systemName">
-        <h2>RYC Dormitelle</h2>
-        <h4>APARTMENT MANAGEMENT SYSTEM</h4>
-      </div>
-    </div>
-    <div class="navbar" id="navbar">
-      <div class="navbarContent">
-        <a href="USERHOMEPAGE.php">Home</a>
-        <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
-        <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
-        <a href="TRANSACTIONSPAGE.php">Transactions</a>
-        <a href="INBOXPAGE.php">Inbox</a>
-        <div class="loginLogOut">
-          <a href="ACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
-          <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="../LOGIN.php">Log Out</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="mainBody">
-    <div class="mainBodyContiner">
-        <div class="pageTitle">
-            <h1>Account</h1>
-        </div>
-        <div class="profileContent">
-           <div class="profileHeader">
+    <div class="profileContent">
+      <div class="profileHeader">
+        
+        <form id="profileImageForm" method="POST" enctype="multipart/form-data" style="margin: 0;">
+            <input type="file" name="new_profile_image" id="profileImageInput" style="display: none;" accept="image/*">
             <div class="profile">
-                <img src="../tenants_images/<?php echo htmlspecialchars($tenant_image); ?>" alt="profile" id="tenant_image">
+                <img src="<?php echo $profile_image_path; ?>" alt="profile" id="profileImage" title="Click to change profile picture" onerror="this.src='../otherIcons/adminIcon.png'">
             </div>
-            <div class="accInfo">
-                <h5 class="tenant_name"><?php echo $tenant_name; ?></h5>
-                <p class="contact_number"><?php echo $contact_number; ?></p>
-                <h6 class="teanant_ID">Tenant ID: <?php echo $tenant_ID; ?></h6>
-            </div>
-           </div>
-        </div>
-        <div class="profileFormContainer">
-            <div class="profileForm">
-                <div class="profilebox">
-                    <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Payment Due</b></p>
-                            <p class="notiftext" id="lease_payment_due"><?php echo $payment_due; ?></p>
-                        </div>
-                    </div>
-                    <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Billing Period</b></p>
-                            <p class="notiftext" id="billing_period"><?php echo $billing_period; ?></p>
-                        </div>
-                    </div>
-                    <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Total Rent Paid</b></p>
-                           <p class="notiftext" id="total_rent_paid"><?php echo $total_rent_paid; ?></p>
-                        </div>
-                    </div>
-                    <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Current Deposit</b></p>
-                            <p class="notiftext" id="deposit"><?php echo $deposit; ?></p>
-                        </div>
-                    </div>
-                    <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Remaining Balance</b></p>
-                            <p class="notiftext" id="balance"><?php echo $balance; ?></p>
-                        </div>
-                    </div>
-                    <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Monthly Rent Payment</b></p>
-                            <p class="notiftext" id="lease_payment_amount"><?php echo $monthly_rent_amount; ?></p>
-                        </div>
-                    </div>
-                    <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Payment Status</b></p>
-                            <p class="notiftext" id="payment_status"><?php echo $payment_status; ?></p>
-                        </div>
-                    </div>
-                    <div class="boxContainer">
-                        <div class="box">
-                            <p class="notif"><b>Card Status</b></p>
-                            <p class="notiftext" id="card_status"><?php echo $card_status; ?></p>
-                        </div>
-                    </div>
-                    <div class="boxContainer">
-                        <div class="box">
-                            <a href="TENANTCHANGEPASSPAGE.php"><p class="notif"><b>Change Password</b></p></a>
-                        </div>
-                    </div>
-                    <div class="boxContainer">
-                        <div class="box">
-                            <a href="../LOGIN.php"><p class="notif"><b>Log Out</b></p></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-  </div>
+        </form>
 
-  <div class="footer">
-    <div class="footerContainer">
-      <div class="contactleftside">
-        <h6>Contact Information & Inquiry Form</h6>
-        <p><img src="../tenantviewIcons/profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="../tenantviewIcons/addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br>
-          <img src="../tenantviewIcons/IconMail.png" alt="Mail Icon">Email: kyleangelacatiis@gmail.com<br><img src="../tenantviewIcons/phoneIcon.png" alt="Phone Icon">Phone: 0912-345-6789</p>
+        <div class="accInfo">
+          <h5 class="tenant_name"><?php echo $tenant_name; ?></h5>
+          <p class="contact_no"><?php echo $contact_no; ?></p>
+          <h6 class="teanant_ID">Tenant ID: <?php echo $tenant_ID; ?></h6>
+        </div>
       </div>
-      <div class="contactrightside">
-        <p>Apartment Management System @ 2025.<br>All Rights Reserved.<br>Developed by Joriz Gutierrez</p>
+    </div>
+    <div class="profileFormContainer">
+      <div class="profileForm">
+        <div class="profilebox">
+          <div class="boxContainer">
+            <div class="box">
+              <p class="notif"><b>Payment Due</b></p>
+              <p class="notiftext" id="lease_payment_due"><?php echo $payment_due; ?></p>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <p class="notif"><b>Unit Number</b></p>
+              <p class="notiftext" id="unit_no"><?php echo $unit_no; ?></p>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <p class="notif"><b>Total Rent Paid</b></p>
+              <p class="notiftext" id="total_rent_paid"><?php echo $total_rent_paid; ?></p>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <p class="notif"><b>Security Deposit</b></p>
+              <p class="notiftext" id="security_deposit"><?php echo $security_deposit; ?></p>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <p class="notif"><b>Remaining Balance</b></p>
+              <p class="notiftext" id="balance"><?php echo $balance; ?></p>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <p class="notif"><b>Monthly Rent Payment</b></p>
+              <p class="notiftext" id="lease_payment_amount"><?php echo $monthly_rent_amount; ?></p>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <p class="notif"><b>Card Status</b></p>
+              <p class="notiftext" id="card_status"><?php echo $card_status; ?></p>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <a href="TENANTCHANGEUSERNAMEPAGE.php"><p class="notif"><b>Change Username</b></p></a>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <a href="TENANTCHANGEPASSPAGE.php"><p class="notif"><b>Change Password</b></p></a>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <!-- Correct Logout should point to a script that destroys the session -->
+              <a href="../logout.php"><p class="notif"><b>Log Out</b></p></a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+</div>
 
-  <script>
-    function toggleMenu() {
-      document.getElementById('containerSystemName').classList.toggle('show');
-      document.getElementById('navbar').classList.toggle('show');
-    }
-  </script>
-</body>
-</html>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileImage = document.getElementById('profileImage');
+        const profileImageInput = document.getElementById('profileImageInput');
+        const profileImageForm = document.getElementById('profileImageForm');
+
+        profileImage.addEventListener('click', function() {
+            profileImageInput.click();
+        });
+
+        profileImageInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                profileImageForm.submit();
+            }
+        });
+    });
+</script>
+
+<?php include 'footer.php'; ?>

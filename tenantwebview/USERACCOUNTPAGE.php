@@ -1,689 +1,430 @@
-  <?php
-  session_start();
-  require_once '../db_connect.php';
+<?php
+session_start(); // Start session ONCE, at the very beginning
 
-  $email_account = 'none';
-  $username = 'none';
+// Redirect to login if not logged in
+if (!isset($_SESSION['email_account'])) {
+    header("Location: ../LOGIN.php");
+    exit();
+}
 
-  if (isset($_SESSION['email_account'])) {
-      $email_account = $_SESSION['email_account'];
+// Connect to the database
+require_once '../db_connect.php';
 
-      $stmt = $conn->prepare("SELECT username FROM accounts WHERE email_account = ?");
-      $stmt->bind_param("s", $email_account);
-      $stmt->execute();
-      $result = $stmt->get_result();
+$email_account = $_SESSION['email_account'];
+$username = 'none';
+$user_image_filename = null;
 
-      if ($result->num_rows === 1) {
-          $row = $result->fetch_assoc();
-          $username = $row['username'];
-      }
+// --- HANDLE IMAGE UPLOAD ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['new_profile_image'])) {
+    if ($_FILES['new_profile_image']['error'] === UPLOAD_ERR_OK) {
+        $image = $_FILES['new_profile_image'];
+        // Basic validation
+        if ($image['size'] > 2097152) { // 2MB
+            echo "<script>alert('Error: Image is too large. Max size is 2MB.');</script>";
+        } else {
+            $img_ext = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION));
+            if (in_array($img_ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                // Before saving new image, delete the old one if it exists
+                $old_img_stmt = $conn->prepare("SELECT user_image FROM accounts WHERE email_account = ?");
+                $old_img_stmt->bind_param("s", $email_account);
+                $old_img_stmt->execute();
+                $old_img_result = $old_img_stmt->get_result()->fetch_assoc();
+                if (!empty($old_img_result['user_image']) && file_exists('../user_images/' . $old_img_result['user_image'])) {
+                    unlink('../user_images/' . $old_img_result['user_image']);
+                }
+                $old_img_stmt->close();
 
-      $stmt->close();
+                // Save the new image
+                $new_img_name = uniqid('user_', true) . '.' . $img_ext;
+                $destination = '../user_images/' . $new_img_name;
+                if (move_uploaded_file($image['tmp_name'], $destination)) {
+                    // Update the database with the new filename
+                    $update_stmt = $conn->prepare("UPDATE accounts SET user_image = ? WHERE email_account = ?");
+                    $update_stmt->bind_param("ss", $new_img_name, $email_account);
+                    $update_stmt->execute();
+                    $update_stmt->close();
+                    
+                    // Redirect to refresh the page and show the new image
+                    header("Location: " . $_SERVER['PHP_SELF']);
+                    exit();
+                }
+            } else {
+                 echo "<script>alert('Error: Invalid image format.');</script>";
+            }
+        }
+    }
+}
+
+
+// Get username and image from database
+$stmt = $conn->prepare("SELECT username, user_image FROM accounts WHERE email_account = ?");
+$stmt->bind_param("s", $email_account);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($result->num_rows === 1) {
+    $row = $result->fetch_assoc();
+    $username = $row['username'];
+    $user_image_filename = $row['user_image'];
+}
+$stmt->close();
+
+// Set default image if none is found
+$profile_image_path = !empty($user_image_filename) ? '../user_images/' . $user_image_filename : '../otherIcons/adminIcon.png';
+
+$page_title = "Account - RYC Dormitelle";
+include 'user_header.php';
+?>
+
+<style>
+  /* ===========================
+     ACCOUNT PAGE-SPECIFIC STYLES
+     =========================== */
+
+  /* Main Body Styles */
+  .mainBody {
+    position: relative;
+    top: 92px;
+    width: 100%;
+    min-height: calc(100vh - 92px);
+    background: #f8fafc;
   }
-  ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Homepage</title>
-  <style>
-    body {
-      margin: 0;
-      background-color: #fff;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      height: 80px;
-      position: fixed;
-      z-index: 1;
-    }
+  .mainBodyContiner {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
 
-    .hanburgerandaccContainer {
-      background-color: #01214B;
-      width: 22%;
-      height: 100%;
-      display: none;
-      justify-content: center;
-      align-items: center;
-    }
+  .pageTitle {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    border-bottom: solid 1px #2262B8;
+    margin-bottom: 2rem;
+  }
 
-    .containerSystemName {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      width: 25%;
-      background-color: #01214B;
-    }
+  .pageTitle h1 {
+    margin-left: 0;
+    margin-top: 0;
+    font-size: 2.5rem;
+    color: #1e3c72;
+    font-weight: 700;
+  }
 
-    .systemName {
-      width: 100%;
-      text-align: center;
-      color: #fff;
-    }
+  /* Profile Header Section */
+  .transactionchoices {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
 
-    .systemName h2 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 500;
-    }
+  .profileHeader {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    min-height: 120px;
+  }
 
-    .systemName h4 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 500;
-    }
+  .profile {
+    height: 80px;
+    width: 80px;
+    margin-right: 1.5rem;
+    flex-shrink: 0;
+  }
 
-    .navbar {
-      background-color: #79B1FC;
-      width: 80%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      position: relative;
-    }
+  .profile img {
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+  }
 
-    .navbarContent {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      margin-left: 500px;
-      margin-right: 90px;
-    }
+  .accInfo h5 {
+    font-size: 1.3rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+    position: relative;
+    top: 10px;
+  }
 
-    .navbarContent a {
-      text-decoration: none;
-      margin: 0 10px;
-      color: white;
-      font-size: 20px;
-    }
+  .accInfo h6 {
+    font-size: 1rem;
+    margin: 0 0 0.3rem 0;
+    opacity: 0.9;
+    position: relative;
+    bottom: 10px;
+    font-weight: 500;
+  }
 
-    .navbarContent a:hover {
-      color: #01214B;
-    }
+  .accInfo p {
+    font-size: 0.9rem;
+    margin: 0.2rem 0;
+    opacity: 0.8;
+  }
 
-    .loginLogOut {
-      display: flex;
-      align-items: center;
-      justify-content: right;
-      margin-left: 50px;
-    }
+  /* Account Information Section */
+  .transactionformContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 4rem;
+  }
 
-    .hamburger {
-      display: none;
-      font-size: 28px;
-      color: white;
-      background: none;
-      border: none;
-      cursor: pointer;
-      margin-left: 12px;
-      margin-bottom: 5px;
-    }
+  .transactionform {
+    width: 100%;
+    max-width: 600px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
 
-    /* Tablet view */
-    @media screen and (max-width: 768px) {
-      .header {
-        height: 60px;
-        position: relative;
-      }
+  .boxContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    margin: 0;
+    padding: 1rem 2rem;
+    line-height: 15px;
+    transition: background-color 0.3s;
+  }
 
-      .hanburgerandaccContainer {
-        width: 100%;
-        height: 60px;
-        display: flex;
-        justify-content: space-between;
-        background-color: #79B1FC;
-      }
+  .boxContainer:hover {
+    background-color: #f8fafc;
+  }
 
-      .containerSystemName {
-        display: none;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        background-color: #01214B;
-        width: 100%;
-        padding: 10px 0;
-        z-index: 10;
-        height: 40px;
-        flex-direction: column;
-      }
+  .boxContainer:last-child {
+    border-bottom: none;
+  }
 
-      .containerSystemName.show {
-        display: flex;
-        width: 50vw;
-      }
+  .box {
+    width: 100%;
+    min-height: 40px;
+  }
 
-      .systemName h2 {
-        font-size: 18px;
-      }
+  .box a {
+    text-decoration: none;
+  }
 
-      .systemName h4 {
-        font-size: 14px;
-      }
+  .notif {
+    font-size: 17px;
+    margin: 0 0 8px 0;
+    color: #1e3c72;
+    font-weight: 400;
+  }
 
-      .navbar {
-        display: none;
-        position: absolute;
-        top: 122px;
-        left: 0;
-        background-color: #01214B;
-      }
+  .notiftext {
+    font-size: 14px;
+    margin: 0;
+    color: #64748b;
+    line-height: 1.5;
+  }
 
-      .navbar.show {
-        display: block;
-        width: 50vw;
-        height: 85vh;
-      }
+  /* Link styling for special items */
+  .box a .notif {
+    color: #1e3c72;
+    transition: color 0.3s;
+  }
 
-      .navbarContent {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px 20px;
-        margin: 0;
-      }
+  .box a:hover .notif {
+    color: #2a5298;
+  }
 
-      .navbarContent a {
-        margin: 8px 0;
-        font-size: 18px;
-        color: white;
-      }
-
-      .loginLogOut {
-        display: none;
-      }
-
-      .adminSection {
-        position: absolute;
-        right: 15px;
-        top: 20px;
-        color: white;
-        font-size: 16px;
-        display: flex;
-        width: 120px;
-        align-items: center;
-      }
-
-      .adminSection a {
-        color: white;
-        text-decoration: none;
-        margin-left: 5px;
-        margin-right: 5px;
-      }
-
-      .hamburger {
-        display: block;
-        font-size: 35px;
-      }
-    }
-
-    @media screen and (max-width: 480px) {
-      .systemName h2 {
-        font-size: 14px;
-      }
-
-      .systemName h4 {
-        font-size: 9px;
-      }
-
-      .navbarContent a {
-        font-size: 16px;
-      }
-    }
-
-    /* MAIN BODY STYLES */
-    .mainBody {
-      position: relative;
-      top: 75px;
-    }
-    .pageTitle {
-        height: 100px;
-        display: flex;
-        align-items: center;
-        border-bottom: solid 1px #2262B8;
-    }
+  /* Responsive styles for mainBody */
+  @media screen and (max-width: 992px) {
     .pageTitle h1 {
-        margin-left: 60px;
-        margin-top: 40px;
-        font-size: 33px;
-        color: #2262B8;
+      font-size: 2rem;
     }
-    .transactionchoices {
-        width: 100%;
-        height: 100px;
-        align-items: center;
-        display: flex;
-        justify-content: center;
-    }
+
     .profileHeader {
-        margin: 0 10px;
-        margin-top: 50px;
-        color: #FFFF;
-        background-color: #2262B8;
-        display: flex;
-        align-items: center;
-        justify-content: left;
-        width: 47.3%;
-        height: 110px;
+      padding: 1.5rem;
     }
+
     .profile {
-        height: 80px;
-        width: 80px;
-        margin-left: 30px;
-        margin-right: 10px;
+      height: 70px;
+      width: 70px;
     }
-    .profile img {
-        height: 100%;
-        width: 100%;
-    }
-    .accInfo {
-        display: inline-block;
-    }
-    .accInfo h5 {
-        font-size: 16px;
-        margin: 0;
-    }
-    .accInfo h6 {
-        font-size: 15px;
-        margin: 0;
-    }
-    .accInfo p {
-        font-size: 14px;
-        margin: 2px 0;
-    }
-    .transactionformContainer {
-        width: 100%;
-        height: 600px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-top: 30px;
-    }
-    .transactionform {
-        width: 48%;
-        height: 100%;
-        border-bottom-left-radius: 45px;
-    }
-    .boxContainer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid #B7B5B5;
-        margin: 0 5px;
-        padding: 0 22px;
-    }
-    .box {
-        width: 100%;
-        height: 60px;
-    }
-    .box a {
-      text-decoration: none;
-    }
-    .notif {
-        font-size: 14px;
-        margin: 0;
-        position: relative;
-        top: 5px;
-        margin-top: 10px;
-        color: #2262B8;
-    }
-    .notiftext {
-        font-size: 12px;
-        margin: 0;
-        margin-top: 5px;
-        color: #B7B5B5;
-    }
-    .amountpaid {
-        font-size: 14px;
-        position: relative;
-        top: 5px;
+  }
+
+  @media screen and (max-width: 768px) {
+    .mainBody {
+      top: 60px;
     }
 
-    /* RESPONSIVE STYLES FOR MAIN BODY */
-    @media screen and (max-width: 992px) {
-        .mainBody {
-          top: 0;
-        }
-        .pageTitle {
-            height: 80px;
-        }
-        .pageTitle h1 {
-            margin-left: 40px;
-            margin-top: 30px;
-            font-size: 28px;
-        }
-        .profileHeader {
-            width: 60%;
-            height: 100px;
-        }
-        .transactionform {
-            width: 60%;
-        }
+    .mainBodyContiner {
+      padding: 0 1rem;
     }
 
-    @media screen and (max-width: 768px) {
-        .mainBody {
-          top: 0;
-        }
-        .pageTitle {
-            height: 70px;
-            justify-content: center;
-        }
-        .pageTitle h1 {
-            margin-left: 0;
-            margin-top: 20px;
-            font-size: 24px;
-            text-align: center;
-        }
-        .transactionchoices {
-            height: auto;
-        }
-        .profileHeader {
-            width: 80%;
-            margin-top: 30px;
-            height: 90px;
-        }
-        .profile {
-            height: 40px;
-            width: 40px;
-            margin-left: 20px;
-        }
-        .accInfo h5 {
-            font-size: 14px;
-        }
-        .accInfo h6 {
-            font-size: 13px;
-        }
-        .accInfo p {
-            font-size: 12px;
-        }
-        .transactionformContainer {
-            height: auto;
-            margin-top: 20px;
-        }
-        .transactionform {
-            width: 80%;
-            height: auto;
-        }
-        .boxContainer {
-            padding: 0 15px;
-        }
-        .box {
-            height: 50px;
-        }
-        .notif {
-            font-size: 13px;
-            margin-top: 8px;
-        }
-        .notiftext {
-            font-size: 11px;
-        }
+    .pageTitle {
+      height: 80px;
+      margin-bottom: 1rem;
     }
 
-    @media screen and (max-width: 480px) {
-       .mainBody {
-          top: 0;
-        }
-        .pageTitle {
-            height: 60px;
-        }
-        .pageTitle h1 {
-            font-size: 20px;
-            margin-top: 15px;
-        }
-        .profileHeader {
-            width: 90%;
-            height: 80px;
-            margin-top: 20px;
-        }
-        .profile {
-            height: 35px;
-            width: 35px;
-            margin-left: 15px;
-            margin-right: 10px;
-        }
-        .accInfo h5 {
-            font-size: 12px;
-        }
-        .accInfo h6 {
-            font-size: 11px;
-        }
-        .accInfo p {
-            font-size: 10px;
-        }
-        .transactionform {
-            width: 90%;
-        }
-        .boxContainer {
-            padding: 0 10px;
-        }
-        .box {
-            height: 45px;
-        }
-        .notif {
-            font-size: 12px;
-            margin-top: 7px;
-        }
-        .notiftext {
-            font-size: 10px;
-        }
+    .pageTitle h1 {
+      font-size: 1.8rem;
     }
 
-    /*FOOTER*/
-    .footer {
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      height: 140px;
-    }
-    
-    .footerContainer {
-      background-color: #2262B8;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .contactleftside {
-      position: relative;
-      bottom: 13px;
-      margin-left: 30px;
-    }
-    
-    .contactleftside h6 {
-      font-size: 15px;
-      margin-bottom: 0;
-      color: #fff;
-    }
-    
-    .contactleftside p {
-      font-size: 13px;
-      margin-top: 0;
-      color: #fff;
-    }
-    
-    .contactleftside img {
-      margin-right: 5px;    
-      height: 8px;
-      width: 8px;
-    }
-    
-    .contactrightside {
-      margin-right: 30px;
+    .profileHeader {
+      padding: 1.2rem;
+      flex-direction: column;
       text-align: center;
+      min-height: auto;
     }
-    
-    .contactrightside p {
+
+    .profile {
+      height: 60px;
+      width: 60px;
+      margin-right: 0;
+      margin-bottom: 1rem;
+    }
+
+    .accInfo h5 {
+      font-size: 1.1rem;
+    }
+
+    .accInfo h6 {
+      font-size: 0.9rem;
+    }
+
+    .accInfo p {
+      font-size: 0.8rem;
+    }
+
+    .boxContainer {
+      padding: 1.2rem 1.5rem;
+    }
+
+    .notif {
+      font-size: 15px;
+    }
+
+    .notiftext {
+      font-size: 13px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .pageTitle h1 {
+      font-size: 1.5rem;
+    }
+
+    .profileHeader {
+      padding: 1rem;
+    }
+
+    .profile {
+      height: 50px;
+      width: 50px;
+    }
+
+    .accInfo h5 {
+      font-size: 1rem;
+    }
+
+    .accInfo h6 {
+      font-size: 0.8rem;
+    }
+
+    .accInfo p {
+      font-size: 0.7rem;
+    }
+
+    .boxContainer {
+      padding: 1rem;
+    }
+
+    .notif {
       font-size: 14px;
-      color: #fff;
     }
 
-    /* Responsive styles for footer */
-    @media screen and (max-width: 992px) {
-      .footer {
-        height: auto;
-        margin-top: 135px;
-      }
-      
-      .footerContainer {
-        padding: 20px 0;
-      }
-      
-      .contactleftside {
-        margin-left: 20px;
-        bottom: 0;
-      }
-      
-      .contactrightside {
-        margin-right: 20px;
-      }
+    .notiftext {
+      font-size: 12px;
     }
+  }
+    .profile img {
+        cursor: pointer;
+    }
+</style>
 
-    @media screen and (max-width: 768px) {
-      .footerContainer {
-        flex-direction: column;
-        padding: 15px 0;
-        margin-top: 65px;
-      }
-      
-      .contactleftside {
-        margin: 0 0 15px 0;
-        text-align: center;
-        width: 90%;
-      }
-      
-      .contactleftside h6 {
-        font-size: 14px;
-      }
-      
-      .contactleftside p {
-        font-size: 12px;
-      }
-      
-      .contactrightside {
-        margin: 0;
-        width: 90%;
-      }
-      
-      .contactrightside p {
-        font-size: 12px;
-      }
-    }
-
-    @media screen and (max-width: 480px) {
-      .footerContainer {
-        padding: 10px 0;
-      }
-      
-      .contactleftside h6 {
-        font-size: 12px;
-      }
-      
-      .contactleftside p {
-        font-size: 10px;
-      }
-      
-      .contactrightside p {
-        font-size: 10px;
-      }
-      
-      .contactleftside img {
-        width: 12px;
-        height: auto;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div class="hanburgerandaccContainer">
-      <button class="hamburger" onclick="toggleMenu()">☰</button>
-      <div class="adminSection">
-        <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
-        <a href="../LOGIN.php">Log Out</a>
-      </div>
+<div class="mainBody">
+  <div class="mainBodyContiner">
+    <div class="pageTitle">
+      <h1>Account</h1>
     </div>
-    <div class="containerSystemName" id="containerSystemName">
-      <div class="systemName">
-        <h2>RYC Dormitelle</h2>
-        <h4>APARTMENT MANAGEMENT SYSTEM</h4>
-      </div>
-    </div>
-    <div class="navbar" id="navbar">
-      <div class="navbarContent">
-        <a href="USERHOMEPAGE.php">Home</a>
-        <a href="USERHOMEPAGE.php#aboutRYC" class="scroll-link">About</a>
-        <a href="USERHOMEPAGE.php#availUnitsContainer" class="scroll-link">Available Units</a>
-        <div class="loginLogOut">
-          <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
-          <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="../LOGIN.php">Log Out</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="mainBody">
-    <div class="mainBodyContiner">
-        <div class="pageTitle">
-            <h1>Account</h1>
-        </div>
-        <div class="transactionchoices">
-           <div class="profileHeader">
+    <div class="transactionchoices">
+      <div class="profileHeader">
+        
+        <!-- UPDATED: Form added for image upload -->
+        <form id="profileImageForm" method="POST" enctype="multipart/form-data" style="margin: 0;">
+            <input type="file" name="new_profile_image" id="profileImageInput" style="display: none;" accept="image/*">
             <div class="profile">
-                <img src="../staticImages/userIcon.png" alt="profile">
+                <!-- UPDATED: Image source is now dynamic -->
+                <img src="<?php echo $profile_image_path; ?>" alt="profile" id="profileImage" title="Click to change profile picture" onerror="this.src='../otherIcons/adminIcon.png'">
             </div>
-            <div class="accInfo">
-                <h5 class="email_account">Email Account: <?php echo $email_account; ?></h5>
-                <br>
-                <h6 class="username">Username: <?php echo $username; ?></h6>
-            </div>
-           </div>
-        </div>
-        <div class="transactionformContainer">
-            <div class="transactionform">
-                <div class="todaystransactbox">
-                     <div class="boxContainer">
-                        <div class="box">
-                          <a href="USERCHANGEPASSPAGE.php"><p class="notif"><b>Change Password</b></p></a>
-                         </div>
-                     </div>
-                     <div class="boxContainer">
-                        <div class="box">
-                            <a href="../LOGIN.php"><p class="notif"><b>Log Out</b></p></a>
-                         </div>
-                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-  </div>
+        </form>
 
-  <div class="footer">
-    <div class="footerContainer">
-      <div class="contactleftside">
-        <h6>Contact Information & Inquiry Form</h6>
-        <p><img src="../tenantviewIcons/profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="../tenantviewIcons/addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br>
-          <img src="../tenantviewIcons/IconMail.png" alt="Mail Icon">Email: kyleangelacatiis@gmail.com<br><img src="../tenantviewIcons/phoneIcon.png" alt="Phone Icon">Phone: 0912-345-6789</p>
+        <div class="accInfo">
+          <h5 class="email_account">Email Account: <?php echo htmlspecialchars($email_account); ?></h5>
+          <br>
+          <h6 class="username">Username: <?php echo htmlspecialchars($username); ?></h6>
+        </div>
       </div>
-      <div class="contactrightside">
-        <p>Apartment Management System @ 2025.<br>All Rights Reserved.<br>Developed by Joriz Gutierrez</p>
+    </div>
+    <div class="transactionformContainer">
+      <div class="transactionform">
+        <div class="todaystransactbox">
+            <div class="boxContainer">
+            <div class="box">
+              <a href="USERCHANGEUSERNAMEPAGE.php"><p class="notif"><b>Change Username</b></p></a>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <a href="USERCHANGEPASSPAGE.php"><p class="notif"><b>Change Password</b></p></a>
+            </div>
+          </div>
+          <div class="boxContainer">
+            <div class="box">
+              <!-- Correct Logout should point to a script that destroys the session -->
+              <a href="../logout.php"><p class="notif"><b>Log Out</b></p></a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+</div>
 
-  <script>
-    function toggleMenu() {
-      document.getElementById('containerSystemName').classList.toggle('show');
-      document.getElementById('navbar').classList.toggle('show');
-    }
-  </script>
-</body>
-</html>
+<!-- ADDED: JavaScript for image editing -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileImage = document.getElementById('profileImage');
+        const profileImageInput = document.getElementById('profileImageInput');
+        const profileImageForm = document.getElementById('profileImageForm');
+
+        // When the profile image is clicked, trigger the hidden file input
+        profileImage.addEventListener('click', function() {
+            profileImageInput.click();
+        });
+
+        // When a new file is chosen, automatically submit the form
+        profileImageInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                profileImageForm.submit();
+            }
+        });
+    });
+</script>
+
+<?php include 'footer.php'; ?>

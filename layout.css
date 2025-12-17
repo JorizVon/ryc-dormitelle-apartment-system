@@ -1,0 +1,380 @@
+/* Layout Styles - Header and Sidebar Components */
+/* Include this CSS file in all your pages that use the header and sidebar */
+
+/* Base Body Styles */
+body {
+    display: flex;
+    margin: 0;
+    background-color: #FFFF;
+    font-family: 'Inria', Serif;
+}
+
+/* ===== HAMBURGER MENU ===== */
+.hamburger {
+    visibility: hidden;
+    width: 0px;
+    display: block;
+    position: fixed;
+    top: 26px;
+    left: 20px;
+    z-index: 1100;
+    font-size: 30px;
+    cursor: pointer;
+    color: #004AAD;
+    padding: 5px 10px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.9);
+    transition: background-color 0.3s;
+}
+
+.hamburger:hover {
+    background-color: rgba(255, 255, 255, 1);
+}
+
+/* ===== SIDEBAR STYLES ===== */
+.sideBar {
+    width: 300px;
+    height: 100vh;
+    background-color: #01214B;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: left 0.3s ease;
+}
+
+.systemTitle {
+    text-align: center;
+    height: 10vh;
+    padding-bottom: 5.3px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.systemTitle h1 {
+    font-size: 25px;
+    font-family: 'Inria Serif', serif;
+    color: #ffffff;
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+.systemTitle p {
+    font-size: 14px;
+    font-family: 'Inria Serif', serif;
+    color: #ffffff;
+    margin: 0;
+}
+
+.sidebarContent {
+    padding-top: 20px;
+    height: 84vh;
+    background-color: #01214B;
+    display: block;
+}
+
+.card {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    margin: 10px 0px;
+    align-items: center;
+    justify-content: center;
+}
+
+.card a {
+    margin: auto 0px auto 0px;
+    font-size: 20px;
+    padding-left: 20px;
+    font-weight: 500;
+    display: flex;
+    text-decoration: none;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background-color: #01214B;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.card a:hover {
+    background-color: #FFFF;
+    color: #01214B;
+}
+
+.card a.active {
+    background-color: #FFFF !important;
+    color: #01214B !important;
+}
+
+/* Sidebar Icons */
+.sidebar-icon {
+    margin-right: 8px;
+    height: 20px;
+    width: auto;
+}
+
+/* Icon hover effects */
+.card a:hover .dashboard-icon {
+    content: url('sidebarIcons/DashboardIcon.png');
+}
+
+.card a:hover .units-icon {
+    content: url('sidebarIcons/UnitsInfoIcon.png');
+}
+
+.card a:hover .tenants-icon {
+    content: url('sidebarIcons/TenantsInfoIcon.png');
+}
+
+.card a:hover .payment-icon {
+    content: url('sidebarIcons/PaymentManagementIcon.png');
+}
+
+.card a:hover .access-icon {
+    content: url('sidebarIcons/AccesspointIcon.png');
+}
+
+.card a:hover .card-icon {
+    content: url('sidebarIcons/CardregisterIcon.png');
+}
+
+.card a:hover .pending-icon {
+    content: url('sidebarIcons/PendingInquiryIcon.png');
+}
+
+.card a:hover .contract-icon {
+    content: url('sidebarIcons/ContractManagementIcon.png');
+}
+
+/* Active state icons */
+.card a.active .dashboard-icon {
+    content: url('sidebarIcons/DashboardIcon.png');
+}
+
+.card a.active .units-icon {
+    content: url('sidebarIcons/UnitsInfoIcon.png');
+}
+
+.card a.active .tenants-icon {
+    content: url('sidebarIcons/TenantsInfoIcon.png');
+}
+
+.card a.active .payment-icon {
+    content: url('sidebarIcons/PaymentManagementIcon.png');
+}
+
+.card a.active .access-icon {
+    content: url('sidebarIcons/AccesspointIcon.png');
+}
+
+.card a.active .card-icon {
+    content: url('sidebarIcons/CardregisterIcon.png');
+}
+
+.card a.active .pending-icon {
+    content: url('sidebarIcons/PendingInquiryIcon.png');
+}
+
+.card a.active .contract-icon {
+    content: url('sidebarIcons/ContractManagementIcon.png');
+}
+
+/* ===== HEADER STYLES ===== */
+.header {
+    height: 12vh;
+    width: 100%;
+    background-color: #295095;
+    display: flex;
+    justify-content: right;
+    align-items: center; 
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 999;
+    transition: left 0.3s ease;
+}
+
+.headerContent {
+    margin-right: 5%;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+}
+
+.adminTitle {
+    font-size: 16px;
+    color: #01214B;
+    position: relative;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.headerContent .adminTitle:hover {
+    color: #FFFF;
+}
+
+.adminLogoutspace {
+    font-size: 16px;
+    color: #01214B;
+    position: relative;
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+.logOutbtn {
+    font-size: 16px;
+    color: #FFFF;
+    position: relative;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.headerContent a.logOutbtn:hover {
+    color: #01214B;
+}
+
+/* ===== MAIN CONTENT AREA ===== */
+.mainBody {
+    width: 80vw;
+    min-height: 60vh;
+    background-color: white;
+    margin-left: 20vw;
+    margin-top: 10vh;
+    transition: margin-left 0.3s ease;
+}
+
+.mainContent {
+    height: auto;
+    width: 93%;
+    margin: 0px auto;
+    background-color: #FFFF;
+    padding: 20px;
+    min-height: calc(87vh - 40px);
+}
+
+.mainContent h4 {
+    color: #01214B;
+    font-size: 32px;
+    margin-left: 20px;
+    position: relative;
+    bottom: 20px;
+    height: 20px;
+    margin-bottom: 20px;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+    body {
+        justify-content: flex-start;
+    }
+    
+    .sideBar {
+        left: -100%;
+    }
+    
+    .sideBar.active {
+        left: 0;
+    }
+    
+    .hamburger {
+        visibility: visible;
+        width: auto;
+    }
+    
+    .header {
+        left: 0;
+        width: 100%;
+        padding-right: 20px;
+        padding-left: 30px;
+    }
+    .headerContent {
+        margin-right: 10vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .mainBody {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .mainContent {
+        padding: 20px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hamburger {
+        font-size: 28px;
+        top: 20px;
+        left: 15px;
+    }
+    
+    .sideBar {
+        width: 53vw;
+    }
+    
+    .systemTitle {
+        position: relative;
+        top: 15px;
+        padding: 11px;
+    }
+    
+    .systemTitle h1 {
+        font-size: 14px;
+        margin-bottom: 18px;
+    }
+    
+    .systemTitle p {
+        font-size: 10px;
+    }
+    
+    .headerContent a,
+    .adminLogoutspace {
+        font-size: 14px;
+    }
+    
+    .header {
+        padding-left: 10px;
+        padding-right: 15px;
+    }
+    
+    .mainContent h4 {
+        font-size: 24px;
+        margin-left: 10px;
+    }
+    
+    .card a {
+        font-size: 14px;
+    }
+    
+    .sidebar-icon {
+        height: 20px;
+    }
+    
+    .mainContent {
+        padding: 15px 10px;
+    }
+}
+
+/* ===== OVERLAY FOR MOBILE ===== */
+@media (max-width: 1024px) {
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+}

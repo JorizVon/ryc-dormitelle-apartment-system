@@ -1,0 +1,28 @@
+# ===================================================================
+#  PAYMONGO WEBHOOK FIX
+#  This MUST come before any other rewrite rules.
+# ===================================================================
+# This block ensures the 'Paymongo-Signature' header from the webhook
+# is correctly passed to your webhook.php script.
+RewriteEngine On
+RewriteCond %{HTTP:Paymongo-Signature} .
+RewriteRule .* - [E=HTTP_PAYMONGO_SIGNATURE:%{HTTP:Paymongo-Signature}]
+
+# ===================================================================
+#  YOUR EXISTING CLEAN URL RULES
+#  These rules handle URL rewriting for your application.
+# ===================================================================
+
+# 1. Check if the requested file/directory exists in the root
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+# If it exists in the root, do nothing and let Apache serve it normally
+RewriteRule ^ - [L]
+
+# 2. If not found in root, check if it exists inside 'tenantwebview'
+RewriteCond %{DOCUMENT_ROOT}/tenantwebview%{REQUEST_URI} -f
+# If it exists in tenantwebview, rewrite to it
+RewriteRule ^(.+)$ tenantwebview/$1 [L]
+
+# 3. Fallback (Optional but Recommended): If nothing matches, you might want to
+#    send it to a central index file or show a 404. For now, we'll leave it as is.

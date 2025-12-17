@@ -3,12 +3,47 @@ session_start();
 
 // Redirect to login if not logged in using 'email_account'
 if (!isset($_SESSION['email_account'])) {
-    // Assuming LOGIN.php is in the same directory or adjust path as needed
     header("Location: LOGIN.php");
     exit();
 }
 
 require_once 'db_connect.php';
+
+// Handle unit status update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_unit_status'])) {
+    $unit_no = $_POST['unit_no'];
+    
+    // Check if there's a pending reservation for this unit
+    $check_sql = "SELECT pr.unit_no, pr.confirmation_status 
+                  FROM `pending_reservation` pr
+                  WHERE pr.unit_no = ? AND pr.confirmation_status = 'pending'";
+    $check_stmt = $conn->prepare($check_sql);
+    $check_stmt->bind_param("s", $unit_no);
+    $check_stmt->execute();
+    $check_result = $check_stmt->get_result();
+    
+    if ($check_result->num_rows > 0) {
+        // There's a pending reservation, don't allow update
+        $_SESSION['error_message'] = "Cannot update Unit $unit_no. There is a pending reservation that must be processed first.";
+        $check_stmt->close();
+    } else {
+        // No pending reservation, proceed with update
+        $check_stmt->close();
+        $update_sql = "UPDATE `units` SET `unit_status`='Available' WHERE unit_no = ?";
+        $stmt = $conn->prepare($update_sql);
+        $stmt->bind_param("s", $unit_no);
+        
+        if ($stmt->execute()) {
+            $_SESSION['status_message'] = "Unit $unit_no status updated to Available successfully!";
+        } else {
+            $_SESSION['error_message'] = "Error updating unit status.";
+        }
+        $stmt->close();
+    }
+    
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
 
 // Fetch units ordered correctly
 $sql = "
@@ -27,611 +62,617 @@ if ($result && $result->num_rows > 0) {
         $units[] = $row;
     }
 }
-$conn->close();
-?>
 
+// DON'T CLOSE CONNECTION HERE - MOVE TO AFTER CHAT COMPONENT
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Units Information</title>
+    <title>Units Information - RYC Dormitelle</title>
+    
+    <!-- Include the layout CSS -->
+    <link rel="stylesheet" href="layout.css">
+    
+    <!-- Units Information specific styles -->
     <style>
-        body {
-            display: flex;
-            margin: 0;
-            background-color: #FFFF;
-        }
-        .sideBar {
-            width: 450px;
-            height: 100%;
-            background-color: #01214B;
-        }
-        .systemTitle {
-            text-align: center;
-            height: 10vh;
-            padding-bottom: 5.3px;
-        }
-        .systemTitle h1 {
-            font-size: 25px;
-            font-family: Inria Serif;
-            align-items: center;
-            position: relative;
-            top: 5px;
-            color: #FFFF;
-        }
-        .systemTitle p {
-            font-size: 14px;
-            font-family: Inria Serif;
-            position: relative;
-            bottom: 10px;
-            color: #FFFF;
-        }
-        .sidebarContent {
-            padding-top: 20px;
-            height: 84vh;
-            background-color: #004AAD;
-            display: block;
-        }
-        .card {
-            width: 100%;
-            height: 50px;
-            display: flex;
-            margin: 10px 0px 10px;
-            align-items: center;
-            justify-content: center;
-        }
-        .card a {
-            margin: auto 0px auto 0px;
-            font-size: 20px;
-            padding-left: 20px;
-            font-weight: 500;
-            display: flex;
-            text-decoration: none;
-            align-items: center;
-            color: #01214B;
-            height: 100%;
-            width: 100%;
-            background-color: #004AAD;
-            color: white;
-        }
-        .card a:hover {
-            background-color: 004AAD;
-            color: #FFFF;
-            background-color: #FFFF;
-            color: #004AAD;
-        }
-        .card a:hover .DsidebarIcon {
-            content: url('sidebarIcons/DashboardIcon.png');
-        }
-        .card a:hover .UIsidebarIcon {
-            content: url('sidebarIcons/UnitsInfoIcon.png');
-        }
-        .card a:hover .THsidebarIcon {
-            content: url('sidebarIcons/TenantsInfoIcon.png');
-        }
-        .card a:hover .PMsidebarIcon {
-            content: url('sidebarIcons/PaymentManagementIcon.png');
-        }
-        .card a:hover .APLsidebarIcon {
-            content: url('sidebarIcons/AccesspointIcon.png');
-        }
-        .card a:hover .CGsidebarIcon {
-            content: url('sidebarIcons/CardregisterIcon.png');
-        }
-        .card a:hover .PIsidebarIcon {
-            content: url('sidebarIcons/PendingInquiryIcon.png');
-        }
-        .mainBody {
-            width: 100vw;
-            height: 100%;
-            background-color: white;
-        }
-        .header {
-            height: 13vh;
-            width: 100%;
-            background-color: #79B1FC;
-            display: flex;
-            justify-content: end;
-            align-items: center;
-        }
-        .headerContent {
-            margin-right: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-        }
-        .adminTitle {
-            font-size: 16px;
-            color: #01214B;
-            position: relative;
-            text-decoration: none;
-        }
-        .headerContent .adminTitle:hover {
-            color: #FFFF;
-        }
-        .adminLogoutspace {
-            font-size: 16px;
-            color: #01214B;
-            position: relative;
-            text-decoration: none;
-        }
-        .logOutbtn {
-            font-size: 16px;
-            color: #FFFF;
-            position: relative;
-            margin-left: 2px;
-            text-decoration: none;
-        }
-        .headerContent a:hover {
-            color: #004AAD;
-        }
+        /* Units Information Specific Styles */
         .mainContent {
-            height: 100%;
-            width: 100%;
-            margin: 0px auto;
-            background-color: #FFFF;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-y: auto;
         }
-        .mainContent h4 {
-            color: #01214B;
-            font-size: 32px;
-            margin-left: 60px;
-            height: 20px;
-        }
+
         .Unitslegend {
             display: flex;
-            justify-content: left;
+            justify-content: flex-start;
             align-items: center;
-            position: relative;
-            bottom: 35px;
-            margin-left: 55px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-left: 20px;
         }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .legendsIcon {
-            height: 20px;
-            width: 20px;
-            margin-right: 3px;
-            margin-left: 8px;
+            height: 30px;
+            width: 30px;
         }
-        .grid-wrapper {
-            height: 59vh;
-            overflow-y: auto;
-            margin-left: 60px;
-            margin-bottom: 50px;
-            width: 1080px;
-            position: relative;
-            bottom: 30px;
-            overflow-y: scroll;
-            scrollbar-width: none;     /* Firefox */
-            -ms-overflow-style: none;  /* IE and Edge */
+
+        .legend-item p {
+            margin: 0;
+            font-size: 14px;
+            color: #333;
         }
+
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
+            margin-left: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
         }
-        .grid-container::-webkit-scrollbar {
-            display: none;
+
+        .statcardOccupiedUnit,
+        .statcardAvailableUnit,
+        .statcardOnHoldUnit {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .statcardOccupiedUnit:hover,
+        .statcardAvailableUnit:hover,
+        .statcardOnHoldUnit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .statcardOccupiedUnit {
-            align-items: center;
-            background-color: #FFFF;
-            font-size: 20px;
-            border-color: #A6DDFF;
-            border-style: solid;
-            border-width: 4px;
+            background-color: #FFFFFF;
+            border: 3px solid #A6DDFF;
         }
+
         .statcardAvailableUnit {
-            align-items: center;
             background-color: #A6DDFF;
-            font-size: 20px;
-            border-color: #A6DDFF;
-            border-style: solid;
-            border-width: 4px;
+            border: 3px solid #A6DDFF;
         }
-        .statsInfoOccupiedUnit {
-            align-items: center;
-            height: 80%;
-            width: 100%;
-            margin: 0px auto;
-            background-color: #FFFF;
+
+        .statcardOnHoldUnit {
+            background-color: #FFF5E6;
+            border: 3px solid #FFB366;
         }
-        .statsInfoAvailableUnit {
-            align-items: center;
-            height: 80%;
-            width: 100%;
-            background-color: #A6DDFF;
-        }
-        .UnitInfocontentIcons {
-            height: 80px;
-            width: 80px;
-            left: 33%;
-            top: 15px;
-            position: relative;
-        }
-        .unit_no {
-            position: relative;
-            left: 35%;
-            top: 15px;
-            font-size: 26px;
-            margin: 5px auto;
-        }
-        .viewandInfo {
-            height: 28px;
-            width: 140px;
-            background-color: #004AAD;
-            color: #FFFF;
+
+        .statsInfoOccupiedUnit,
+        .statsInfoAvailableUnit,
+        .statsInfoOnHoldUnit {
+            flex-grow: 1;
             display: flex;
-            margin: 15px auto;
-            position: relative;
-            bottom: 12px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .UnitInfocontentIcons {
+            height: 60px;
+            width: 60px;
+            margin-bottom: 10px;
+        }
+
+        .unit_no {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        .viewandInfo {
+            height: 40px;
+            background-color: #0056B3;
+            color: white;
+            display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 16px;
+            font-size: 14px;
             text-decoration: none;
+            transition: all 0.3s ease;
         }
+
+        .onHoldBtn {
+            height: 40px;
+            background-color: #FF8C42;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+        }
+
         .viewandInfo:hover {
-            background-color: #FFFFFF;
-            color: #004AAD;
-            border: 1px solid #004AAD;
-            height: 26px;
+            background-color: #003D7A;
+            color: #FFFFFF;
         }
-        .addUnitbtnContainer {
+
+        .onHoldBtn:hover {
+            background-color: #E57A35;
+        }
+
+        .action-buttons {
             display: flex;
             justify-content: space-between;
-            width: 70%;
             align-items: center;
-            position: fixed;
-            top: 685px;
-            right: 58px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            margin-left: 20px;
+            gap: 15px;
         }
+
+        .backbtn,
         .addUnitbtn {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 36px;
-            width: 255px;
+            height: 40px;
             border-radius: 5px;
-        }
-        .PlusSign {
-            color: #FFFF;
-            font-weight: 1000;
-            font-size: 22px;
-            margin-right: 5px;
-        }
-        .addUnitbtn a {
-            color: #FFFF;
-            font-size: 16px;
-            text-decoration: none;
-            height: 100%;
-            width: 100%;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+        }
+
+        .backbtn {
+            min-width: 110px;
             background-color: #004AAD;
+        }
+
+        .addUnitbtn {
+            min-width: 200px;
+            background-color: #004AAD;
+        }
+
+        .backbtn a,
+        .addUnitbtn a {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #004AAD;
+            color: white;
+            text-decoration: none;
             border-radius: 5px;
+            font-size: 14px;
+            padding: 0 15px;
+            transition: all 0.3s ease;
+            min-width: 110px;
         }
+
         .addUnitbtnIcon {
-            height: 20px;
-            width: 20px;
-            margin-right: 5px;
+            height: 16px;
+            width: 16px;
+            margin-right: 8px;
         }
+
+        .backbtn a:hover,
+        .addUnitbtn a:hover {
+            background-color: white;
+            color: #004AAD;
+            border: 2px solid #004AAD;
+        }
+
         .addUnitbtn a:hover .addUnitbtnIcon {
             content: url('UnitsInfoIcons/plusblue.png');
         }
-        .addUnitbtn a:hover {
-            background-color: #FFFF;
-            color: #004AAD;
-            border-style: solid;
-            border-color: #004AAD;
-        }
-        .backbtn {
-            height: 36px;
-            width: 110px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            bottom: 4px;
-            margin-left: 5px;
-            background-color: #004AAD;
-            color: #FFFFFF;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .backbtn a {
-            color: #FFFF;
-            font-size: 16px;
-            text-decoration: none;
-            height: 100%;
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
             width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 30px;
+            border: none;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s;
+        }
+
+        .modal h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .modal p {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
             display: flex;
             justify-content: center;
-            align-items: center;
-            background-color: #004AAD;
+            gap: 15px;
+        }
+
+        .btn-confirm,
+        .btn-cancel {
+            padding: 10px 25px;
+            border: none;
             border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .backbtn a:hover {
-            background-color: #FFFF;
-            color: #004AAD;
-            border-style: solid;
-            border-color: #004AAD;
+
+        .btn-confirm {
+            background-color: #28a745;
+            color: white;
         }
-        .hamburger {
-            visibility: hidden;
-            width: 0px;
+
+        .btn-confirm:hover {
+            background-color: #218838;
         }
-        /* Mobile and Tablet Responsive */
+
+        .btn-cancel {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background-color: #c82333;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 15px;
+            margin: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Chat Component Compatibility - Ensure chat has higher z-index than modals */
+        .chat-component,
+        .chat-component * {
+            z-index: 10000 !important;
+        }
+
+        /* Responsive Design */
         @media (max-width: 1024px) {
-            body {
-            display: flex;
-            margin: 0;
-            background-color: #FFFF;
-            justify-content: center;
-            }
-            .sideBar {
-                position: fixed;
-                left: -100%;
-                top: 0;
-                height: 100vh;
-                z-index: 1000;
-                transition: 0.3s ease;
-            }
-
-            .sideBar.active {
-                left: 0;
-            }
-
-            .hamburger {
-                display: block;
-                position: absolute;
-                top: 25px;
-                left: 20px;
-                z-index: 1100;
-                font-size: 30px;
-                cursor: pointer;
-                color: #004AAD;
-                visibility: visible;
-                width: 10px;
-            }
-
-            .mainBody {
-                width: 100%;
-                margin-left: 0 !important;
-            }
-
-            .header {
-                justify-content: right;
-            }
-
             .mainContent {
-                width: 100%;
-                margin: 0 auto;
+                padding: 15px;
+            }
+
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
             }
 
             .Unitslegend {
-                align-items: center;
+                justify-content: center;
                 text-align: center;
-                justify-content: center;
-                width: 100%;
-                margin-left: 0px;
             }
-            .mainContent h4 {
-                width: 100%;
-                margin-left: 0px;
-                display: flex;
+
+            .action-buttons {
                 justify-content: center;
             }
-            .grid-wrapper {
-                width: 100%;
-                margin: 0px;
-                display: flex;
-                justify-content: center;
-                margin-left: 0px;
-            }
-            .grid-container {
-                gap: 40px;
-                width: 95%;
-                grid-template-columns: repeat(4, 1fr);
-            }
-            .UnitInfocontentIcons {
-                display: flex;
-                justify-content: center;
-                height: 60px;
-                width: 60px;
-            }
-            .unit_no {
-                display: flex;
-                justify-content: center;
-                width: 100%;
-                left: 0px;
-            }
-            .footbtnContainer {
-                flex-direction: column;
-                align-items: center;
-                gap: 15px;
-                top: 10px;
-                margin: 0 auto;
-            }
-            .addUnitbtn {
-                font-size: 18px;
-                padding: 5px 10px;
-            }
+
             .backbtn {
-                visibility: hidden;
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .mainContent {
+                padding: 10px;
+            }
+
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+            }
+
+            .UnitInfocontentIcons {
+                height: 50px;
+                width: 50px;
+            }
+
+            .unit_no {
+                font-size: 20px;
+            }
+
+            .viewandInfo,
+            .onHoldBtn {
+                height: 35px;
+                font-size: 12px;
+            }
+
+            .addUnitbtn {
+                min-width: 180px;
+            }
+
+            .backbtn a,
+            .addUnitbtn a {
+                font-size: 14px;
+            }
+
+            .modal-content {
+                margin: 20% auto;
+                padding: 20px;
             }
         }
 
         @media (max-width: 480px) {
-            .headerContent a, .adminLogoutspace {
-                font-size: 14px;
+            .mainContent {
+                padding: 8px;
             }
-            .hamburger {
-                font-size: 28px;
-            }
-            .sideBar{
-                width: 53vw;
-            }
-            .systemTitle {
-                position: relative;
-                top: 15px;
-                padding: 11px;
-            }
-            .systemTitle h1 {
-                font-size: 14px;
-                position: relative;
-                margin-bottom: 18px;
 
-            }
-            .grid-wrapper {
-                width: 100%;
-                height: 80%;
-                margin-left: 0px;
-                margin-bottom: 30px;
-            }
             .grid-container {
-                gap: 10px;
                 grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
             }
+
+            .statcardOccupiedUnit,
+            .statcardAvailableUnit,
+            .statcardOnHoldUnit {
+                min-height: 140px;
+            }
+
+            .statsInfoOccupiedUnit,
+            .statsInfoAvailableUnit,
+            .statsInfoOnHoldUnit {
+                padding: 15px;
+            }
+
             .UnitInfocontentIcons {
-                display: flex;
-                justify-content: center;
-                height: 60px;
-                width: 60px;
+                height: 40px;
+                width: 40px;
+                margin-bottom: 8px;
             }
+
             .unit_no {
-                display: flex;
-                justify-content: center;
-                width: 100%;
-                left: 0px;
-            }
-            .systemTitle p {
-                font-size: 10px;
-            }
-            .card a {
-                font-size: 14px;
-            }
-            .card img {
-                height: 25px;
-            }
-            .footbtnContainer {
-                width: 100%;
-            }
-            .addUnitbtn {
                 font-size: 18px;
-                padding: 5px 10px;
-                margin-left: 0px;
+            }
+
+            .viewandInfo,
+            .onHoldBtn {
+                height: 30px;
+                font-size: 11px;
+            }
+
+            .legend-item p {
+                font-size: 12px;
+            }
+
+            .legendsIcon {
+                height: 16px;
+                width: 16px;
+            }
+
+            .modal-content {
+                margin: 30% auto;
+                padding: 15px;
+                width: 95%;
+            }
+
+            .modal-buttons {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="hamburger" onclick="toggleSidebar()">☰</div>
-    <div class="sideBar">
-        <div class="systemTitle">
-            <h1>RYC Dormitelle</h1>
-            <p>APARTMENT MANAGEMENT SYSTEM</p>
-        </div>
-        <div class="sidebarContent">
-            <div class="card">
-                <a href="DASHBOARD.php" class="changeicon">
-                    <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 8px;">
-                    Dashboard
-                </a>
-            </div>
-            <div class="card">
-                <a href="UNITSINFORMATION.php" style="background-color: #FFFF; color: #004AAD;">
-                    <img src="sidebarIcons/UnitsInfoIcon.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 5px;">
-                    Units Information</a>
-            </div>
-            <div class="card">
-                <a href="TENANTSLIST.php">
-                    <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 3px;">
-                    Tenants List</a>
-            </div>
-            <div class="card">
-                <a href="PAYMENTMANAGEMENT.php">
-                    <img src="sidebarIcons/PaymentManagementIconWht.png" alt="Payment Management Icon" class="PMsidebarIcon" style="margin-right: 10px;">
-                    Payment Management</a>
-            </div>
-            <div class="card">
-                <a href="ACCESSPOINTLOGS.php">
-                    <img src="sidebarIcons/AccesspointIconWht.png" alt="Access Point Logs Icon" class="APLsidebarIcon" style="margin-right: 10px;">
-                    Access Point Logs</a>
-            </div>
-            <div class="card">
-                <a href="CARDREGISTRATION.php">
-                    <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="CGsidebarIcon" style="margin-right: 10px;">
-                    Card Registration</a>
-            </div>
-            <div class="card">
-                <a href="PENDINGINQUIRY.php">
-                    <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
-                    Pending Inquiry</a>
-            </div>
-        </div>
-    </div>
+    <!-- Include Sidebar -->
+    <?php include 'sidebar.html'; ?>
+    
     <div class="mainBody">
-        <div class="header">
-            <div class="headerContent">
-                <a href="ADMINPROFILE.php" class="adminTitle">ADMIN</a>
-                <p class="adminLogoutspace">&nbsp;|&nbsp;</p>
-                <a href="LOGIN.php" class="logOutbtn">Log Out</a>
-            </div>
-        </div>
+        <!-- Include Header -->
+        <?php include 'header.php'; ?>
+        
         <div class="mainContent">
             <h4>Units Information</h4>
-            <div class="Unitslegend">
-                <img src="UnitsInfoIcons/OccupiedUnitIcon.png" alt="Occupied Unit Icon" class="legendsIcon">
-                <p>Occupied</p>
-                <img src="UnitsInfoIcons/UnoccupiedUnitIcon.png" alt="Occupied Unit Icon" class="legendsIcon">
-                <p>Available Unit</p>
-            </div>
-           <div class="grid-wrapper">
-            <div class="grid-container">
+            
             <?php
-                foreach ($units as $unit) {
-                    if ($unit['unit_status'] === 'Occupied') {
-                        echo "
-                        <div class='statcardOccupiedUnit'>
-                            <div class='statsInfoOccupiedUnit'>
-                                <img src='UnitsInfoIcons/OccupiedUnitIcon.png' alt='Occupied Unit Icon' class='UnitInfocontentIcons'>
-                                <h1 class='unit_no'>{$unit['unit_no']}</h1>
-                            </div>
-                            <a href='OCCUPIEDUNITOVERVIEW.php?unit_no=" . urlencode($unit['unit_no']) . "' class='viewandInfo'>View</a>
-                        </div>";
-                    } else if ($unit['unit_status'] === 'Available' or $unit['unit_status'] === 'Pending') {
-                        echo "
-                        <div class='statcardAvailableUnit'>
-                            <div class='statsInfoAvailableUnit'>
-                                <img src='UnitsInfoIcons/UnoccupiedUnitIcon.png' alt='Available Unit Icon' class='UnitInfocontentIcons'>
-                                <h1 class='unit_no'>{$unit['unit_no']}</h1>
-                            </div>
-                            <a href='AVAILABLEUNITOVERVIEW.php?unit_no=" . urlencode($unit['unit_no']) . "' class='viewandInfo'>Info</a>
-                        </div>";
-                    }
-                }
+            // Display status messages
+            if (isset($_SESSION['status_message'])) {
+                echo "<div class='status-message success-message'>" . $_SESSION['status_message'] . "</div>";
+                unset($_SESSION['status_message']);
+            }
+            if (isset($_SESSION['error_message'])) {
+                echo "<div class='status-message error-message'>" . $_SESSION['error_message'] . "</div>";
+                unset($_SESSION['error_message']);
+            }
             ?>
+            
+            <div class="Unitslegend">
+                <div class="legend-item">
+                    <img src="UnitsInfoIcons/OccupiedUnitIcon.png" alt="Occupied Unit Icon" class="legendsIcon">
+                    <p>Occupied</p>
+                </div>
+                <div class="legend-item">
+                    <img src="UnitsInfoIcons/UnoccupiedUnitIcon.png" alt="Available Unit Icon" class="legendsIcon">
+                    <p>Available Unit</p>
+                </div>
+                <div class="legend-item">
+                    <img src="UnitsInfoIcons/onHoldUnitIcon.png" alt="On Hold Unit Icon" class="legendsIcon">
+                    <p>On Hold</p>
+                </div>
             </div>
-           </div>
-           <div class="addUnitbtnContainer">
+            
+            <div class="grid-container">
+                <?php
+                    foreach ($units as $unit) {
+                        if ($unit['unit_status'] === 'Occupied') {
+                            echo "
+                            <div class='statcardOccupiedUnit'>
+                                <div class='statsInfoOccupiedUnit'>
+                                    <img src='UnitsInfoIcons/OccupiedUnitIcon.png' alt='Occupied Unit Icon' class='UnitInfocontentIcons'>
+                                    <h1 class='unit_no'>{$unit['unit_no']}</h1>
+                                </div>
+                                <a href='OCCUPIEDUNITOVERVIEW.php?unit_no=" . urlencode($unit['unit_no']) . "' class='viewandInfo'>View</a>
+                            </div>";
+                        } else if ($unit['unit_status'] === 'Available') {
+                            echo "
+                            <div class='statcardAvailableUnit'>
+                                <div class='statsInfoAvailableUnit'>
+                                    <img src='UnitsInfoIcons/UnoccupiedUnitIcon.png' alt='Available Unit Icon' class='UnitInfocontentIcons'>
+                                    <h1 class='unit_no'>{$unit['unit_no']}</h1>
+                                </div>
+                                <a href='AVAILABLEUNITOVERVIEW.php?unit_no=" . urlencode($unit['unit_no']) . "' class='viewandInfo'>Info</a>
+                            </div>";
+                        } else if ($unit['unit_status'] === 'pending') {
+                            echo "
+                            <div class='statcardOnHoldUnit'>
+                                <div class='statsInfoOnHoldUnit'>
+                                    <img src='UnitsInfoIcons/onHoldUnitIcon.png' alt='On Hold Unit Icon' class='UnitInfocontentIcons'>
+                                    <h1 class='unit_no'>{$unit['unit_no']}</h1>
+                                </div>
+                                <button class='onHoldBtn' onclick='openModal(\"{$unit['unit_no']}\")'>On Hold</button>
+                            </div>";
+                        }
+                    }
+                ?>
+            </div>
+            
+            <div class="action-buttons">
                 <div class="backbtn">
                     <a href="DASHBOARD.php">&#10558; Back</a>
                 </div>
                 <div class="addUnitbtn">
-                    <a href="ADDNEWUNIT.php" type="action-btn">
-                        <img src="UnitsInfoIcons/pluswht.png" alt="Units Information Icon" class="addUnitbtnIcon">
-                        Add New Unit</a>
+                    <a href="ADDNEWUNIT.php">
+                        <img src="UnitsInfoIcons/pluswht.png" alt="Add Unit Icon" class="addUnitbtnIcon">
+                        Add New Unit
+                    </a>
                 </div>
-           </div>
+            </div>
         </div>
     </div>
+
+    <!-- Modal for Unit Status Update -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <h3>Update Unit's Availability</h3>
+            <p>Are you sure you want to update this unit's status to 'Available'?</p>
+            <div class="modal-buttons">
+                <button class="btn-confirm" onclick="confirmUpdate()">Yes, Update</button>
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden form for unit status update -->
+    <form id="updateForm" method="POST" style="display: none;">
+        <input type="hidden" name="update_unit_status" value="1">
+        <input type="hidden" name="unit_no" id="updateUnitNo">
+    </form>
+
     <script>
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sideBar');
-            sidebar.classList.toggle('active');
+        let currentUnitNo = '';
+
+        function openModal(unitNo) {
+            currentUnitNo = unitNo;
+            document.getElementById('updateModal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
         }
+
+        function closeModal() {
+            document.getElementById('updateModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+            currentUnitNo = '';
+        }
+
+        function confirmUpdate() {
+            if (currentUnitNo) {
+                document.getElementById('updateUnitNo').value = currentUnitNo;
+                document.getElementById('updateForm').submit();
+            }
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('updateModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Auto-hide status messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusMessages = document.querySelectorAll('.status-message');
+            statusMessages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.opacity = '0';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 300);
+                }, 5000);
+            });
+        });
     </script>
+    
+    <?php include 'chatfunctions/CHAT_COMPONENT.php'; ?>
+    
+    <?php
+    // Close database connection AFTER chat component
+    if (isset($conn)) {
+        $conn->close();
+    }
+    ?>
 </body>
 </html>

@@ -438,24 +438,7 @@ $conn->close();
             color: #004AAD;
             border: 2px solid #004AAD;
         }
-        .printReportbtn {
-            height: 36px;
-            width: 255px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            bottom: 20px;
-            background-color: #004AAD;
-            color: #FFFFFF;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .printTenantInfo {
-            height: 20px;
-            width: 20px;
-            margin-right: 5px;
-        }
+
         .footbtnContainer a:hover .printTenantInfo {
             content: url('otherIcons/printIconblue.png');
         }
@@ -597,12 +580,7 @@ $conn->close();
             .backbtn {
                 visibility: hidden;
             }
-            .printReportbtn {
-                position: relative;
-                bottom: 50px;
-                padding: 5px 15px;
-                font-size: 18px;
-            }
+
         }
 
         @media (max-width: 480px) {
@@ -760,9 +738,9 @@ $conn->close();
                     Card Registration</a>
             </div>
             <div class="card">
-                <a href="PENDINGINQUIRY.php">
+                <a href="PENDINGREQUEST.php">
                     <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
-                    Pending Inquiry</a>
+                    Pending Request</a>
             </div>
         </div>
     </div>
@@ -878,9 +856,7 @@ $conn->close();
             </form>
             <div class="footbtnContainer">
                 <a href="TENANTSLIST.php" class="backbtn">&#10558; Back</a>
-                <a href="#" class="printReportbtn">
-                    <img src="otherIcons/printIcon.png" alt="Plus Sign" class="printTenantInfo">
-                    Print Report</a>
+
             </div>
         </div>
     </div>

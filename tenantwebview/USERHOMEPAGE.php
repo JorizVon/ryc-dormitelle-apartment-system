@@ -1,16 +1,23 @@
 <?php
-session_start();
+session_start(); // Start session ONCE, at the very beginning
 
 // Redirect to login if not logged in
 if (!isset($_SESSION['email_account'])) {
-    header("Location: ../LOGIN.php");
+    header("Location: ../LOGIN.php"); // Change path as needed
     exit();
+}
+
+// Handle reservation success message
+$reservation_success_message = '';
+if (isset($_SESSION['reservation_success'])) {
+    $reservation_success_message = $_SESSION['reservation_success'];
+    unset($_SESSION['reservation_success']);
 }
 
 // Connect to the database
 require_once '../db_connect.php';
 
-// Query to get available units
+// Query to get available units - LIMIT to 6 for homepage
 $sql = "SELECT 
     u.unit_no, 
     u.unit_address, 
@@ -27,782 +34,579 @@ INNER JOIN (
 ) ui ON u.unit_no = ui.unit_no
 WHERE 
     u.unit_status = 'Available'
-LIMIT 0, 25";
+LIMIT 6"; // Changed from LIMIT 0, 25 to LIMIT 6
 
 $result = mysqli_query($conn, $sql);
 
 // Check if query executed successfully
 if (!$result) {
-    die("Query failed: " . mysqli_error($conn));
+    error_log("Query failed in USERHOMEPAGE.php: " . mysqli_error($conn));
+    $error_message = "Something went wrong loading available units. Please try again later.";
 }
+
+// Count total available units for "See More" button logic
+$count_sql = "SELECT COUNT(*) as total_units FROM units WHERE unit_status = 'Available'";
+$count_result = mysqli_query($conn, $count_sql);
+$total_units = 0;
+if ($count_result) {
+    $count_row = mysqli_fetch_assoc($count_result);
+    $total_units = $count_row['total_units'];
+}
+
+// Set page title for header
+$page_title = "Homepage - RYC Dormitelle";
+
+// Include header
+include 'user_header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Homepage</title>
-  <style>
-    html {
-      scroll-behavior: smooth; /* enables smooth scrolling */
-    }
-    body {
-      margin: 0;
-      background-color: #fff;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
 
-    .header {
-      display: flex;
-      position: fixed;
-      z-index: 1;
-      justify-content: space-between;
-      width: 100%;
-      height: 80px;
-    }
+<style>
+  /* ===========================
+     HOMEPAGE-SPECIFIC STYLES
+     =========================== */
 
-    .hanburgerandaccContainer {
-      background-color: #01214B;
-      width: 22%;
-      height: 100%;
-      display: none;
-      justify-content: center;
-      align-items: center;
-    }
+  /* Hero Section - Modern Design */
+  .mainBody {
+    height: 100vh;
+    background: linear-gradient(135deg, rgba(30, 60, 114, 0.8), rgba(42, 82, 152, 0.8)), url("../staticImages/homepagebg.png");
+    background-size: cover; 
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-top: 0;
+    position: relative;
+    top: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+  }
 
-    .containerSystemName {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      width: 25%;
-      background-color: #01214B;
-    }
+  .mainBodyName {
+    max-width: 800px;
+    padding: 0 2rem;
+    animation: fadeInUp 1s ease-out;
+  }
 
-    .systemName {
-      width: 100%;
-      text-align: center;
-      color: #fff;
-    }
+  .mainBody h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-weight: 700;
+  }
 
-    .systemName h2 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 500;
-    }
+  .mainBody h2 {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+    font-weight: 400;
+  }
 
-    .systemName h4 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 500;
-    }
+  .mainBody h3 {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    font-weight: 300;
+  }
 
-    .navbar {
-      background-color: #79B1FC;
-      width: 80%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      position: relative;
-    }
+  .cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
 
-    .navbarContent {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      margin-left: 500px;
-      margin-right: 90px;
-    }
-
-    .navbarContent a {
-      text-decoration: none;
-      margin: 0 10px;
-      color: white;
-      font-size: 20px;
-    }
-
-    .navbarContent a:hover {
-      color: #01214B;
-    }
-
-    .loginLogOut {
-      display: flex;
-      align-items: center;
-      justify-content: right;
-      margin-left: 50px;
-    }
-
-    .hamburger {
-      display: none;
-      font-size: 28px;
-      color: white;
-      background: none;
-      border: none;
-      cursor: pointer;
-      margin-left: 12px;
-      margin-bottom: 5px;
-    }
-
-    /* Tablet view */
-    @media screen and (max-width: 768px) {
-      .header {
-        height: 60px;
-        position: relative;
-      }
-
-      .hanburgerandaccContainer {
-        width: 100%;
-        height: 60px;
-        display: flex;
-        justify-content: space-between;
-        background-color: #79B1FC;
-      }
-
-      .containerSystemName {
-        display: none;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        background-color: #01214B;
-        width: 100%;
-        padding: 10px 0;
-        z-index: 10;
-        height: 40px;
-        flex-direction: column;
-      }
-
-      .containerSystemName.show {
-        display: flex;
-        width: 50vw;
-      }
-
-      .systemName h2 {
-        font-size: 18px;
-      }
-
-      .systemName h4 {
-        font-size: 14px;
-      }
-
-      .navbar {
-        display: none;
-        position: absolute;
-        top: 122px;
-        left: 0;
-        background-color: #01214B;
-      }
-
-      .navbar.show {
-        display: block;
-        width: 50vw;
-        height: 85vh;
-      }
-
-      .navbarContent {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px 20px;
-        margin: 0;
-      }
-
-      .navbarContent a {
-        margin: 8px 0;
-        font-size: 18px;
-        color: white;
-      }
-
-      .loginLogOut {
-        display: none;
-      }
-
-      .adminSection {
-        position: absolute;
-        right: 15px;
-        top: 20px;
-        color: white;
-        font-size: 16px;
-        display: flex;
-        width: 120px;
-        align-items: center;
-      }
-
-      .adminSection a {
-        color: white;
-        text-decoration: none;
-        margin-left: 5px;
-        margin-right: 5px;
-      }
-
-      .hamburger {
-        display: block;
-        font-size: 35px;
-      }
-    }
-
-    @media screen and (max-width: 480px) {
-      .systemName h2 {
-        font-size: 14px;
-      }
-
-      .systemName h4 {
-        font-size: 9px;
-      }
-
-      .navbarContent a {
-        font-size: 16px;
-      }
-    }
-
-    .mainBody {
-      background-image: url("../staticImages/userhomepagebg.png");
-      background-color: #cccccc;
-      width: 100%;
-      height: 89vh;
-      background-size: cover; 
-      background-repeat: no-repeat;
-      background-position: top;
-      margin-top: 0;
-      position: relative;
-      top: 80px;
-    }
-
-    .mainBodyName {
-      position: relative;
-      top: 150px;
-    }
-
+  /* Responsive styles for mainBody */
+  @media screen and (max-width: 992px) {
     .mainBody h1 {
-      margin-top: 0;
-      margin-left: 120px;
-      margin-bottom: 0;
-      font-size: 60px;
+      font-size: 3rem;
     }
-
+    
     .mainBody h2 {
-      margin-top: 2px;
-      margin-left: 120px;
-      margin-bottom: 0;
-      font-size: 40px;
+      font-size: 1.2rem;
     }
-
+    
     .mainBody h3 {
-      margin-top: 2px;
-      margin-left: 120px;
-      margin-bottom: 0;
-      font-size: 20px;
+      font-size: 0.9rem;
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .mainBody {
+      height: 70vh;
+      top: 0;
+    }
+    
+    .mainBody h1 {
+      font-size: 2.5rem;
+    }
+    
+    .mainBody h2 {
+      font-size: 1.1rem;
+    }
+    
+    .mainBody h3 {
+      font-size: 0.8rem;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .mainBody {
+      height: 50vh;
+      background-position: center;
+      top: 0;
+    }
+    
+    .mainBody h1 {
+      font-size: 2rem;
+    }
+    
+    .mainBody h2 {
+      font-size: 1rem;
+    }
+    
+    .mainBody h3 {
+      font-size: 0.7rem;
     }
 
-    /* Responsive styles for mainBody */
-    @media screen and (max-width: 992px) {
-      .mainBodyName {
-        top: 120px;
-      }
-      
-      .mainBody h1 {
-        font-size: 50px;
-        margin-left: 80px;
-      }
-      
-      .mainBody h2 {
-        font-size: 32px;
-        margin-left: 80px;
-      }
-      
-      .mainBody h3 {
-        font-size: 18px;
-        margin-left: 80px;
-      }
-    }
-
-    @media screen and (max-width: 768px) {
-      .mainBody {
-        height: 70vh;
-      }
-      
-      .mainBodyName {
-        top: 80px;
-      }
-      
-      .mainBody h1 {
-        font-size: 40px;
-        margin-left: 40px;
-      }
-      
-      .mainBody h2 {
-        font-size: 24px;
-        margin-left: 40px;
-      }
-      
-      .mainBody h3 {
-        font-size: 16px;
-        margin-left: 40px;
-      }
-    }
-
-    @media screen and (max-width: 480px) {
-      .mainBody {
-        height: 50vh;
-        background-position: center;
-      }
-      
-      .mainBodyName {
-        top: 50px;
-      }
-      
-      .mainBody h1 {
-        font-size: 28px;
-        margin-left: 20px;
-      }
-      
-      .mainBody h2 {
-        font-size: 18px;
-        margin-left: 20px;
-      }
-      
-      .mainBody h3 {
-        font-size: 14px;
-        margin-left: 20px;
-      }
-    }
-
-    .aboutRYC {
-      position: relative;
-      top: 50px;
-      width: 100%;
-      display: flex;
-      justify-content: center;
+    .cta-buttons {
+      flex-direction: column;
       align-items: center;
-      margin-top: 70px;
     }
+  }
 
-    .aboutRYCcontent img {
-      margin: 0 auto;
+  /* Features Section - Why Choose RYC */
+  .features {
+    padding: 5rem 0;
+    background: #f8fafc;
+    position: relative;
+    top: 80px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+  }
+
+  .feature-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #79B1FC, #4A90E2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2rem;
+    color: white;
+  }
+
+  .feature-card h3 {
+    color: #1e3c72;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  .feature-card p {
+    color: #666;
+    line-height: 1.6;
+  }
+
+  /* About Section - Modern Design */
+  .aboutRYC {
+    padding: 5rem 0;
+    background: white;
+    position: relative;
+    top: 80px;
+  }
+
+  .about-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .about-text h1 {
+    color: #1e3c72;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+  }
+
+  .about-text p {
+    margin-bottom: 1.5rem;
+    color: #666;
+    font-size: 1.1rem;
+    line-height: 1.7;
+  }
+
+  .about-image {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .about-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media screen and (max-width: 768px) {
+    .about-content {
+      grid-template-columns: 1fr;
       text-align: center;
-      height: 25vh;
     }
+  }
 
-    .aboutRYCcontent h1 {
-      text-align: center;
-      font-size: 50px;
-    }
+  /* Available Units Section - Modern Design */
+  .availUnitsSection {
+    padding: 5rem 0;
+    background: #f8fafc;
+    position: relative;
+    top: 80px;
+  }
 
-    .aboutRYCcontent p {
-      text-align: center;
-      font-size: 20px;
-    }
+  .availUnitsContent h1 {
+    font-size: 2.5rem;
+    color: #1e3c72;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    text-align: center;
+  }
 
-    /* Responsive styles for aboutRYC */
-    @media screen and (max-width: 992px) {
-      .aboutRYCcontent img {
-        height: 20vh;
-        width: 100%;
-      }
-      
-      .aboutRYCcontent h1 {
-        font-size: 40px;
-      }
-      
-      .aboutRYCcontent p {
-        font-size: 18px;
-        padding: 0 20px;
-      }
-      .mainBody {
-        margin-top: 0;
-      }
-    }
+  .availUnitsContent p {
+    font-size: 1.1rem;
+    color: #666;
+    text-align: center;
+    margin-bottom: 3rem;
+  }
 
-    @media screen and (max-width: 768px) {
-      .aboutRYCcontent img {
-        height: 15vh;
-        width: 100%;
-      }
-      
-      .aboutRYCcontent h1 {
-        font-size: 32px;
-      }
-      
-      .aboutRYCcontent p {
-        font-size: 16px;
-        padding: 0 30px;
-        br {
-          display: none;
-        }
-      }
-      .mainBody {
-         top: 0;
-      }
-    }
+  .availUnits {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
 
-    @media screen and (max-width: 480px) {
-      .aboutRYCcontent img {
-        height: 12vh;
-        width: 100%;
-      }
-      
-      .aboutRYCcontent h1 {
-        font-size: 26px;
-      }
-      
-      .aboutRYCcontent p {
-        font-size: 14px;
-        padding: 0 15px;
-      }
-      .mainBody {
-        top: 0;
-      }
-    }
+  .availUnitsContainer {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+  }
 
-    /* Available Units Section - Fixed */
-    .availUnitsContent {
-      max-width: 1200px;
-      margin: 80px auto 20px;
-      padding: 0 20px;
-    }
+  .availUnitsBox {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+  }
 
-    .availUnitsContent h1 {
-      font-size: 26px;
-      color: #01214B;
-      margin-bottom: 20px;
-      font-weight: bold;
-    }
+  .availUnitsBox:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+  }
 
-    .availUnits {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
+  .unit-image-container {
+    position: relative;
+    height: 230px;
+    overflow: hidden;
+  }
 
+  .availUnitsBox img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .unit_no {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #1e3c72;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .unitInfo {
+    padding: 1.5rem;
+    line-height: 22px;
+  }
+
+  .unitT_type, .unit_type {
+    color: #1e3c72;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .unit-details {
+    margin: 1rem 0;
+  }
+
+  .unit-details span {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    margin: 0.2rem 0.3rem 0.2rem 0;
+  }
+
+  .occupant_capacity, .unit_address {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0.5rem 0;
+  }
+
+  .monthly_rent_amount {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1e3c72;
+    margin: 1rem 0;
+  }
+
+  .inquireButton {
+    background: linear-gradient(135deg, #79B1FC, #4A90E2);
+    color: white;
+    padding: 0.8rem 2rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: inline-block;
+  }
+
+  .inquireButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(121, 177, 252, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+
+  /* See More Button Styles */
+  .see-more-container {
+    text-align: center;
+    margin-top: 3rem;
+  }
+
+  .btn-see-more {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
+  }
+
+  .btn-see-more:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+
+  @media screen and (max-width: 992px) {
     .availUnitsContainer {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .availUnitsContainer {
+      grid-template-columns: 1fr;
     }
 
-    .availUnitsBox {
-      position: relative;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      height: 300px;
-    }
-
-    .availUnitsBox img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .unit_no {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: #0066cc;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .unitInfo {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background-color: rgba(255, 255, 255, 0.9);
-      padding: 8px;
-    }
-
-    .unitT_type, .unit_type {
-      font-size: 16px;
-      font-weight: bold;
-      margin: 0 0 3px 0;
-    }
-
-    .unitDetails, .occupant_capacity, .unit_address {
-      font-size: 14px;
-      color: #555;
-      margin: 0 0 5px 0;
-    }
-
-    .monthly_rent_amount {
-      font-weight: bold;
-      color: #01214B;
-      margin: 0 0 5px 0;
-      font-size: 16px;
-    }
-
-    .inquireButton {
-      display: inline-block;
-      background-color: #0066cc;
-      color: white;
-      padding: 5px 10px;
-      text-decoration: none;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    .inquireButton:hover {
-      background-color: #01214B;
-    }
-
-    @media screen and (max-width: 992px) {
-      .availUnitsContainer {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    @media screen and (max-width: 768px) {
-      .availUnitsContainer {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media screen and (max-width: 480px) {
-      .availUnitsContainer {
-        grid-template-columns: 1fr;
-      }
+    .features {
+      top: 0;
     }
     
-    .footer {
-      margin-top: 50px;
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      height: 140px;
+    .aboutRYC {
+      top: 0;
     }
     
-    .footerContainer {
-      background-color: #2262B8;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .availUnitsSection {
+      top: 0;
     }
-    
-    .contactleftside {
-      position: relative;
-      bottom: 13px;
-      margin-left: 30px;
-    }
-    
-    .contactleftside h6 {
-      font-size: 15px;
-      margin-bottom: 0;
-      color: #fff;
-    }
-    
-    .contactleftside p {
-      font-size: 13px;
-      margin-top: 0;
-      color: #fff;
-    }
-    
-    .contactleftside img {
-      margin-right: 5px;    
-      height: 8px;
-      width: 8px;
-    }
-    
-    .contactrightside {
-      margin-right: 30px;
-      text-align: center;
-    }
-    
-    .contactrightside p {
-      font-size: 14px;
-      color: #fff;
-    }
+  }
+</style>
 
-    /* Responsive styles for footer */
-    @media screen and (max-width: 992px) {
-      .footer {
-        height: auto;
-      }
-      
-      .footerContainer {
-        padding: 20px 0;
-      }
-      
-      .contactleftside {
-        margin-left: 20px;
-        bottom: 0;
-      }
-      
-      .contactrightside {
-        margin-right: 20px;
-      }
+<?php if (!empty($reservation_success_message)): ?>
+<div class="alert alert-success alert-dismissible fade show" style="position: fixed; top: 100px; left: 50%; transform: translateX(-50%); z-index: 1050; max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);" role="alert">
+  <strong>Reservation Submitted Successfully!</strong><br>
+  <?php echo htmlspecialchars($reservation_success_message); ?>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<script>
+  // Auto-hide the success message after 8 seconds
+  setTimeout(function() {
+    const alert = document.querySelector('.alert-success');
+    if (alert) {
+      const bsAlert = new bootstrap.Alert(alert);
+      bsAlert.close();
     }
+  }, 8000);
+</script>
+<?php endif; ?>
 
-    @media screen and (max-width: 768px) {
-      .footerContainer {
-        flex-direction: column;
-        padding: 15px 0;
-      }
-      
-      .contactleftside {
-        margin: 0 0 15px 0;
-        text-align: center;
-        width: 90%;
-      }
-      
-      .contactleftside h6 {
-        font-size: 14px;
-      }
-      
-      .contactleftside p {
-        font-size: 12px;
-      }
-      
-      .contactrightside {
-        margin: 0;
-        width: 90%;
-      }
-      
-      .contactrightside p {
-        font-size: 12px;
-      }
-    }
-
-    @media screen and (max-width: 480px) {
-      .footerContainer {
-        padding: 10px 0;
-      }
-      
-      .contactleftside h6 {
-        font-size: 12px;
-      }
-      
-      .contactleftside p {
-        font-size: 10px;
-      }
-      
-      .contactrightside p {
-        font-size: 10px;
-      }
-      
-      .contactleftside img {
-        width: 12px;
-        height: auto;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div class="hanburgerandaccContainer">
-      <button class="hamburger" onclick="toggleMenu()">☰</button>
-      <div class="adminSection">
-        <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 25px; width: 25px; display: flex; justify-content: center;"></a> |
-        <a href="../LOGIN.php">Log Out</a>
-      </div>
+<!-- Hero Section -->
+<div class="mainBody">
+  <div class="mainBodyName">
+    <h1>RYC Dormitelle</h1>
+    <h2>Modern apartment-style living designed for students and professionals in Daet, Camarines Norte</h2>
+    <h3>Ofelia Pasig, Daet, Camarines Norte 4600</h3>
+    <div class="cta-buttons">
+      <a href="#availUnitsContainer" class="btn-primary-hero scroll-link">View Available Units</a>
+      <a href="#aboutRYC" class="btn-secondary-hero scroll-link">Learn More</a>
     </div>
-    <div class="containerSystemName" id="containerSystemName">
-      <div class="systemName">
-        <h2>RYC Dormitelle</h2>
-        <h4>APARTMENT MANAGEMENT SYSTEM</h4>
-      </div>
+  </div>
+</div>
+
+<!-- Features Section -->
+<section class="features">
+  <div class="container">
+    <div class="section-title">
+      <h2>Why Choose RYC Dormitelle?</h2>
+      <p>Experience comfort, convenience, and security in our modern living spaces</p>
     </div>
-    <div class="navbar" id="navbar">
-      <div class="navbarContent">
-        <a href="USERHOMEPAGE.php">Home</a>
-        <a href="#aboutRYC" class="scroll-link">About</a>
-        <a href="#availUnitsContainer" class="scroll-link">Available Units</a>
-        <div class="loginLogOut">
-          <a href="USERACCOUNTPAGE.php"><img src="../staticImages/userIcon.png" alt="userIcon" style="height: 45px; width: 45px; display: flex; justify-content: center;"></a>
-          <p style="font-size: 20px; color: white; margin: 0 5px;">|</p>
-          <a href="../LOGIN.php">Log Out</a>
-        </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🏠</div>
+        <h3>Semi Furnished</h3>
+        <p>Each unit comes with essential furniture and appliances for your comfort</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>24/7 Security</h3>
+        <p>Round-the-clock security and CCTV monitoring for your peace of mind</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📶</div>
+        <h3>High-Speed WiFi</h3>
+        <p>Reliable internet connection perfect for studying and working</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌍</div>
+        <h3>Prime Location</h3>
+        <p>Conveniently located near schools, offices, and transportation hubs</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">❄️</div>
+        <h3>Air-Conditioned</h3>
+        <p>Stay comfortable year-round with modern air conditioning systems</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3>Affordable Rates</h3>
+        <p>Quality living spaces at competitive prices for students and professionals</p>
       </div>
     </div>
   </div>
+</section>
 
-  <div class="mainBody">
-    <div class="mainBodyName">
-      <h1>RYC Dormitelle</h1>
-      <h2>APARTMENT MANAGEMENT SYSTEM</h2>
-      <h3>Ofelia Pasig, Daet, Camarines Norte 4600</h3>
+<!-- About Section -->
+<div class="aboutRYC" id="aboutRYC">
+  <div class="container">
+    <div class="about-content">
+      <div class="about-text">
+        <h1>About RYC Dormitelle</h1>
+        <p>RYC Dormitelle is a modern apartment-style residence designed for students and working professionals seeking comfort, convenience, and security.</p>
+        <p>Located in Ofelia Pasig, Daet, Camarines Norte, we offer easy access to schools, offices, and transportation hubs while providing a safe and peaceful environment.</p>
+        <p>Our commitment is to provide affordable yet quality living spaces that truly feel like home.</p>
+        <a href="#availUnitsContainer" class="btn-primary-hero scroll-link">Explore Our Units</a>
+      </div>
+      <div class="about-image">
+        <img src="../otherIcons/systemLogo.png" alt="RYC Dormitelle Building" style="width: 100%; height: 100%; object-fit: contain;">
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="aboutRYC" id="aboutRYC">
-    <div class="aboutRYCcontent">
-      <img src="../otherIcons/systemLogo.png" alt="systemLogo">
-      <h1>About RYC Dormitelle</h1>
-      <p>RYC Dormitelle is a modern apartment-style residence designed for<br>students and working professionals seeking comfort, convenience, and<br>security. Located in a prime area near schools, offices, and transportation<br>hubs, RYC Dormitelle offers easy access to everything you need. <br><br>
-        Each unit is fully furnished and equipped with essential amenities such as<br>air-conditioning, high-speed Wi-Fi, study and sleeping areas, and private<br>bathrooms. The building features 24/7 security, CCTV monitoring, and a<br>clean, well-maintained environment to ensure a safe and peaceful stay. <br><br>
-        At RYC Dormitelle, we are committed to providing affordable yet quality<br>living spaces that feel like home.<br><br>
-      </p>
+<!-- Available Units Section -->
+<div class="availUnitsSection">
+  <div class="container">
+    <div class="availUnitsContent">
+      <h1>Available Units</h1>
+      <p>Find the perfect space for your needs</p>
     </div>
-  </div>
-
-  <div class="availUnitsContent">
-    <h1>Available Units</h1>
-  </div>
-  
-  <div class="availUnits">
-    <div class="availUnitsContainer" id="availUnitsContainer">
-      <?php
-      // Check if there are any available units
-      if (mysqli_num_rows($result) > 0) {
-          // Loop through all available units
-          while ($row = mysqli_fetch_assoc($result)) {
-              ?>
-              <div class="availUnitsBox">
-              <img src="../unitImages/<?php echo htmlspecialchars($row['unit_image']); ?>" alt="<?php echo htmlspecialchars($row['unit_type']); ?>" class="unit_image">
-                <div class="unit_no"><?php echo htmlspecialchars($row['unit_no']); ?></div>
-                <div class="unitInfo">
-                  <p class="unitT_type"><?php echo htmlspecialchars($row['unit_type']); ?></p>
-                  <p class="occupant_capacity">Studio unit accommodating up to <?php echo htmlspecialchars($row['occupant_capacity']); ?> persons</p>
-                  <p class="unitDetails"><?php echo htmlspecialchars($row['unit_address']); ?></p>
-                  <p class="monthly_rent_amount">₱<?php echo number_format($row['monthly_rent_amount']); ?> monthly</p>
-                  <a href="INQUIRYPAGE.php?unit_no=<?php echo htmlspecialchars($row['unit_no']); ?>" class="inquireButton">Inquire Now</a>
+    
+    <div class="availUnits">
+      <div class="availUnitsContainer" id="availUnitsContainer">
+        <?php
+        if (isset($error_message)) {
+            echo "<p>$error_message</p>";
+        } elseif (mysqli_num_rows($result) > 0) {
+            // Loop through available units (max 6)
+            while ($row = mysqli_fetch_assoc($result)) {
+                ?>
+                <div class="availUnitsBox">
+                  <div class="unit-image-container">
+                    <img src="../unitImages/<?php echo htmlspecialchars($row['unit_image']); ?>" alt="<?php echo htmlspecialchars($row['unit_type']); ?>" class="unit_image">
+                    <div class="unit_no"><?php echo htmlspecialchars($row['unit_no']); ?></div>
+                  </div>
+                  <div class="unitInfo">
+                    <h3 class="unitT_type"><?php echo htmlspecialchars($row['unit_type']); ?></h3>
+                    <div class="unit-details">
+                      <span>Up to <?php echo htmlspecialchars($row['occupant_capacity']); ?> persons</span>
+                      <span>Studio unit</span>
+                    </div>
+                    <p class="unit_address"><?php echo htmlspecialchars($row['unit_address']); ?></p>
+                    <div class="monthly_rent_amount">₱<?php echo number_format($row['monthly_rent_amount']); ?>/month</div>
+                    <a href="USERINQUIRYPAGE.php?unit_no=<?php echo htmlspecialchars($row['unit_no']); ?>" class="inquireButton">Inquire Now</a>
+                  </div>
                 </div>
-              </div>
-              <?php
-          }
-      } else {
-          echo "<p>No available units at the moment. Please check back later.</p>";
-      }
-      ?>
-    </div>
-  </div>
-
-  <div class="footer">
-    <div class="footerContainer">
-      <div class="contactleftside">
-        <h6>Contact Information & Inquiry Form</h6>
-        <p><img src="../tenantviewIcons/profileIcon.png" alt="Profile Icon">Manager: Kyle Angela Catiis<br><img src="../tenantviewIcons/addressIcon.png" alt="Address Icon">Address: Ofelia Pasig, Daet, Camarines Norte<br>
-          <img src="../tenantviewIcons/IconMail.png" alt="Mail Icon">Email: kyleangelacatiis@gmail.com<br><img src="../tenantviewIcons/phoneIcon.png" alt="Phone Icon">Phone: 0912-345-6789</p>
-      </div>
-      <div class="contactrightside">
-        <p>Apartment Management System @ 2025.<br>All Rights Reserved.<br>Developed by Joriz Gutierrez</p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function toggleMenu() {
-      document.getElementById('containerSystemName').classList.toggle('show');
-      document.getElementById('navbar').classList.toggle('show');
-    }
-  </script>
-  <script>
-    document.querySelectorAll('a.scroll-link').forEach(link => {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetClass = this.getAttribute('href'); // e.g., '.section2'
-        const targetElement = document.querySelector(targetClass);
-        if (targetElement) {
-          targetElement.scrollIntoView({ behavior: 'smooth' });
+                <?php
+            }
+        } else {
+            echo "<p>No available units at the moment. Please check back later.</p>";
         }
-      });
-    });
-  </script>
-</body>
-</html>
-<?php 
-// Close database connection
-mysqli_close($conn);
+        ?>
+      </div>
+      
+      <!-- See More Button (only show if there are more than 6 units) -->
+      <?php if ($total_units > 6): ?>
+      <div class="see-more-container">
+        <a href="ALLUNITSPAGE.php" class="btn-see-more">
+          See More Units (<?php echo $total_units - 6; ?> more available)
+        </a>
+      </div>
+      <?php endif; ?>
+    </div>
+  </div>
+</div>
+
+<?php
+// Include footer
+include 'footer.php';
 ?>

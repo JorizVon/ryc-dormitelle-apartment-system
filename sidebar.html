@@ -1,0 +1,102 @@
+<!-- Sidebar Component -->
+<div class="sideBar">
+    <div class="systemTitle">
+        <h1>RYC Dormitelle</h1>
+        <p>APARTMENT MANAGEMENT SYSTEM</p>
+    </div>
+    <div class="sidebarContent">
+        <div class="card">
+            <a href="DASHBOARD.php" class="nav-link" data-page="dashboard">
+                <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="sidebar-icon dashboard-icon">
+                Dashboard
+            </a>
+        </div>
+        <div class="card">
+            <a href="UNITSINFORMATION.php" class="nav-link" data-page="units">
+                <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="sidebar-icon units-icon">
+                Units Information
+            </a>
+        </div>
+        <div class="card">
+            <a href="TENANTSLIST.php" class="nav-link" data-page="tenants">
+                <img src="sidebarIcons/TenantsInfoIconWht.png" alt="Tenants Information Icon" class="sidebar-icon tenants-icon">
+                Tenants List
+            </a>
+        </div>
+        <div class="card">
+            <a href="PAYMENTMANAGEMENT.php" class="nav-link" data-page="payment">
+                <img src="sidebarIcons/PaymentManagementIconWht.png" alt="Payment Management Icon" class="sidebar-icon payment-icon">
+                Payment Management
+            </a>
+        </div>
+        <div class="card">
+            <a href="ACCESSPOINTLOGS.php" class="nav-link" data-page="access">
+                <img src="sidebarIcons/AccesspointIconWht.png" alt="Access Point Logs Icon" class="sidebar-icon access-icon">
+                Access Point Logs
+            </a>
+        </div>
+        <div class="card">
+            <a href="CARDREGISTRATION.php" class="nav-link" data-page="card">
+                <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="sidebar-icon card-icon">
+                Card Registration
+            </a>
+        </div>
+        <div class="card">
+            <a href="PENDINGREQUEST.php" class="nav-link" data-page="pending">
+                <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="sidebar-icon pending-icon">
+                Pending Request
+            </a>
+        </div>
+        <div class="card">
+            <a href="CONTRACTMANAGEMENT.php" class="nav-link" data-page="contract">
+                <img src="sidebarIcons/ContractManagementIconWht.png" alt="Contract Management Icon" class="sidebar-icon contract-icon">
+                Contract Management
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Active page highlighting
+document.addEventListener('DOMContentLoaded', function() {
+    // Get current page name from URL
+    const currentPage = window.location.pathname.split('/').pop().toLowerCase();
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    // Remove active class from all links first
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        link.style.backgroundColor = '';
+        link.style.color = '';
+    });
+    
+    // Add active class to current page
+    navLinks.forEach(link => {
+        const href = link.getAttribute('href').toLowerCase();
+        if (currentPage.includes('dashboard') && href.includes('dashboard')) {
+            link.classList.add('active');
+        } else if (currentPage.includes('unitsinformation') && href.includes('unitsinformation')) {
+            link.classList.add('active');
+        } else if (currentPage.includes('tenantslist') && href.includes('tenantslist')) {
+            link.classList.add('active');
+        } else if (currentPage.includes('paymentmanagement') && href.includes('paymentmanagement')) {
+            link.classList.add('active');
+        } else if (currentPage.includes('accesspointlogs') && href.includes('accesspointlogs')) {
+            link.classList.add('active');
+        } else if (currentPage.includes('cardregistration') && href.includes('cardregistration')) {
+            link.classList.add('active');
+        } else if (currentPage.includes('pendingrequest') && href.includes('pendingrequest')) {
+            link.classList.add('active');
+        } else if (currentPage.includes('contractmanagement') && href.includes('contractmanagement')) {
+            link.classList.add('active');
+        }
+    }); 
+    
+    // Apply active styling
+    const activeLink = document.querySelector('.nav-link.active');
+    if (activeLink) {
+        activeLink.style.backgroundColor = '#FFFF';
+        activeLink.style.color = '#004AAD';
+    }
+}); 
+</script>

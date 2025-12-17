@@ -1,261 +1,206 @@
 <?php
 session_start();
-
 // Redirect to login if not logged in using 'email_account'
 if (!isset($_SESSION['email_account'])) {
-    // Assuming LOGIN.php is in the same directory or adjust path as needed
     header("Location: LOGIN.php");
     exit();
 }
-
-// Assuming db_connect.php is in the same directory or adjust path
 require_once 'db_connect.php';
 
-// Initialize $result to null or an empty array to avoid issues if query fails
+// Initialize variables
 $result = null;
-$query_error = ""; // To store any potential query error message
+$query_error = "";
+$tenants_data = [];
 
-$sql = "SELECT tenants.tenant_ID, tenants.tenant_name, tenants.contact_number, 
-               tenant_unit.start_date, tenant_unit.occupant_count,
-               tenant_unit.deposit, tenant_unit.balance, tenant_unit.status
-        FROM tenants
-        INNER JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID";
+// Modified SQL query to get representatives with their unit information
+$representative_sql = "SELECT tenants.tenant_ID, tenants.tenant_name, tenants.contact_no, 
+                      tenants.permanent_address, tenants.ec_person, tenants.email,
+                      tenants.ec_no, tenant_unit.start_date, tenant_unit.occupant_count,
+                      tenant_unit.security_deposit, tenant_unit.balance, tenant_unit.status,
+                      tenant_unit.unit_no, tenant_unit.payment_due, tenants.role, tenant_unit.total_rent_paid
+               FROM tenants
+               INNER JOIN tenant_unit ON tenants.tenant_ID = tenant_unit.tenant_ID
+               WHERE tenants.role = 'representative'
+               ORDER BY tenant_unit.unit_no";
 
-// Execute the query
-$query_result = $conn->query($sql);
+// Execute the query for representatives
+$representative_result = $conn->query($representative_sql);
 
 // Check if the query was successful
-if ($query_result === false) {
-    // Query failed, store the error message
+if ($representative_result === false) {
     $query_error = "Error executing query: " . $conn->error;
-    error_log($query_error); // Log the error for debugging
-    $result_data = []; // Ensure $result_data is an empty array so the HTML doesn't break
+    error_log($query_error);
 } else {
-    // Query was successful, fetch all results into an array
-    // This is generally better than fetching row by row inside the HTML loop for larger datasets
-    // but for simplicity and to match your original structure, we'll keep $result as the mysqli_result object.
-    $result = $query_result; // Assign the mysqli_result object to $result
+    
+    // ---------------------------------------------------------
+    // PREPARE STATEMENT FOR PAYMENT CHECKLIST
+    // ---------------------------------------------------------
+    // We select the checklist items for the specific email
+    // We ORDER BY monthly_due_dates ASC to ensure we check from oldest to newest
+    $checklist_sql = "SELECT `checklist_ID`, `unit_no`, `email_account`, `monthly_due_dates`, `pay_status` 
+                      FROM `payment_checklist`
+                      INNER JOIN tenants ON payment_checklist.email_account = tenants.email
+                      WHERE email_account = ?
+                      ORDER BY monthly_due_dates ASC"; 
+    
+    $checklist_stmt = $conn->prepare($checklist_sql);
+    
+    // Prepare companion statement
+    $companion_sql = "SELECT tenant_ID, tenant_name, contact_no, permanent_address, 
+                     ec_person, ec_no, email, role
+                     FROM tenants 
+                     WHERE tenant_ID LIKE ? 
+                     AND role = 'companion'
+                     AND tenant_ID != ?";
+    $companion_stmt = $conn->prepare($companion_sql);
+
+    // Process representatives
+    while ($rep_row = $representative_result->fetch_assoc()) {
+        $unit_no = $rep_row['unit_no'];
+        $rep_tenant_id = $rep_row['tenant_ID'];
+        $rep_email = $rep_row['email'];
+        
+        // ---------------------------------------------------------
+        // LOGIC TO GET 1ST UNPAID DUE DATE
+        // ---------------------------------------------------------
+        if ($checklist_stmt) {
+            $checklist_stmt->bind_param("s", $rep_email);
+            $checklist_stmt->execute();
+            $checklist_result = $checklist_stmt->get_result();
+            
+            $target_date = null;
+            
+            // Loop through the checklist
+            while ($check_row = $checklist_result->fetch_assoc()) {
+                // Always update target_date to the current row's date.
+                // If we finish the loop without finding an 'Unpaid', 
+                // this will hold the LATEST date (even if it's paid).
+                $target_date = $check_row['monthly_due_dates'];
+                
+                // If we find an 'Unpaid' status, this is the one we want.
+                // Since we ordered ASC, this is the "1st unpaid".
+                if (strcasecmp($check_row['pay_status'], 'Unpaid') == 0) {
+                    // We found the first unpaid bill.
+                    // $target_date is already set to this row's date above.
+                    break; // EXIT the loop immediately.
+                }
+            }
+            
+            // If we found any checklist data, update the payment_due field
+            if ($target_date !== null) {
+                $rep_row['payment_due'] = $target_date;
+            }
+        }
+        // ---------------------------------------------------------
+
+        if (!isset($tenants_data[$unit_no])) {
+            $tenants_data[$unit_no] = [
+                'representative' => null,
+                'companions' => []
+            ];
+        }
+        
+        // Store representative data
+        $tenants_data[$unit_no]['representative'] = $rep_row;
+        
+        // Extract the tenant_ID prefix pattern
+        $tenant_id_prefix = substr($rep_tenant_id, 0, -2);
+        
+        // Get companions matching the tenant_ID pattern
+        $pattern = $tenant_id_prefix . '%';
+        $companion_stmt->bind_param("ss", $pattern, $rep_tenant_id);
+        $companion_stmt->execute();
+        $companion_result = $companion_stmt->get_result();
+        
+        while ($companion_row = $companion_result->fetch_assoc()) {
+            $tenants_data[$unit_no]['companions'][] = $companion_row;
+        }
+    }
+    
+    // Close statements
+    if(isset($checklist_stmt)) $checklist_stmt->close();
+    if(isset($companion_stmt)) $companion_stmt->close();
 }
-
-// Get admin's display name (optional, for header)
-$adminDisplayIdentifier = "ADMIN"; // Default
-if (isset($_SESSION['email_account'])) {
-    // You could fetch a name from 'accounts' table based on 'email_account'
-    // For now, let's assume a default or you handle it as in other pages
-    // Example: $adminDisplayIdentifier = htmlspecialchars(strtok($_SESSION['email_account'], '@'));
-}
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenants List</title>
+    <title>Tenants List - RYC Dormitelle</title>
+    
+    <!-- Include the layout CSS -->
+    <link rel="stylesheet" href="layout.css">
+    
+    <!-- Tenants List specific styles -->
     <style>
-        body {
-            display: flex;
-            margin: 0;
-            background-color: #FFFF;
-        }
-        .sideBar {
-            width: 450px;
-            height: 100%;
-            background-color: #01214B;
-        }
-        .systemTitle {
-            text-align: center;
-            height: 10vh;
-            padding-bottom: 5.3px;
-        }
-        .systemTitle h1 {
-            font-size: 25px;
-            font-family: Inria Serif;
-            align-items: center;
-            position: relative;
-            top: 5px;
-            color: #FFFF;
-        }
-        .systemTitle p {
-            font-size: 14px;
-            font-family: Inria Serif;
-            position: relative;
-            bottom: 10px;
-            color: #FFFF;
-        }
-        .sidebarContent {
-            padding-top: 20px;
-            height: 84vh;
-            background-color: #004AAD;
-            display: block;
-        }
-        .card {
-            width: 100%;
-            height: 50px;
-            display: flex;
-            margin: 10px 0px 10px;
-            align-items: center;
-            justify-content: center;
-        }
-        .card a {
-            margin: auto 0px auto 0px;
-            font-size: 20px;
-            padding-left: 20px;
-            font-weight: 500;
-            display: flex;
-            text-decoration: none;
-            align-items: center;
-            /* color: #01214B; */ /* Covered by color: white */
-            height: 100%;
-            width: 100%;
-            background-color: #004AAD;
-            color: white;
-        }
-        .card a:hover {
-            /* background-color: 004AAD; */ /* Invalid */
-            color: #FFFF;
-            background-color: #FFFF;
-            color: #004AAD;
-        }
-        .card a:hover .DsidebarIcon {
-            content: url('sidebarIcons/DashboardIcon.png');
-        }
-        .card a:hover .UIsidebarIcon {
-            content: url('sidebarIcons/UnitsInfoIcon.png');
-        }
-        .card a:hover .THsidebarIcon {
-            content: url('sidebarIcons/TenantsInfoIcon.png');
-        }
-        .card a:hover .PMsidebarIcon {
-            content: url('sidebarIcons/PaymentManagementIcon.png');
-        }
-        .card a:hover .APLsidebarIcon {
-            content: url('sidebarIcons/AccesspointIcon.png');
-        }
-        .card a:hover .CGsidebarIcon {
-            content: url('sidebarIcons/CardregisterIcon.png');
-        }
-        .card a:hover .PIsidebarIcon {
-            content: url('sidebarIcons/PendingInquiryIcon.png');
-        }
-        .mainBody {
-            width: 100vw;
-            height: 100%;
-            background-color: white;
-        }
-        .header {
-            height: 13vh;
-            width: 100%;
-            background-color: #79B1FC;
-            display: flex;
-            justify-content: end;
-            align-items: center;
-        }
-        .headerContent {
-            margin-right: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-        }
-        .adminTitle {
-            font-size: 16px;
-            color: #01214B;
-            position: relative;
-            text-decoration: none;
-        }
-        .headerContent .adminTitle:hover {
-            color: #FFFF;
-        }
-        .adminLogoutspace {
-            font-size: 16px;
-            color: #01214B;
-            position: relative;
-            text-decoration: none;
-        }
-        .logOutbtn {
-            font-size: 16px;
-            color: #FFFF;
-            position: relative;
-            margin-left: 2px;
-            text-decoration: none;
-        }
-        .headerContent a.logOutbtn:hover { /* Specific selector */
-            color: #004AAD;
-        }
+        /* Tenants List Specific Styles */
         .mainContent {
-            height: calc(100% - 13vh); /* Adjusted for header */
-            width: 100%;
-            margin: 0px auto;
-            background-color: #FFFF;
-            padding-top: 20px;
+            padding: 20px;
+            overflow-y: auto;
         }
+
         .tenantHistoryHead {
             display: flex;
-            justify-content: space-between;
-            width: 100%;
+            justify-content: right;
             align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
-        .tenantHistoryHead h4 {
-            color: #01214B;
-            font-size: 32px;
-            margin-left: 60px;
-            /* height: 20px; */ /* Removed */
-            /* align-items: center; */ /* Not applicable */
-        }
+
         .searbar {
-            height: 30px; /* Increased height for better clickability */
+            height: 30px;
             width: 270px;
-            margin-right: 55px;
-            border: 1px solid #ccc; /* Standard border */
-            border-radius: 4px; /* Rounded corners */
-            font-size: 14px; /* Increased font size */
-            padding: 0 10px; /* Padding inside input */
-            /* position: relative; */ /* Removed if not needed */
-            /* top: 14px; */ /* Removed */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+            padding: 0 10px;
             box-sizing: border-box;
         }
+
         ::placeholder {
             color: #B7B5B5;
             opacity: 1;
         }
+
         .table-container {
-            max-width: 90%;
+            max-width: 100%;
             margin: 0 auto;
             border: 3px solid #A6DDFF;
             border-radius: 8px;
-            height: 415px;
-            max-height: 470px;
+            height: 57vh;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             overflow: hidden;
         }
 
         .table-scroll {
-            /* max-height: 500px; */ /* This was redundant with table-container max-height */
-            height: 100%; /* Fill the container */
+            height: 100%;
             overflow-y: auto;
-            overflow-x: auto; /* Keep for wide tables */
-            scrollbar-width: none; /* For Firefox */
+            overflow-x: auto;
+            scrollbar-width: none;
         }
 
         .table-scroll::-webkit-scrollbar {
-            display: none; /* For Chrome, Safari, Opera */
+            display: none;
         }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            /* border-color: #A6DDFF; */ /* Border on container is enough */
             background-color: white;
-            
         }
+        
         th, td {
-            padding: 10px 12px; /* Adjusted padding */
+            padding: 10px 12px;
             text-align: left;
-            font-size: 13px; /* Adjusted font size */
+            font-size: 13px;
             border-bottom: 1px solid #e0e0e0;
-            white-space: nowrap; /* Prevent text wrapping that might make rows too tall */
+            white-space: nowrap;
+            vertical-align: middle;
+            line-height: 1.4;
         }
+        
         th {
             background-color: #e3f2fd;
             font-weight: bold;
@@ -264,378 +209,350 @@ if (isset($_SESSION['email_account'])) {
             z-index: 1;
             font-size: 12px;
         }
-        .action-btn {
-            background-color: #2196f3;
-            color: white;
-            border: none;
-            padding: 7px 12px; /* Adjusted padding */
-            border-radius: 4px;
+        
+        /* Dropdown styles */
+        .dropdown-toggle {
             cursor: pointer;
-            text-decoration: none;
-            font-size: 12px;
+            color: #004AAD;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+            user-select: none;
+            transition: transform 0.3s ease;
+            margin-right: 8px;
         }
-
-        .action-btn:hover {
-            background-color: #1976d2;
+        
+        .dropdown-toggle.expanded {
+            transform: rotate(90deg);
         }
+        
+        .dropdown-toggle:hover {
+            color: #0066FF;
+        }
+        
+        .dropdown-placeholder {
+            display: inline-block;
+            width: 16px;
+            margin-right: 8px;
+        }
+        
+        /* Companion rows styling */
+        .companion-row {
+            display: none;
+            background-color: #f8f9fa;
+        }
+        
+        .companion-row.show {
+            display: table-row;
+        }
+        
+        .companion-row td {
+            color: #666;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .tenant-id-cell {
+            position: relative;
+        }
+        
+        .companion-row .tenant-id-cell {
+            padding-left: 35px;
+        }
+        
+        th:first-child {
+            padding-left: 36px;
+        }
+        
         .footbtnContainer {
-            width: 90%;
-            /* height: 20px; */ /* Let content define height */
-            margin: 20px auto; /* Adjusted margin */
             display: flex;
-            /* position: relative; */ /* Removed */
-            /* top: 38px; */ /* Controlled by margin */
             justify-content: space-between;
             align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
+
+        .viewtenanthistory,
         .backbtn {
-            height: 36px;
-            width: 110px;
-            /* position: relative; */ /* Removed */
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            /* bottom: 22px; */ /* Removed */
             background-color: #004AAD;
-            color: #FFFFFF;
+            color: white;
             text-decoration: none;
             border-radius: 5px;
-            font-size: 14px; /* Added for consistency */
+            font-size: 14px;
+            padding: 0 15px;
+            transition: all 0.3s ease;
         }
-        .footbtnContainer a.backbtn:hover, .footbtnContainer a.addtenantbtn:hover { /* Target specific links */
-            background-color: #FFFFFF;
+
+        .backbtn {
+            min-width: 110px;
+        }
+
+        .viewtenanthistory {
+            min-width: 200px;
+        }
+
+        .footbtnContainer a:hover {
+            background-color: white;
             color: #004AAD;
             border: 2px solid #004AAD;
         }
-        .addtenantbtn {
-            height: 36px;
-            width: auto; /* Auto width based on content */
-            padding: 0 15px; /* Padding for text */
-            /* position: relative; */ /* Removed */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* bottom: 20px; */ /* Removed */
-            background-color: #004AAD;
-            color: #FFFFFF;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 14px; /* Added for consistency */
-        }
-        .addtenantbtnIcon {
-            height: 18px; /* Adjusted size */
-            width: 18px; /* Adjusted size */
-            margin-right: 8px; /* Increased margin */
-        }
-        .footbtnContainer a:hover .addtenantbtnIcon {
-            content: url('UnitsInfoIcons/plusblue.png');
-        }
-        .hamburger {
-            display: none; /* Original: visibility: hidden; width: 0px; */
-        }
-        /* Mobile and Tablet Responsive */
+
+        /* Responsive Design */
         @media (max-width: 1024px) {
-            body {
-            /* display: flex; */ /* Removed, default is block */
-            /* margin: 0; */
-            /* background-color: #FFFF; */
-            /* justify-content: center; */ /* Removed, not ideal for this layout */
-            }
-            .sideBar {
-                position: fixed;
-                left: -100%;
-                top: 0;
-                height: 100vh;
-                z-index: 1000;
-                transition: 0.3s ease;
-            }
-
-            .sideBar.active {
-                left: 0;
-            }
-
-            .hamburger {
-                display: block;
-                position: fixed; /* Changed */
-                top: 25px;
-                left: 20px;
-                z-index: 1100;
-                font-size: 30px;
-                cursor: pointer;
-                color: #004AAD;
-                /* visibility: visible; */
-                width: auto; /* Changed */
-                background-color: white;
-                padding: 5px 10px;
-                border-radius: 3px;
-            }
-
-            .mainBody {
-                width: 100%;
-                margin-left: 0 !important; /* Ensure full width when sidebar is hidden/overlay */
-            }
-
-            .header {
-                justify-content: flex-end; /* Changed */
-            }
-
             .mainContent {
-                width: 100%;
-                margin: 0 auto;
-                padding: 15px; /* Added padding */
-                box-sizing: border-box; /* Include padding in width */
+                padding: 15px;
             }
 
             .tenantHistoryHead {
                 flex-direction: column;
-                align-items: stretch; /* Stretch items */
+                align-items: stretch;
                 text-align: center;
             }
 
-            .tenantHistoryHead h4 {
-                margin: 15px 0 10px 0; /* Adjusted margin */
-                font-size: 28px; /* Adjusted */
-                margin-left: 0; /* Center title */
-            }
-
             .searbar {
-                width: 90%;
-                margin: 10px auto; /* Centered search bar */
+                width: 100%;
             }
 
             .table-container {
-                width: 100%; /* Full width on mobile */
-                max-width: 100%; /* Override desktop max-width */
-                border-left: none; /* Remove side borders for full bleed */
+                border-left: none;
                 border-right: none;
-                border-radius: 0; /* No radius for full bleed */
-                max-height: calc(100vh - 250px); /* Example dynamic height */
-            }
-
-            table th, table td {
-                font-size: 11px; /* Adjusted */
-                padding: 8px 5px; /* Adjusted */
-            }
-            .action-btn {
-                font-size: 10px;
-                padding: 6px 8px; /* Adjusted */
+                border-radius: 0;
+                max-height: calc(100vh - 280px);
             }
 
             .footbtnContainer {
                 flex-direction: column;
                 align-items: center;
-                gap: 15px;
-                /* top: 10px; */ /* Position with margin */
-                margin: 20px auto; /* Adjusted */
-                width: 100%;
             }
-            .addtenantbtn {
-                font-size: 14px; /* Adjusted */
+
+            .backbtn {
+                order: 2;
                 width: 80%;
                 max-width: 280px;
-                /* padding: 5px 10px; */ /* Already has padding */
             }
-            .backbtn {
-                visibility: visible; /* Make back button visible or hide based on design */
-                /* display: none; */ /* If you want to hide it completely */
-                 width: 80%;
-                 max-width: 280px;
+
+            .viewtenanthistory {
+                order: 1;
+                width: 80%;
+                max-width: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .mainContent {
+                padding: 10px;
+            }
+
+            table th, table td {
+                font-size: 11px;
+                padding: 8px 5px;
             }
         }
 
         @media (max-width: 480px) {
-            .headerContent { margin-right: 20px; }
-            .headerContent a, .adminLogoutspace {
-                font-size: 14px;
-            }
-            .hamburger {
-                font-size: 28px;
-                top: 15px;
-                left: 15px;
-            }
-            .sideBar{
-                width: 220px; /* Adjusted */
-            }
-            .systemTitle {
-                position: relative;
-                top: 15px;
-                padding: 11px;
-            }
-            .systemTitle h1 {
-                font-size: 14px;
-                position: relative;
-                margin-bottom: 18px;
-
-            }
-            .systemTitle p {
-                font-size: 10px;
-            }
-            .card a {
-                font-size: 14px;
-                padding-left: 15px;
-            }
-            .card img {
-                height: 18px;
-                width: 18px;
-                margin-right: 8px;
-            }
-            /* .table-scroll { */
-                /* width: 600px; */ /* This will force horizontal scroll if screen is smaller */
-            /* } */
             table th, table td {
-                font-size: 10px; /* Further adjust for very small screens */
+                font-size: 10px;
+                padding: 6px 3px;
             }
-            .tenantHistoryHead h4 { font-size: 24px; }
+
+            .footbtnContainer {
+                gap: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="hamburger" onclick="toggleSidebar()">☰</div>
-    <div class="sideBar">
-        <div class="systemTitle">
-            <h1>RYC Dormitelle</h1>
-            <p>APARTMENT MANAGEMENT SYSTEM</p>
-        </div>
-        <div class="sidebarContent">
-            <div class="card">
-                <a href="DASHBOARD.php" class="changeicon">
-                    <img src="sidebarIcons/DashboardIconWht.png" alt="Dashboard Icon" class="DsidebarIcon" style="margin-right: 8px;">
-                    Dashboard
-                </a>
-            </div>
-            <div class="card">
-                <a href="UNITSINFORMATION.php">
-                    <img src="sidebarIcons/UnitsInfoIconWht.png" alt="Units Information Icon" class="UIsidebarIcon" style="margin-right: 5px;">
-                    Units Information</a>
-            </div>
-            <div class="card">
-                <a href="TENANTSLIST.php" style="background-color: #FFFF; color: #004AAD;">
-                    <img src="sidebarIcons/TenantsInfoIcon.png" alt="Tenants Information Icon" class="THsidebarIcon" style="margin-right: 3px;">
-                    Tenants List</a>
-            </div>
-            <div class="card">
-                <a href="PAYMENTMANAGEMENT.php">
-                    <img src="sidebarIcons/PaymentManagementIconWht.png" alt="Payment Management Icon" class="PMsidebarIcon" style="margin-right: 10px;">
-                    Payment Management</a>
-            </div>
-            <div class="card">
-                <a href="ACCESSPOINTLOGS.php">
-                    <img src="sidebarIcons/AccesspointIconWht.png" alt="Access Point Logs Icon" class="APLsidebarIcon" style="margin-right: 10px;">
-                    Access Point Logs</a>
-            </div>
-            <div class="card">
-                <a href="CARDREGISTRATION.php">
-                    <img src="sidebarIcons/CardregisterIconWht.png" alt="Card Registration Icon" class="CGsidebarIcon" style="margin-right: 10px;">
-                    Card Registration</a>
-            </div>
-            <div class="card">
-                <a href="PENDINGINQUIRY.php">
-                    <img src="sidebarIcons/PendingInquiryIconWht.png" alt="Pending Inquiry Icon" class="PIsidebarIcon" style="margin-right: 10px;">
-                    Pending Inquiry</a>
+    <!-- Include Sidebar -->
+    <?php include 'sidebar.html'; ?>
+    
+    <div class="mainBody">
+        <!-- Include Header -->
+        <?php include 'header.php'; ?>
+        
+        <div class="mainContent">
+            <h4>Tenants List</h4>
+            
+            <div class="tenantHistoryHead">
+                <input type="text" id="searchInput" placeholder="Search" class="searbar">
             </div>
             
-        </div>
-    </div>
-        <div class="mainBody">
-            <div class="header">
-                <div class="headerContent">
-                    <a href="ADMINPROFILE.php" class="adminTitle"><?php echo $adminDisplayIdentifier; ?></a>
-                    <p class="adminLogoutspace"> | </p>
-                    <a href="LOGIN.php" class="logOutbtn">Log Out</a> <!-- Or to LOGOUT.php -->
+            <div class="table-container">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tenant ID</th>
+                                <th>Name</th>
+                                <th>Contact Number</th>
+                                <th>Permanent Address</th>
+                                <th>Emergency Person</th>
+                                <th>Emergency Contact</th>
+                                <th>Start Date</th>
+                                <th>Occupant Count</th>
+                                <th>Security Deposit (₱)</th>
+                                <th>Total Rent Paid (₱)</th>
+                                <th>Next Payment Due</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // Check if there was a query error before trying to use data
+                            if (!empty($query_error)) {
+                                
+                            } elseif (!empty($tenants_data)) {
+                                foreach ($tenants_data as $unit_no => $unit_data) {
+                                    $representative = $unit_data['representative'];
+                                    $companions = $unit_data['companions'];
+                                    
+                                    if ($representative) {
+                                        // Display representative row
+                                        echo "<tr class='representative-row'>";
+                                        
+                                        // Tenant ID column with dropdown toggle if there are companions
+                                        echo "<td class='tenant-id-cell'>";
+                                        if (count($companions) > 0) {
+                                            echo "<span class='dropdown-toggle' onclick='toggleCompanions(\"unit_" . $unit_no . "\")'>▶</span>";
+                                        } else {
+                                            echo "<span class='dropdown-placeholder'></span>";
+                                        }
+                                        echo htmlspecialchars($representative["tenant_ID"]) . "</td>";
+                                        
+                                        echo "<td>" . htmlspecialchars($representative["tenant_name"]) . "</td>";
+                                        echo "<td>" . htmlspecialchars($representative["contact_no"]) . "</td>";
+                                        echo "<td>" . htmlspecialchars($representative["permanent_address"]) . "</td>";
+                                        echo "<td>" . htmlspecialchars($representative["ec_person"]) . "</td>";
+                                        echo "<td>" . htmlspecialchars($representative["ec_no"]) . "</td>";
+                                        echo "<td>" . htmlspecialchars($representative["start_date"]) . "</td>";
+                                        echo "<td>" . htmlspecialchars($representative["occupant_count"]) . "</td>";
+                                        echo "<td>" . number_format((float)$representative["security_deposit"], 2) . "</td>";
+                                        echo "<td>" . htmlspecialchars($representative["total_rent_paid"]) . "</td>";
+                                        echo "<td>" . htmlspecialchars($representative["payment_due"]) . "</td>";
+                                        echo "<td>" . htmlspecialchars($representative["status"]) . "</td>";
+                                        echo "</tr>";
+                                        
+                                        // Display companion rows (initially hidden)
+                                        foreach ($companions as $companion) {
+                                            echo "<tr class='companion-row unit_" . $unit_no . "'>";
+                                            echo "<td class='tenant-id-cell'>" . htmlspecialchars($companion["tenant_ID"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($companion["tenant_name"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($companion["contact_no"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($companion["permanent_address"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($companion["ec_person"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($companion["ec_no"]) . "</td>";
+                                            echo "<td>---</td>"; 
+                                            echo "<td>---</td>"; 
+                                            echo "<td>---</td>"; 
+                                            echo "<td>---</td>"; 
+                                            echo "<td>---</td>";
+                                            echo "</tr>";
+                                        }
+                                    }
+                                }
+                            } else {
+                                // In the no tenants message:
+                                echo "<tr><td colspan='12' style='text-align: center;'>No tenants found.</td></tr>";
+                            }
+                            ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="mainContent">
-        <div class="tenantHistoryHead">
-            <h4>Tenants List</h4>
-            <input type="text" placeholder="Search by Name, ID, Contact..." class="searbar"> <!-- Updated placeholder -->
-        </div>
-        <div class="table-container">
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tenant ID</th>
-                            <th>Name</th>
-                            <th>Contact Number</th>
-                            <th>Start Date</th>
-                            <th>Occupant Count</th>
-                            <th>Current Deposit (₱)</th> <!-- Added Currency -->
-                            <th>Current Balance (₱)</th> <!-- Added Currency -->
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        // Check if there was a query error before trying to use $result
-                        if (!empty($query_error)) {
-                            echo "<tr><td colspan='9' style='color: red; text-align: center;'>Error loading tenants: " . htmlspecialchars($query_error) . "</td></tr>";
-                        } elseif ($result && $result->num_rows > 0) { // Check if $result is a valid mysqli_result object
-                            while ($row = $result->fetch_assoc()) {
-                                echo "<tr>";
-                                echo "<td>" . htmlspecialchars($row["tenant_ID"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["tenant_name"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["contact_number"]) . "</td>";
-                                // Format date if needed: echo "<td>" . htmlspecialchars(date("M d, Y", strtotime($row["start_date"]))) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["start_date"]) . "</td>";
-                                echo "<td>". htmlspecialchars($row["occupant_count"]) . "</td>";
-                                echo "<td>". number_format((float)$row["deposit"], 2) . "</td>"; // Format as currency
-                                echo "<td>". number_format((float)$row["balance"], 2) . "</td>"; // Format as currency
-                                echo "<td>" . htmlspecialchars($row["status"]) . "</td>";
-                                echo '<td><a href="TENANTINFORMATION.php?tenant_ID=' . urlencode($row["tenant_ID"]) . '" class="action-btn">View Details</a></td>';
-                                echo "</tr>";
-                            }
-                        } else {
-                            echo "<tr><td colspan='9' style='text-align: center;'>No tenants found.</td></tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+            
             <div class="footbtnContainer">
                 <a href="DASHBOARD.php" class="backbtn">⤾ Back</a>
+                <a href="TENANTHISTORY.php" class="viewtenanthistory">View All Tenant History</a>
             </div>
         </div>
     </div>
+    
     <script>
-    document.querySelector('.searbar').addEventListener('keyup', function () {
-        const filter = this.value.toLowerCase().trim(); // Added trim
-        const rows = document.querySelectorAll('tbody tr');
-
-        rows.forEach(row => {
-            // Check if the row is a 'no results' or 'error' row before hiding
-            if (row.querySelector('td[colspan="9"]')) {
-                // For the "No tenants found" or error message row, always show if filter is empty,
-                // or hide if filter is not empty (as it's not a data row to be filtered)
-                // This part might need more complex logic depending on exact behavior desired for these rows.
-                // For now, we'll assume these rows are not part of the active filtering data.
-                return;
-            }
-
-            let rowVisible = false;
-            // Loop through all cells (td) in the current row
-            row.querySelectorAll('td').forEach(cell => {
-                // Exclude the action button cell from search text
-                if (cell.querySelector('.action-btn')) return;
-
-                if (cell.textContent.toLowerCase().includes(filter)) {
-                    rowVisible = true;
-                }
+        // Function to toggle companion rows
+        function toggleCompanions(unitClass) {
+            const companionRows = document.querySelectorAll('.' + unitClass);
+            const dropdownToggle = document.querySelector('[onclick="toggleCompanions(\'' + unitClass + '\')"]');
+            
+            companionRows.forEach(row => {
+                row.classList.toggle('show');
             });
-            row.style.display = rowVisible ? '' : 'none';
+            
+            // Rotate the dropdown arrow
+            dropdownToggle.classList.toggle('expanded');
+        }
+        
+        // Enhanced search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase().trim();
+            const representativeRows = document.querySelectorAll('.representative-row');
+            const companionRows = document.querySelectorAll('.companion-row');
+            
+            // Hide all companion rows first when searching
+            companionRows.forEach(row => {
+                row.classList.remove('show');
+            });
+            
+            // Reset all dropdown toggles
+            document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                toggle.classList.remove('expanded');
+            });
+
+            representativeRows.forEach(row => {
+                let rowVisible = false;
+                let unitVisible = false;
+                
+                // Check if representative matches
+                row.querySelectorAll('td').forEach(cell => {
+                    if (cell.textContent.toLowerCase().includes(filter)) {
+                        rowVisible = true;
+                        unitVisible = true;
+                    }
+                });
+                
+                // Get the unit class for this representative
+                const dropdownToggle = row.querySelector('.dropdown-toggle');
+                if (dropdownToggle) {
+                    const unitClass = dropdownToggle.getAttribute('onclick').match(/'([^']+)'/)[1];
+                    const unitCompanions = document.querySelectorAll('.' + unitClass);
+                    
+                    // Check if any companion matches
+                    unitCompanions.forEach(companionRow => {
+                        let companionMatches = false;
+                        companionRow.querySelectorAll('td').forEach(cell => {
+                            if (cell.textContent.toLowerCase().includes(filter)) {
+                                companionMatches = true;
+                                unitVisible = true;
+                            }
+                        });
+                        
+                        // Show/hide individual companion based on match
+                        if (filter === '' || companionMatches) {
+                            companionRow.style.display = unitVisible ? '' : 'none';
+                            if (companionMatches && filter !== '') {
+                                companionRow.classList.add('show');
+                                dropdownToggle.classList.add('expanded');
+                            }
+                        } else {
+                            companionRow.style.display = 'none';
+                        }
+                    });
+                }
+                
+                // Show/hide representative row
+                row.style.display = unitVisible ? '' : 'none';
+            });
         });
-    });
-    function toggleSidebar() {
-        const sidebar = document.querySelector('.sideBar');
-        sidebar.classList.toggle('active');
-    }
-</script>
+    </script>
+    <?php include 'chatfunctions/CHAT_COMPONENT.php'; ?>
 </body>
 </html>
 <?php
-if (isset($conn)) { // Close connection if it was opened
+if (isset($conn)) {
     $conn->close();
 }
 ?>
